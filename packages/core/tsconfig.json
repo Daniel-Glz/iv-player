@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // No ambient @types (node, DOM): core must stay environment-agnostic.
+    "types": []
+  },
+  "include": ["src", "test"]
+}
