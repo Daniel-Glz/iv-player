@@ -61,6 +61,9 @@ export interface Choice {
 /**
  * Clickable area shown over the video between `from` and `to`.
  * Unlike a question, it doesn't pause playback.
+ *
+ * Its geometry is either static (`area`, or `points` for polygons) or animated
+ * through `keyframes`, which take precedence.
  */
 export interface Hotspot {
   type: "hotspot";
@@ -70,12 +73,48 @@ export interface Hotspot {
   from: number;
   /** Second at which it disappears. Without it, it lasts until the scene ends. */
   to?: number;
-  area: Area;
   /** Accessible name of the clickable area, e.g. for screen readers. */
   label: string;
   /** Scene to branch to when activated. Without it, activation is only reported. */
   goto?: SceneId;
+  /** Default `"rect"`. */
+  shape?: HotspotShape;
+  /** Bounds of a static `rect` or `ellipse`. */
+  area?: Area;
+  /** Vertices of a static `polygon`. */
+  points?: readonly Point[];
+  /** Animated geometry, as seconds of the scene. Before the first and after the last, it holds still. */
+  keyframes?: readonly HotspotKeyframe[];
+  /**
+   * How the player draws it. Built in: `"outline"` (default), `"pulse"`, `"label"`
+   * (shows `label` as text) and `"hidden"` (invisible but clickable). Any other name
+   * can be styled through `::part(hotspot-<variant>)`.
+   */
+  variant?: string;
 }
+
+export type HotspotShape = "rect" | "ellipse" | "polygon";
+
+/** `[x, y]` in fractions (0–1) of the video frame. */
+export type Point = readonly [x: number, y: number];
+
+/**
+ * Hotspot geometry at the second `at` of the scene. Fields left out fall back to
+ * the hotspot's own `shape`, `area` and `points`.
+ */
+export interface HotspotKeyframe {
+  at: number;
+  shape?: HotspotShape;
+  area?: Area;
+  points?: readonly Point[];
+  /**
+   * Timing of the transition from this keyframe to the next (as in CSS). Default `"linear"`;
+   * `"step"` holds this keyframe until the next one.
+   */
+  easing?: Easing;
+}
+
+export type Easing = "linear" | "ease-in-out" | "step";
 
 /**
  * Rectangle in fractions (0–1) of the video frame, from its top-left corner.

@@ -5,21 +5,25 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": [
-    "./dist/index.js"
+    "./dist/index.js",
+    "./dist/iv-player.min.js"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./iv-player.min.js": "./dist/iv-player.min.js"
   },
   "main": "./dist/index.js",
+  "unpkg": "./dist/iv-player.min.js",
+  "jsdelivr": "./dist/iv-player.min.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsdown",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

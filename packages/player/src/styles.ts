@@ -61,18 +61,80 @@ video.front {
   z-index: 2;
 }
 
+/*
+ * The button only positions the hotspot and holds focus; clicks land on the
+ * SVG shape (or the label), so they follow the exact shape.
+ */
 .hotspots button {
   position: absolute;
   padding: 0;
-  border: var(--iv-hotspot-border, 2px solid rgb(255 255 255 / 0.8));
-  border-radius: var(--iv-hotspot-radius, 8px);
-  background: var(--iv-hotspot-background, rgb(255 255 255 / 0.12));
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  pointer-events: none;
+}
+
+.hotspot-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.hotspot-shape {
+  pointer-events: all;
+  cursor: pointer;
+  fill: var(--iv-hotspot-fill, rgb(255 255 255 / 0.12));
+  stroke: var(--iv-hotspot-stroke, rgb(255 255 255 / 0.85));
+  stroke-width: var(--iv-hotspot-stroke-width, 2px);
+  stroke-dasharray: var(--iv-hotspot-stroke-dasharray, none);
+  vector-effect: non-scaling-stroke;
+}
+
+.hotspots button:hover .hotspot-shape,
+.hotspots button:focus-visible .hotspot-shape {
+  fill: var(--iv-hotspot-fill-hover, rgb(255 255 255 / 0.28));
+}
+
+.hotspot-label {
+  display: none;
+}
+
+/* variant: "label" — shows the label as text over the shape. */
+[data-variant="label"] .hotspot-label {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0.2em 0.7em;
+  border-radius: 999px;
+  background: var(--iv-hotspot-label-background, rgb(0 0 0 / 0.6));
+  color: var(--iv-hotspot-label-color, #fff);
+  font-size: var(--iv-hotspot-label-font-size, 0.85em);
+  white-space: nowrap;
+  pointer-events: auto;
   cursor: pointer;
 }
 
-.hotspots button:hover,
-.hotspots button:focus-visible {
-  background: var(--iv-hotspot-background-hover, rgb(255 255 255 / 0.28));
+/* variant: "hidden" — invisible but clickable, e.g. for "find the object". */
+[data-variant="hidden"] .hotspot-shape {
+  fill: transparent;
+  stroke: transparent;
+}
+
+/* variant: "pulse" — breathes to draw attention. */
+[data-variant="pulse"] .hotspot-shape {
+  animation: iv-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes iv-pulse {
+  50% {
+    fill-opacity: 0.3;
+    stroke-opacity: 0.25;
+  }
 }
 
 .overlay {
@@ -196,6 +258,9 @@ input:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .controls {
     transition: none;
+  }
+  [data-variant="pulse"] .hotspot-shape {
+    animation: none;
   }
 }
 `;

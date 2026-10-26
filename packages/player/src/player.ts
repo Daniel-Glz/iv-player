@@ -1,8 +1,12 @@
 import {
+  boundsOf,
+  hotspotGeometryAt,
+  isAnimated,
   MediaController,
   StoryEngine,
   type EngineEvents,
   type Hotspot,
+  type HotspotGeometry,
   type Question,
   type Story,
 } from "@iv-player/core";
@@ -56,6 +60,21 @@ const template = /* html */ `
 `;
 
 /**
+ * Inside of every hotspot button. The shape is an SVG in a 0–100 box stretched
+ * over the hotspot's bounds; it receives the clicks, so they follow the exact shape.
+ */
+const hotspotContent = /* html */ `
+<svg class="hotspot-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+  <rect class="hotspot-shape" part="hotspot-shape" width="100" height="100" />
+  <polygon class="hotspot-shape" part="hotspot-shape" />
+</svg>
+<span class="hotspot-label" part="hotspot-label"></span>
+`;
+
+/** Customizes a hotspot's button right after the player creates it. See `IvPlayer.renderHotspot`. */
+export type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
+
+/**
  * `<iv-player>`: plays a `Story` set through the `story` property.
  *
  * Attributes:
@@ -93,6 +112,12 @@ export class IvPlayer extends HTMLElement {
   #story: Story | null = null;
   #engine: StoryEngine | null = null;
   #controller: MediaController<HTMLVideoElement> | null = null;
+  #renderHotspot: HotspotRenderer | null = null;
+  /** Buttons of the hotspots on screen. */
+  #hotspotButtons = new Map<Hotspot, HTMLButtonElement>();
+  #animationFrame = 0;
+  /** Pending frame callback driving animated hotspots, on the video it was requested from. */
+  #frameCallback: { video: HTMLVideoElement; handle: number } | null = null;
   #idleTimer: ReturnType<typeof setTimeout> | undefined;
   #scrubbing = false;
   #savedOverflow = "";
@@ -149,6 +174,12 @@ export class IvPlayer extends HTMLElement {
 
     for (const video of this.#videos) {
       video.addEventListener("loadedmetadata", () => this.#layoutHotspots());
+      // Also covers seeks while paused. Frame callbacks, when running, are more precise.
+      for (const type of ["seeked", "timeupdate"]) {
+        video.addEventListener(type, () => {
+          if (video === this.#activeVideo() && !this.#frameCallback) this.#positionHotspots();
+        });
+      }
       for (const type of ["play", "pause", "timeupdate", "durationchange", "volumechange", "seeked"]) {
         video.addEventListener(type, () => {
           if (video === this.#activeVideo()) this.#renderControls();
@@ -168,14 +199,25 @@ export class IvPlayer extends HTMLElement {
   }
 
   connectedCallback(): void {
+    // Properties set before the element was defined live on the instance and hide
+    // the accessors; reapply them through the accessors.
+    for (const property of ["story", "renderHotspot"] as const) {
+      if (Object.hasOwn(this, property)) {
+        const value = this[property];
+        Reflect.deleteProperty(this, property);
+        this[property] = value as never;
+      }
+    }
     this.#resizeObserver?.observe(this.#stage);
     document.addEventListener("fullscreenchange", this.#onFullscreenChange);
     this.#makeFocusable();
+    this.#animateHotspots();
   }
 
   disconnectedCallback(): void {
     this.#resizeObserver?.disconnect();
     document.removeEventListener("fullscreenchange", this.#onFullscreenChange);
+    this.#stopHotspotAnimation();
     clearTimeout(this.#idleTimer);
     this.#setPseudoFullscreen(false);
     this.pause();
@@ -210,6 +252,8 @@ export class IvPlayer extends HTMLElement {
       inactive.classList.remove("front");
       this.#layoutHotspots();
       this.#renderControls();
+      // Frame callbacks belong to the video that was on top.
+      this.#animateHotspots();
     });
     controller.on("blocked", () => {
       this.#start.hidden = false;
@@ -244,6 +288,21 @@ export class IvPlayer extends HTMLElement {
     if (this.hasAttribute("autoplay")) this.play();
     else this.#start.hidden = false;
     this.#updateControlsVisibility();
+  }
+
+  /**
+   * Called for every hotspot right after its button is created, with the default
+   * content (an SVG shape and a hidden label) already inside. Use it to restyle,
+   * add or replace content; the player keeps positioning and sizing the button.
+   * Clicks are taken by the default shape, so if you remove it, give your content
+   * `pointer-events: auto`. Applies from the next time hotspots are drawn.
+   */
+  get renderHotspot(): HotspotRenderer | null {
+    return this.#renderHotspot;
+  }
+
+  set renderHotspot(renderer: HotspotRenderer | null) {
+    this.#renderHotspot = renderer;
   }
 
   /** Engine driving the current story, for advanced control. `null` without a story. */
@@ -304,7 +363,7 @@ export class IvPlayer extends HTMLElement {
     this.#question.hidden = true;
     this.#start.hidden = true;
     this.#end.hidden = true;
-    this.#hotspots.replaceChildren();
+    this.#renderHotspots([]);
     this.#updateControlsVisibility();
   }
 
@@ -444,23 +503,71 @@ export class IvPlayer extends HTMLElement {
   }
 
   #renderHotspots(hotspots: readonly Hotspot[]): void {
-    this.#hotspots.replaceChildren(
-      ...hotspots.map(({ id, label, area }) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.setAttribute("part", "hotspot");
-        button.dataset["id"] = id;
-        button.setAttribute("aria-label", label);
-        button.title = label;
-        Object.assign(button.style, {
-          left: `${area.x * 100}%`,
-          top: `${area.y * 100}%`,
-          width: `${area.width * 100}%`,
-          height: `${area.height * 100}%`,
-        });
-        return button;
-      }),
-    );
+    this.#hotspotButtons = new Map(hotspots.map((hotspot) => [hotspot, this.#createHotspot(hotspot)]));
+    this.#hotspots.replaceChildren(...this.#hotspotButtons.values());
+    this.#positionHotspots();
+    this.#animateHotspots();
+  }
+
+  #createHotspot(hotspot: Hotspot): HTMLButtonElement {
+    const variant = toIdent(hotspot.variant ?? "outline");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.setAttribute("part", `hotspot hotspot-${variant}`);
+    button.dataset["id"] = hotspot.id;
+    button.dataset["variant"] = variant;
+    button.setAttribute("aria-label", hotspot.label);
+    button.title = hotspot.label;
+    button.innerHTML = hotspotContent;
+    button.querySelector(".hotspot-label")!.textContent = hotspot.label;
+    this.#renderHotspot?.(hotspot, button);
+    return button;
+  }
+
+  /** Places every hotspot on screen at its geometry for `time` (default: the current playback time). */
+  #positionHotspots(time = this.#activeVideo().currentTime): void {
+    for (const [hotspot, button] of this.#hotspotButtons) {
+      const geometry = hotspotGeometryAt(hotspot, time);
+      button.hidden = geometry === null;
+      if (geometry) applyGeometry(button, geometry);
+    }
+  }
+
+  /**
+   * Keeps animated hotspots in step with the picture while any is on screen.
+   *
+   * With `requestVideoFrameCallback`, they move exactly when a frame is presented
+   * and to that frame's time, so they step with the video. `currentTime` read on
+   * every animation frame runs up to most of a frame ahead of the picture, which
+   * shows as lag on fast motion; it's only the fallback.
+   */
+  #animateHotspots(): void {
+    this.#stopHotspotAnimation();
+    const animated = [...this.#hotspotButtons.keys()].some(isAnimated);
+    if (!animated || !this.isConnected) return;
+
+    const video = this.#activeVideo();
+    if (typeof video.requestVideoFrameCallback === "function") {
+      const onFrame: VideoFrameRequestCallback = (_now, { mediaTime }) => {
+        this.#positionHotspots(mediaTime);
+        this.#frameCallback = { video, handle: video.requestVideoFrameCallback(onFrame) };
+      };
+      this.#frameCallback = { video, handle: video.requestVideoFrameCallback(onFrame) };
+      return;
+    }
+    const tick = () => {
+      this.#positionHotspots();
+      this.#animationFrame = requestAnimationFrame(tick);
+    };
+    this.#animationFrame = requestAnimationFrame(tick);
+  }
+
+  #stopHotspotAnimation(): void {
+    cancelAnimationFrame(this.#animationFrame);
+    if (this.#frameCallback) {
+      this.#frameCallback.video.cancelVideoFrameCallback(this.#frameCallback.handle);
+      this.#frameCallback = null;
+    }
   }
 
   /** Matches the hotspot layer to the picture of the active video, excluding letterboxing. */
@@ -493,6 +600,42 @@ function buttonId(event: Event): string | undefined {
   const target = event.target;
   if (!(target instanceof Element)) return undefined;
   return target.closest<HTMLElement>("button[data-id]")?.dataset["id"];
+}
+
+/** Sizes a hotspot button to the geometry's bounds and draws its shape inside them. */
+function applyGeometry(button: HTMLButtonElement, geometry: HotspotGeometry): void {
+  const bounds = boundsOf(geometry);
+  const style = button.style;
+  style.left = `${bounds.x * 100}%`;
+  style.top = `${bounds.y * 100}%`;
+  style.width = `${bounds.width * 100}%`;
+  style.height = `${bounds.height * 100}%`;
+
+  // The renderer may have removed the default shapes.
+  const rect = button.querySelector<SVGRectElement>("rect.hotspot-shape");
+  const polygon = button.querySelector<SVGPolygonElement>("polygon.hotspot-shape");
+  if (geometry.kind === "box") {
+    const radius = String(geometry.roundness * 50);
+    rect?.setAttribute("rx", radius);
+    rect?.setAttribute("ry", radius);
+    rect?.style.removeProperty("display");
+    polygon?.style.setProperty("display", "none");
+  } else {
+    // Points relative to the bounds, in the SVG's 0–100 box.
+    const local = (value: number, origin: number, size: number) =>
+      size > 0 ? ((value - origin) / size) * 100 : 50;
+    const points = geometry.points
+      .map(([x, y]) => `${local(x, bounds.x, bounds.width)},${local(y, bounds.y, bounds.height)}`)
+      .join(" ");
+    polygon?.setAttribute("points", points);
+    polygon?.style.removeProperty("display");
+    rect?.style.setProperty("display", "none");
+  }
+}
+
+/** Turns a variant name into something usable in a `part` name. */
+function toIdent(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9-]/g, "-");
 }
 
 /** Swaps a control button's icon and accessible name, touching the DOM only on change. */

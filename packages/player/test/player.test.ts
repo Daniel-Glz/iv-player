@@ -134,7 +134,7 @@ describe("<iv-player>", () => {
     const { player, $$ } = playing();
     player.engine!.update(2);
 
-    const [door] = $$("[part=hotspot]");
+    const [door] = $$("[part~=hotspot]");
     expect(door?.getAttribute("aria-label")).toBe("Abrir la puerta");
     expect(door?.style.left).toBe("25%");
     expect(door?.style.top).toBe("50%");
@@ -142,7 +142,7 @@ describe("<iv-player>", () => {
     expect(door?.style.height).toBe("20%");
 
     player.engine!.update(4);
-    expect($$("[part=hotspot]")).toHaveLength(0);
+    expect($$("[part~=hotspot]")).toHaveLength(0);
   });
 
   it("activates a hotspot on click and dispatches iv-hotspot", () => {
@@ -150,7 +150,7 @@ describe("<iv-player>", () => {
     const onHotspot = vi.fn();
     player.addEventListener("iv-hotspot", onHotspot);
     player.engine!.update(2);
-    $$("[part=hotspot]")[0]!.click();
+    $$("[part~=hotspot]")[0]!.click();
 
     expect(onHotspot.mock.calls[0]![0].detail.hotspot.id).toBe("door");
     expect(player.engine!.currentSceneId).toBe("hall");
@@ -215,7 +215,7 @@ describe("<iv-player>", () => {
     expect(player.engine).not.toBe(first);
     expect(player.engine?.state).toBe("idle");
     expect($("[part=question]").hidden).toBe(true);
-    expect($$("[part=hotspot]")).toHaveLength(0);
+    expect($$("[part~=hotspot]")).toHaveLength(0);
     expect(videos.some((v) => v.classList.contains("front"))).toBe(false);
 
     // The old engine no longer drives the UI.

@@ -13,12 +13,12 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "demo": "pnpm --filter @iv-player/demo dev"
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.5",
+    "tsdown": "0.23.1",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   }
