@@ -8,3 +8,6 @@ export type { HotspotGeometry } from "./geometry.js";
 export { MediaController } from "./media.js";
 export type { MediaControllerEvents, MediaElement, VideoFrameCallback } from "./media.js";
 export type { Listener } from "./emitter.js";
+
+export { validateStory } from "./validation.js";
+export type { StoryValidationError, StoryValidationResult } from "./validation.js";
