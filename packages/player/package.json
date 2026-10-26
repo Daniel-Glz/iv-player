@@ -1,0 +1,31 @@
+{
+  "name": "@iv-player/player",
+  "version": "0.0.0",
+  "description": "<iv-player> Web Component for interactive videos, built on @iv-player/core",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./dist/index.js"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@iv-player/core": "workspace:*"
+  },
+  "devDependencies": {
+    "happy-dom": "~20.14.6"
+  }
+}

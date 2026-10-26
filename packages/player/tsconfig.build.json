@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "dist",
+    // Resolve core through its published entry (dist), like consumers do.
+    "paths": {}
+  },
+  "include": ["src"]
+}
