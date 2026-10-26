@@ -32,7 +32,7 @@ export interface EngineEvents {
  * its `at`. Seeking past several questions fires only the earliest; the rest
  * follow after it's answered. Re-entering a scene re-arms its questions.
  *
- * The story is expected to have passed `validateStory`.
+ * The story is trusted as-is: a reference to a missing scene throws when reached.
  */
 export class StoryEngine extends Emitter<EngineEvents> {
   private _state: EngineState = "idle";
