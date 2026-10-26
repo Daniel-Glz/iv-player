@@ -145,6 +145,8 @@ export class IvPlayer extends HTMLElement {
     });
 
     engine.on("scene", (detail) => {
+      // A scene change can interrupt a question, e.g. restart() while it's showing.
+      this.#question.hidden = true;
       this.#end.hidden = true;
       this.#emit("iv-scene", detail);
     });

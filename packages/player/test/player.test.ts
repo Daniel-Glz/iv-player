@@ -186,6 +186,15 @@ describe("<iv-player>", () => {
     expect(player.engine!.currentSceneId).toBe("intro");
   });
 
+  it("hides a showing question when the story restarts", () => {
+    const { player, $ } = playing();
+    player.engine!.update(5);
+    player.restart();
+
+    expect(player.engine!.state).toBe("playing");
+    expect($("[part=question]").hidden).toBe(true);
+  });
+
   it("shows the start button again when autoplay is blocked", async () => {
     const { player, $, videos } = mount();
     player.story = story;
