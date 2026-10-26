@@ -32,10 +32,9 @@ export interface Scene {
 }
 
 /**
- * Anything that can happen at a point in a scene's timeline.
- * Discriminated by `type`; more event kinds (e.g. hotspots) will join this union.
+ * Anything that can happen during a scene's timeline. Discriminated by `type`.
  */
-export type SceneEvent = Question;
+export type SceneEvent = Question | Hotspot;
 
 /** Pauses the video at `at` and asks the viewer to pick one of `options`. */
 export interface Question {
@@ -57,4 +56,35 @@ export interface Choice {
   label: string;
   /** Scene to branch to. Without it, the current scene resumes. */
   goto?: SceneId;
+}
+
+/**
+ * Clickable area shown over the video between `from` and `to`.
+ * Unlike a question, it doesn't pause playback.
+ */
+export interface Hotspot {
+  type: "hotspot";
+  /** Unique within the story; used to report activations. */
+  id: string;
+  /** Second of the scene at which the hotspot appears. */
+  from: number;
+  /** Second at which it disappears. Without it, it lasts until the scene ends. */
+  to?: number;
+  area: Area;
+  /** Accessible name of the clickable area, e.g. for screen readers. */
+  label: string;
+  /** Scene to branch to when activated. Without it, activation is only reported. */
+  goto?: SceneId;
+}
+
+/**
+ * Rectangle in fractions (0–1) of the video frame, from its top-left corner.
+ * Relative to the picture itself, not the `<video>` element, so letterboxing
+ * doesn't shift it.
+ */
+export interface Area {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }

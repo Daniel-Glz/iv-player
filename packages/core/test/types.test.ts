@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from "vitest";
-import type { Choice, Question, Scene, SceneEvent, Story } from "../src/index";
+import type { Choice, Hotspot, Question, Scene, SceneEvent, Story } from "../src/index";
 import { basicStory } from "./fixtures/basic-story";
 
 describe("story format types", () => {
@@ -11,6 +11,8 @@ describe("story format types", () => {
     const event = {} as SceneEvent;
     if (event.type === "question") {
       expectTypeOf(event).toEqualTypeOf<Question>();
+    } else {
+      expectTypeOf(event).toEqualTypeOf<Hotspot>();
     }
   });
 
