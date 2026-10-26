@@ -21,6 +21,19 @@ importers:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(happy-dom@20.14.6)(vite@8.3.5(@types/node@26.6.5))
 
+  examples/demo:
+    dependencies:
+      '@iv-player/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@iv-player/player':
+        specifier: workspace:*
+        version: link:../../packages/player
+    devDependencies:
+      vite:
+        specifier: ~8.3.4
+        version: 8.3.5(@types/node@26.6.5)
+
   packages/core: {}
 
   packages/player:

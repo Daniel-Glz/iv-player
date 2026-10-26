@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "paths": {
+      "@iv-player/core": ["../../packages/core/src/index.ts"],
+      "@iv-player/player": ["../../packages/player/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

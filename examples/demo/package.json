@@ -1,0 +1,17 @@
+{
+  "name": "@iv-player/demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "videos": "node scripts/generate-videos.mjs",
+    "dev": "node scripts/generate-videos.mjs && vite",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@iv-player/core": "workspace:*",
+    "@iv-player/player": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "~8.3.4"
+  }
+}
