@@ -60,7 +60,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
   private hasMediaEnded = false;
   private readonly timelines = new Map<SceneId, Timeline>();
 
-  constructor(private readonly story: Story) {
+  constructor(readonly story: Story) {
     super();
     if (!story.scenes[story.start]) {
       throw new Error(`Start scene "${story.start}" does not exist`);

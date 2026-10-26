@@ -3,4 +3,6 @@ export const VERSION = "0.0.0";
 export type * from "./types.js";
 export { StoryEngine } from "./engine.js";
 export type { EngineEvents, EngineState } from "./engine.js";
+export { MediaController } from "./media.js";
+export type { MediaControllerEvents, MediaElement, VideoFrameCallback } from "./media.js";
 export type { Listener } from "./emitter.js";
