@@ -1,3 +1,7 @@
+---
+description: "Live example: a video quiz that loops back to the question until it's answered right."
+---
+
 <script setup>
 import { quiz } from "./stories/quiz";
 </script>

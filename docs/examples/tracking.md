@@ -1,3 +1,7 @@
+---
+description: "Live example: an animated hotspot that follows a moving object frame by frame, using keyframes."
+---
+
 <script setup>
 import { tracking } from "./stories/tracking";
 </script>

@@ -1,3 +1,7 @@
+---
+description: "Reference for MediaController: seamless scene swaps, preloading, frame-accurate timing and the MediaElement interface."
+---
+
 # `MediaController`
 
 ```ts

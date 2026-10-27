@@ -1,3 +1,7 @@
+---
+description: "Add clickable hotspots to videos: rectangles, ellipses and polygons, keyframe animation, built-in variants and custom content."
+---
+
 # Hotspots
 
 A hotspot is a clickable area over the video. Unlike a question, it **doesn't pause playback**.

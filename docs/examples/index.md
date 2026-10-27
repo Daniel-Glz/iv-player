@@ -1,3 +1,7 @@
+---
+description: "Live examples of iv-player: branching stories, quizzes, hotspots, object tracking, theming, custom players and validation."
+---
+
 # Examples
 
 Every example on these pages is a live player running the current version of the library. Click Play, answer questions and click hotspots, then look at the story and code under each one.

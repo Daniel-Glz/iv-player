@@ -1,3 +1,7 @@
+---
+description: "Reference for the iv-player story format: Story, Scene, Question, Choice, Hotspot, keyframes, areas and points."
+---
+
 # Story format
 
 All types are exported from `@iv-player/core`:

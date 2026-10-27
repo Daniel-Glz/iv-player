@@ -1,3 +1,7 @@
+---
+description: "Check stories from JSON, an API or a CMS with validateStory, and understand every error code it reports."
+---
+
 # Validating stories
 
 The engine trusts the story it's given: a reference to a missing scene throws when playback reaches it. When a story comes from outside your code, such as a JSON file, an API or a CMS, check it first with `validateStory`.

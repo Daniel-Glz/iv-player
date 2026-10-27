@@ -1,3 +1,7 @@
+---
+description: "Live example: restyling the whole <iv-player> with custom properties, ::part() and slots."
+---
+
 <script setup>
 import { adventure } from "./stories/adventure";
 </script>

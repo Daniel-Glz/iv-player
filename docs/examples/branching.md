@@ -1,3 +1,7 @@
+---
+description: "Live example: an interactive video where a question branches the story into one of two scenes."
+---
+
 <script setup>
 import { adventure } from "./stories/adventure";
 </script>

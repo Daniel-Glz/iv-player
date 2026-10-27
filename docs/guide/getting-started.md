@@ -1,3 +1,7 @@
+---
+description: "Install iv-player, write your first interactive video story and use the <iv-player> Web Component from plain HTML, React, Vue or Svelte."
+---
+
 # Getting started
 
 iv-player has two packages:

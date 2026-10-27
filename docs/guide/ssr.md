@@ -1,3 +1,7 @@
+---
+description: "Use iv-player with server-side rendering in Next.js, Nuxt, SvelteKit and Astro, and see which build each runtime loads."
+---
+
 # Server-side rendering
 
 You can import `@iv-player/player` in code that also runs on the server, such as Next.js, Nuxt, SvelteKit or Astro. On the server, the import doesn't register anything and doesn't touch the DOM. The page HTML just includes an empty `<iv-player>` tag. Once the same import runs in the browser, it defines the element, and the player starts up with the `story` you gave it.

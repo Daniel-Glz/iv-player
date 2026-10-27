@@ -1,3 +1,7 @@
+---
+description: "Write iv-player stories: scenes, questions, branching, loops and how questions are timed, with tips for seamless transitions."
+---
+
 # Writing stories
 
 A story is a plain object, so you can write it in TypeScript, load it as JSON, or generate it from a CMS.
