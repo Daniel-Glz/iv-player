@@ -47,6 +47,10 @@ type EngineState = "idle" | "playing" | "interacting" | "ended";
 
 Enters the start scene. Calling it again restarts the story.
 
+### `goTo(sceneId: SceneId): void`
+
+Enters `sceneId` from any state, dismissing the question on screen, if any. Works before `start()` too, e.g. to resume a saved story. Throws if the scene doesn't exist.
+
 ### `update(currentTime: number): void`
 
 Reports the playback time, in seconds, of the active scene's video. Call it on every frame or `timeupdate`. Ignored unless `state` is `playing`.

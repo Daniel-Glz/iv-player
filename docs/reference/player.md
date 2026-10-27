@@ -72,6 +72,7 @@ type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 | `play()` | Starts the story, or resumes it after a pause or a blocked autoplay. |
 | `pause()` | Pauses the current video. |
 | `restart()` | Plays the story again from its start scene. |
+| `goTo(sceneId)` | Jumps to a scene and plays it, dismissing the question on screen, if any. Throws if the scene doesn't exist. |
 | `toggleFullscreen()` | Enters or leaves fullscreen with the whole player, questions and hotspots included. |
 
 ## Events

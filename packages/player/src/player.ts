@@ -8,6 +8,7 @@ import {
   type Hotspot,
   type HotspotGeometry,
   type Question,
+  type SceneId,
   type Story,
 } from "@ivkit/core";
 import { icons, type IconName } from "./icons.js";
@@ -269,7 +270,7 @@ export class IvkitPlayer extends Base {
     });
 
     engine.on("scene", (detail) => {
-      // A scene change can interrupt a question, e.g. restart() while it's showing.
+      // A scene change can interrupt a question, e.g. restart() or goTo() while it's showing.
       this.#question.hidden = true;
       this.#end.hidden = true;
       this.#updateControlsVisibility();
@@ -334,9 +335,17 @@ export class IvkitPlayer extends Base {
 
   /** Plays the story again from its start scene. */
   restart(): void {
+    if (this.#story) this.goTo(this.#story.start);
+  }
+
+  /**
+   * Jumps to the scene `sceneId` and plays it, dismissing the question on screen, if any.
+   * Use it to resume a saved story or to build chapter menus. Throws if the scene doesn't exist.
+   */
+  goTo(sceneId: SceneId): void {
     if (!this.#engine) return;
     this.#start.hidden = true;
-    this.#engine.start();
+    this.#engine.goTo(sceneId);
   }
 
   /** Whether the player fills the screen, natively or through the iPhone fallback. */
