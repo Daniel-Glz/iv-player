@@ -1,4 +1,4 @@
-import type { Story } from "@iv-player/core";
+import type { Story } from "@ivkit/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "../src/index";
 
@@ -17,7 +17,7 @@ const story: Story = {
 
 /** Mounts a player with `controls` and plays until the intro is on screen. */
 function playing(attributes: Record<string, string> = { controls: "" }) {
-  const player = document.createElement("iv-player");
+  const player = document.createElement("ivkit-player");
   for (const [name, value] of Object.entries(attributes)) player.setAttribute(name, value);
   document.body.append(player);
   const root = player.shadowRoot!;
@@ -42,7 +42,7 @@ afterEach(() => {
   document.documentElement.style.overflow = "";
 });
 
-describe("<iv-player> controls", () => {
+describe("<ivkit-player> controls", () => {
   it("only shows the control bar with the controls attribute", () => {
     const { player, $ } = playing({});
     expect($("[part=controls]").hidden).toBe(true);
@@ -52,7 +52,7 @@ describe("<iv-player> controls", () => {
   });
 
   it("hides the control bar over the start screen, questions and the end", () => {
-    const player = document.createElement("iv-player");
+    const player = document.createElement("ivkit-player");
     player.setAttribute("controls", "");
     document.body.append(player);
     const controls = player.shadowRoot!.querySelector<HTMLElement>("[part=controls]")!;

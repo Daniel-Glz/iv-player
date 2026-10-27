@@ -1,5 +1,5 @@
 ---
-description: Notable changes to @iv-player/core and @iv-player/player, release by release.
+description: Notable changes to @ivkit/core and @ivkit/player, release by release.
 ---
 
 <!--@include: ../CHANGELOG.md-->

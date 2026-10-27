@@ -10,7 +10,7 @@ const shared = {
 } as const;
 
 export default defineConfig([
-  // For bundlers and npm: imports @iv-player/core like any other dependency.
+  // For bundlers and npm: imports @ivkit/core like any other dependency.
   {
     ...shared,
     entry: ["src/index.ts", "src/element.ts", "src/server.ts"],
@@ -19,8 +19,8 @@ export default defineConfig([
   // For a <script type="module"> straight from a CDN: everything in one file.
   {
     ...shared,
-    entry: { "iv-player.min": "src/index.ts" },
-    deps: { alwaysBundle: ["@iv-player/core"] },
+    entry: { "ivkit-player.min": "src/index.ts" },
+    deps: { alwaysBundle: ["@ivkit/core"] },
     dts: false,
     clean: false,
   },

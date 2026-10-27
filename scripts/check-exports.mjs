@@ -24,11 +24,11 @@ function load(specifier, conditions) {
 }
 
 const cases = [
-  ["@iv-player/player", [], "index.js"],
-  ["@iv-player/player/element", [], "element.js"],
+  ["@ivkit/player", [], "index.js"],
+  ["@ivkit/player/element", [], "element.js"],
   ...["react-server", "workerd", "edge-light"].flatMap((condition) => [
-    ["@iv-player/player", [condition], "server.js"],
-    ["@iv-player/player/element", [condition], "server.js"],
+    ["@ivkit/player", [condition], "server.js"],
+    ["@ivkit/player/element", [condition], "server.js"],
   ]),
 ];
 
@@ -36,6 +36,6 @@ for (const [specifier, conditions, file] of cases) {
   const result = load(specifier, conditions);
   const label = `${specifier} [${conditions.join(", ") || "node"}]`;
   assert.equal(result.file, file, `${label}: resolved to ${result.file}`);
-  assert.deepEqual(result.exports, ["IvPlayer", "defineIvPlayer"], `${label}: unexpected exports`);
+  assert.deepEqual(result.exports, ["IvkitPlayer", "defineIvkitPlayer"], `${label}: unexpected exports`);
   console.log(`PASS ${label} → ${file}`);
 }

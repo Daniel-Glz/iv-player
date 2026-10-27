@@ -13,7 +13,7 @@ const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 for (const name of ["core", "player"]) {
   const pkg = await readJson(join(root, `packages/${name}/package.json`));
   const dependencies = Object.keys({ ...pkg.dependencies, ...pkg.optionalDependencies, ...pkg.peerDependencies }).sort();
-  assert.deepEqual(dependencies, name === "core" ? [] : ["@iv-player/core"], `${name}: unexpected runtime dependencies`);
+  assert.deepEqual(dependencies, name === "core" ? [] : ["@ivkit/core"], `${name}: unexpected runtime dependencies`);
 }
 
 // Always measure fresh production output, including the standalone browser build.
@@ -21,7 +21,7 @@ for (const name of ["core", "player"]) {
   await build({ cwd: join(root, `packages/${name}`), logLevel: "error" });
 }
 
-const temporary = await mkdtemp(join(tmpdir(), "iv-player-size-"));
+const temporary = await mkdtemp(join(tmpdir(), "ivkit-size-"));
 try {
   // Measure named imports from the published entry, not the original source files.
   for (const [name, symbol] of [["engine", "StoryEngine"], ["validation", "validateStory"]]) {
@@ -44,7 +44,7 @@ try {
   }
 
   const checks = [
-    ["Standalone player (includes core + CSS)", join(root, "packages/player/dist/iv-player.min.js"), 24 * 1024, 8 * 1024],
+    ["Standalone player (includes core + CSS)", join(root, "packages/player/dist/ivkit-player.min.js"), 24 * 1024, 8 * 1024],
     ["Full core (all exports)", join(root, "packages/core/dist/index.js"), 11 * 1024, 4 * 1024],
     ["StoryEngine only", join(temporary, "dist/engine.js"), 4 * 1024, 1.5 * 1024],
     ["validateStory only", join(temporary, "dist/validation.js"), 5 * 1024, 2 * 1024],
@@ -58,7 +58,7 @@ try {
     failed ||= !passes;
   }
   // Check that validation stays optional when importing playback functionality.
-  for (const path of [join(root, "packages/player/dist/iv-player.min.js"), join(temporary, "dist/engine.js")]) {
+  for (const path of [join(root, "packages/player/dist/ivkit-player.min.js"), join(temporary, "dist/engine.js")]) {
     const code = await readFile(path, "utf8");
     assert(!code.includes("missing_geometry"), `Validation unexpectedly included in ${path}`);
   }

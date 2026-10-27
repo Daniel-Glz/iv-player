@@ -1,5 +1,5 @@
 ---
-description: "Live example: restyling the whole <iv-player> with custom properties, ::part() and slots."
+description: "Live example: restyling the whole <ivkit-player> with custom properties, ::part() and slots."
 ---
 
 <script setup>
@@ -23,7 +23,7 @@ The same story as the [branching example](./branching), restyled with CSS only: 
 ## CSS
 
 ```css
-.sunset iv-player {
+.sunset ivkit-player {
   --iv-radius: 20px;
   --iv-font: 600 1rem/1.4 Georgia, serif;
   --iv-accent: #ffb86b;
@@ -36,17 +36,17 @@ The same story as the [branching example](./branching), restyled with CSS only: 
 }
 
 /* Options as large cards, with more room between them. */
-.sunset iv-player::part(options) {
+.sunset ivkit-player::part(options) {
   gap: 16px;
 }
 
-.sunset iv-player::part(option) {
+.sunset ivkit-player::part(option) {
   min-width: 10em;
   padding: 1em 1.4em;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.3);
 }
 
-.sunset iv-player::part(question-text) {
+.sunset ivkit-player::part(question-text) {
   font-style: italic;
 }
 ```
@@ -54,13 +54,13 @@ The same story as the [branching example](./branching), restyled with CSS only: 
 ## HTML
 
 ```html
-<iv-player controls>
+<ivkit-player controls>
   <span slot="start">☀︎ Begin the journey</span>
   <div slot="end">
     <strong>The end</strong>
     <span>Thanks for playing.</span>
   </div>
-</iv-player>
+</ivkit-player>
 ```
 
 The `end` slot replaces the default Replay button. Add your own button that calls `player.restart()` to keep that option.
@@ -68,7 +68,7 @@ The `end` slot replaces the default Replay button. Add your own button that call
 See [Styling the player](/guide/styling) for every custom property and part.
 
 <style>
-.sunset iv-player {
+.sunset ivkit-player {
   --iv-radius: 20px;
   --iv-font: 600 1rem/1.4 Georgia, serif;
   --iv-accent: #ffb86b;
@@ -80,17 +80,17 @@ See [Styling the player](/guide/styling) for every custom property and part.
   --iv-button-radius: 10px;
 }
 
-.sunset iv-player::part(options) {
+.sunset ivkit-player::part(options) {
   gap: 16px;
 }
 
-.sunset iv-player::part(option) {
+.sunset ivkit-player::part(option) {
   min-width: 10em;
   padding: 1em 1.4em;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.3);
 }
 
-.sunset iv-player::part(question-text) {
+.sunset ivkit-player::part(question-text) {
   font-style: italic;
 }
 

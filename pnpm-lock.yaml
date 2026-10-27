@@ -31,7 +31,7 @@ importers:
 
   packages/player:
     dependencies:
-      '@iv-player/core':
+      '@ivkit/core':
         specifier: workspace:*
         version: link:../core
     devDependencies:

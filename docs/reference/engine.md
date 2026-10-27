@@ -5,7 +5,7 @@ description: "Reference for StoryEngine: states, properties, methods, events and
 # `StoryEngine`
 
 ```ts
-import { StoryEngine } from "@iv-player/core";
+import { StoryEngine } from "@ivkit/core";
 ```
 
 Drives a story from playback time alone. It never touches media or the DOM. You feed it the playback time, react to its events, and report the viewer's actions.

@@ -1,12 +1,31 @@
 {
-  "name": "@iv-player/player",
-  "version": "0.0.0",
-  "description": "<iv-player> Web Component for interactive videos, built on @iv-player/core",
+  "name": "@ivkit/player",
+  "version": "0.1.0",
+  "description": "<ivkit-player> Web Component for interactive videos, built on @ivkit/core",
   "license": "MIT",
+  "author": "Alexis Gonzalez",
+  "homepage": "https://daniel-glz.github.io/ivkit/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daniel-Glz/ivkit.git",
+    "directory": "packages/player"
+  },
+  "bugs": {
+    "url": "https://github.com/Daniel-Glz/ivkit/issues"
+  },
+  "keywords": [
+    "interactive-video",
+    "branching-video",
+    "video-player",
+    "web-component",
+    "custom-element",
+    "hotspots",
+    "typescript"
+  ],
   "type": "module",
   "sideEffects": [
     "./dist/index.js",
-    "./dist/iv-player.min.js"
+    "./dist/ivkit-player.min.js"
   ],
   "exports": {
     ".": {
@@ -23,11 +42,11 @@
       "edge-light": "./dist/server.js",
       "import": "./dist/element.js"
     },
-    "./iv-player.min.js": "./dist/iv-player.min.js"
+    "./ivkit-player.min.js": "./dist/ivkit-player.min.js"
   },
   "main": "./dist/index.js",
-  "unpkg": "./dist/iv-player.min.js",
-  "jsdelivr": "./dist/iv-player.min.js",
+  "unpkg": "./dist/ivkit-player.min.js",
+  "jsdelivr": "./dist/ivkit-player.min.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
@@ -37,9 +56,12 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@iv-player/core": "workspace:*"
+    "@ivkit/core": "workspace:*"
   },
   "devDependencies": {
     "happy-dom": "~20.14.6"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

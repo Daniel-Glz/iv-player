@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://daniel-glz.github.io/iv-player/sitemap.xml
+Sitemap: https://daniel-glz.github.io/ivkit/sitemap.xml

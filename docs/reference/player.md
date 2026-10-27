@@ -1,43 +1,43 @@
 ---
-description: "Reference for <iv-player>: entry points, attributes, properties, methods, events, keyboard shortcuts, slots and server builds."
+description: "Reference for <ivkit-player>: entry points, attributes, properties, methods, events, keyboard shortcuts, slots and server builds."
 ---
 
-# `<iv-player>`
+# `<ivkit-player>`
 
 ```ts
-import { IvPlayer } from "@iv-player/player";
+import { IvkitPlayer } from "@ivkit/player";
 ```
 
-Importing `@iv-player/player` registers the element as `iv-player`, unless something else already registered that name. The `IvPlayer` class is exported for `instanceof` checks and for subclassing.
+Importing `@ivkit/player` registers the element as `ivkit-player`, unless something else already registered that name. The `IvkitPlayer` class is exported for `instanceof` checks and for subclassing.
 
 ## Entry points
 
 | Import | Registers the element | Use it when |
 | --- | --- | --- |
-| `@iv-player/player` | Yes, as `iv-player`, on import. | Almost always. |
-| `@iv-player/player/element` | No. Call `defineIvPlayer()`. | You want another tag name, or to choose when the element is defined. |
+| `@ivkit/player` | Yes, as `ivkit-player`, on import. | Almost always. |
+| `@ivkit/player/element` | No. Call `defineIvkitPlayer()`. | You want another tag name, or to choose when the element is defined. |
 
-Both export `IvPlayer`, `defineIvPlayer` and the types `HotspotRenderer` and `IvPlayerEventMap`.
+Both export `IvkitPlayer`, `defineIvkitPlayer` and the types `HotspotRenderer` and `IvkitPlayerEventMap`.
 
-### `defineIvPlayer(name?: string): void`
+### `defineIvkitPlayer(name?: string): void`
 
-Registers the player as `name`, `"iv-player"` by default. It does nothing if that name is already taken, or when there's no `customElements`, such as on the server.
+Registers the player as `name`, `"ivkit-player"` by default. It does nothing if that name is already taken, or when there's no `customElements`, such as on the server.
 
 ```ts
-import { defineIvPlayer } from "@iv-player/player/element";
+import { defineIvkitPlayer } from "@ivkit/player/element";
 
-defineIvPlayer("story-player");
+defineIvkitPlayer("story-player");
 ```
 
 ```html
 <story-player controls></story-player>
 ```
 
-A class can only be registered once, so use a single name per page. The `HTMLElementTagNameMap` typing only covers `iv-player`.
+A class can only be registered once, so use a single name per page. The `HTMLElementTagNameMap` typing only covers `ivkit-player`.
 
 ### Server builds
 
-Edge runtimes and React Server Components get a server build of both entries through [export conditions](https://nodejs.org/api/packages.html#conditional-exports): `react-server`, `workerd` (Cloudflare) and `edge-light` (Vercel Edge). It has the same exports, but `IvPlayer` is an empty stand-in, `defineIvPlayer` does nothing, and none of the player's DOM code is included.
+Edge runtimes and React Server Components get a server build of both entries through [export conditions](https://nodejs.org/api/packages.html#conditional-exports): `react-server`, `workerd` (Cloudflare) and `edge-light` (Vercel Edge). It has the same exports, but `IvkitPlayer` is an empty stand-in, `defineIvkitPlayer` does nothing, and none of the player's DOM code is included.
 
 Plain Node, which Nuxt, SvelteKit and Astro use for server rendering, gets the full build. It's also safe to import there: without `HTMLElement` and `customElements`, it doesn't register anything. Test runners such as Vitest load dependencies through Node while providing a DOM, so they need the real element. See [Server-side rendering](/guide/ssr).
 
@@ -119,18 +119,18 @@ See [Styling the player](/guide/styling) for the custom properties and parts.
 
 ## TypeScript and JSX
 
-The package adds `iv-player` to `HTMLElementTagNameMap`, so `document.querySelector("iv-player")` returns an `IvPlayer`. For JSX in React, declare the element once in your project:
+The package adds `ivkit-player` to `HTMLElementTagNameMap`, so `document.querySelector("ivkit-player")` returns an `IvkitPlayer`. For JSX in React, declare the element once in your project:
 
 ```ts
-// iv-player.d.ts
-import type { IvPlayer } from "@iv-player/player";
+// ivkit-player.d.ts
+import type { IvkitPlayer } from "@ivkit/player";
 import type { DetailedHTMLProps, HTMLAttributes } from "react";
 
 declare module "react" {
   namespace JSX {
     interface IntrinsicElements {
-      "iv-player": DetailedHTMLProps<HTMLAttributes<IvPlayer>, IvPlayer> &
-        Partial<Pick<IvPlayer, "story" | "renderHotspot">> & {
+      "ivkit-player": DetailedHTMLProps<HTMLAttributes<IvkitPlayer>, IvkitPlayer> &
+        Partial<Pick<IvkitPlayer, "story" | "renderHotspot">> & {
           controls?: boolean;
           autoplay?: boolean;
           muted?: boolean;

@@ -1,10 +1,10 @@
 ---
-description: "Theme the <iv-player> Web Component with --iv-* custom properties, ::part() selectors and slots."
+description: "Theme the <ivkit-player> Web Component with --iv-* custom properties, ::part() selectors and slots."
 ---
 
 # Styling the player
 
-`<iv-player>` renders inside a shadow root, so page styles don't leak into it. You customize it in two ways:
+`<ivkit-player>` renders inside a shadow root, so page styles don't leak into it. You customize it in two ways:
 
 1. **Custom properties** (`--iv-*`) for colors, fonts and sizes.
 2. **`::part()`** for anything else.
@@ -12,7 +12,7 @@ description: "Theme the <iv-player> Web Component with --iv-* custom properties,
 ## Custom properties
 
 ```css
-iv-player {
+ivkit-player {
   --iv-accent: #ffd166;
   --iv-accent-contrast: #1b1b1f;
   --iv-font: 600 1rem/1.4 "Inter", sans-serif;
@@ -49,11 +49,11 @@ iv-player {
 Every element is exposed as a part:
 
 ```css
-iv-player::part(question) {
+ivkit-player::part(question) {
   backdrop-filter: blur(6px);
 }
 
-iv-player::part(option) {
+ivkit-player::part(option) {
   border-radius: 8px;
   text-transform: uppercase;
 }
@@ -82,7 +82,7 @@ Each hotspot gets the parts `hotspot` and `hotspot-<variant>`, so you can create
 ```
 
 ```css
-iv-player::part(hotspot-gold) {
+ivkit-player::part(hotspot-gold) {
   --iv-hotspot-fill: rgb(255 209 102 / 0.35);
   --iv-hotspot-stroke: #ffd166;
   --iv-hotspot-stroke-dasharray: 4 3;
@@ -96,13 +96,13 @@ Variant names are lowercased, and characters other than letters, digits and `-` 
 Replace the content of the start and end screens with slots:
 
 ```html
-<iv-player controls>
+<ivkit-player controls>
   <span slot="start">▶ Watch the story</span>
   <div slot="end">
     <p>Thanks for watching!</p>
     <a href="/next">Next episode</a>
   </div>
-</iv-player>
+</ivkit-player>
 ```
 
 The `end` slot replaces the default Replay button. Call `player.restart()` from your own button to play again.
@@ -114,7 +114,7 @@ The control bar's fullscreen button, the `f` key and `player.toggleFullscreen()`
 On iPhone, where elements can't go fullscreen, the player covers the viewport instead and sets the `pseudo-fullscreen` attribute. Style that state with:
 
 ```css
-iv-player[pseudo-fullscreen] {
+ivkit-player[pseudo-fullscreen] {
   /* e.g. hide page chrome that would show through */
 }
 ```

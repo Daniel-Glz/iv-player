@@ -52,7 +52,7 @@ Here every hotspot from the [shapes example](./hotspot-shapes) uses a `marker` v
 ```
 
 ```css
-.markers iv-player::part(hotspot-marker) {
+.markers ivkit-player::part(hotspot-marker) {
   --iv-hotspot-fill: rgb(91 91 214 / 0.18);
   --iv-hotspot-fill-hover: rgb(91 91 214 / 0.4);
   --iv-hotspot-stroke: #a5a5ff;
@@ -78,7 +78,7 @@ player.renderHotspot = (hotspot, button) => {
 The player keeps positioning and sizing each button, including animated ones. Elements inside the button are rendered in the player's shadow root, so style them inline or through classes you set on them from `renderHotspot`.
 
 <style>
-.markers iv-player::part(hotspot-marker) {
+.markers ivkit-player::part(hotspot-marker) {
   --iv-hotspot-fill: rgb(91 91 214 / 0.18);
   --iv-hotspot-fill-hover: rgb(91 91 214 / 0.4);
   --iv-hotspot-stroke: #a5a5ff;

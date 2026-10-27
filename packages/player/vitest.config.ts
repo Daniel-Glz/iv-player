@@ -5,7 +5,7 @@ export default defineProject({
   resolve: {
     // Test against core's sources so it doesn't need to be built first.
     alias: {
-      "@iv-player/core": fileURLToPath(new URL("../core/src/index.ts", import.meta.url)),
+      "@ivkit/core": fileURLToPath(new URL("../core/src/index.ts", import.meta.url)),
     },
   },
   test: {

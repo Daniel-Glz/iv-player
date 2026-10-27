@@ -1,4 +1,4 @@
-import type { Story } from "@iv-player/core";
+import type { Story } from "@ivkit/core";
 import { video } from "./video";
 
 export const tracking: Story = {

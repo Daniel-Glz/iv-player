@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import type { Story } from "@iv-player/core";
-import type { IvPlayer } from "@iv-player/player";
+import type { Story } from "@ivkit/core";
+import type { IvkitPlayer } from "@ivkit/player";
 import { onMounted, ref } from "vue";
 
 const props = withDefaults(
   defineProps<{
     story: Story;
     controls?: boolean;
-    renderHotspot?: IvPlayer["renderHotspot"];
+    renderHotspot?: IvkitPlayer["renderHotspot"];
     /** Shows the player's events under it. */
     log?: boolean;
   }>(),
   { controls: true, log: false },
 );
 
-const player = ref<IvPlayer>();
+const player = ref<IvkitPlayer>();
 const entries = ref<string[]>([]);
 
 const describe: Record<string, (detail: any) => string> = {
@@ -27,7 +27,7 @@ const describe: Record<string, (detail: any) => string> = {
 
 onMounted(async () => {
   // Custom elements only exist in the browser, not during the static build.
-  await import("@iv-player/player");
+  await import("@ivkit/player");
   const element = player.value!;
   if (props.log) {
     for (const [type, text] of Object.entries(describe)) {
@@ -43,9 +43,9 @@ onMounted(async () => {
 
 <template>
   <div class="player-demo">
-    <iv-player ref="player" :controls="controls || undefined">
+    <ivkit-player ref="player" :controls="controls || undefined">
       <slot />
-    </iv-player>
+    </ivkit-player>
     <ol v-if="log" class="player-demo-log" aria-live="polite">
       <li v-if="entries.length === 0" class="empty">Events will show up here.</li>
       <li v-for="(entry, i) in entries" :key="entries.length - i">{{ entry }}</li>
@@ -58,7 +58,7 @@ onMounted(async () => {
   margin: 24px 0;
 }
 
-iv-player {
+ivkit-player {
   border-radius: 12px;
 }
 
