@@ -1,3 +1,7 @@
+---
+description: "Reference for StoryEngine: states, properties, methods, events and the timing rules for questions and hotspots."
+---
+
 # `StoryEngine`
 
 ```ts

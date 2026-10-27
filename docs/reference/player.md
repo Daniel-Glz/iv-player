@@ -1,3 +1,7 @@
+---
+description: "Reference for <iv-player>: entry points, attributes, properties, methods, events, keyboard shortcuts, slots and server builds."
+---
+
 # `<iv-player>`
 
 ```ts

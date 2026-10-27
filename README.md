@@ -32,4 +32,4 @@ No third-party runtime dependencies. The standalone player has an 8 KiB gzip bud
 
 ## License
 
-MIT, as declared in the package manifests.
+[MIT](LICENSE) © Alexis Gonzalez

@@ -1,3 +1,7 @@
+---
+description: "Reference for validateStory, hotspotGeometryAt, boundsOf, isAnimated and VERSION from @iv-player/core."
+---
+
 # Utilities
 
 Everything on this page is exported from `@iv-player/core`.

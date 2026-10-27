@@ -1,11 +1,13 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitepress";
 
+const site = "https://daniel-glz.github.io/iv-player/";
 const source = (path: string) => fileURLToPath(new URL(`../../packages/${path}`, import.meta.url));
 
 export default defineConfig({
   title: "iv-player",
-  description: "Lightweight TypeScript library for interactive videos",
+  description:
+    "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 8 KiB gzip.",
   // Served from https://daniel-glz.github.io/iv-player/
   base: "/iv-player/",
   cleanUrls: true,
@@ -22,13 +24,47 @@ export default defineConfig({
     template: { compilerOptions: { isCustomElement: (tag) => tag === "iv-player" } },
   },
   lastUpdated: true,
-  head: [["link", { rel: "icon", href: "/iv-player/favicon.svg", type: "image/svg+xml" }]],
+  sitemap: { hostname: site },
+  head: [
+    ["link", { rel: "icon", href: "/iv-player/favicon.svg", type: "image/svg+xml" }],
+    ["meta", { name: "theme-color", content: "#5b5bd6" }],
+    ["meta", { property: "og:type", content: "website" }],
+    ["meta", { property: "og:site_name", content: "iv-player" }],
+    ["meta", { property: "og:image", content: `${site}og-image.png` }],
+    ["meta", { property: "og:image:width", content: "1200" }],
+    ["meta", { property: "og:image:height", content: "630" }],
+    ["meta", { property: "og:image:alt", content: "iv-player: interactive videos for the web" }],
+    ["meta", { name: "twitter:card", content: "summary_large_image" }],
+  ],
+  // Per-page title, description and address for link previews and search engines.
+  transformHead({ pageData, siteData }) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "");
+    const url = `${site}${path}`;
+    const title = pageData.title ? `${pageData.title} | ${siteData.title}` : siteData.title;
+    const description = pageData.description || siteData.description;
+    return [
+      ["link", { rel: "canonical", href: url }],
+      ["meta", { property: "og:url", content: url }],
+      ["meta", { property: "og:title", content: title }],
+      ["meta", { property: "og:description", content: description }],
+      ["meta", { name: "twitter:title", content: title }],
+      ["meta", { name: "twitter:description", content: description }],
+    ];
+  },
   themeConfig: {
     logo: "/favicon.svg",
     nav: [
       { text: "Guide", link: "/guide/getting-started", activeMatch: "/guide/" },
       { text: "Examples", link: "/examples/", activeMatch: "/examples/" },
       { text: "Reference", link: "/reference/story-format", activeMatch: "/reference/" },
+      {
+        text: "About",
+        items: [
+          { text: "Changelog", link: "/changelog" },
+          { text: "Contributing", link: "/contributing" },
+          { text: "License", link: "/license" },
+        ],
+      },
     ],
     sidebar: {
       "/guide/": [
@@ -79,6 +115,9 @@ export default defineConfig({
       pattern: "https://github.com/Daniel-Glz/iv-player/edit/main/docs/:path",
     },
     search: { provider: "local" },
-    footer: { message: "Released under the MIT License." },
+    footer: {
+      message: 'Released under the <a href="/iv-player/license">MIT License</a>.',
+      copyright: "Copyright © 2026 Alexis Gonzalez",
+    },
   },
 });

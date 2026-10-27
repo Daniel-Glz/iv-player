@@ -1,3 +1,7 @@
+---
+description: "Live playground: edit an interactive video story and see validateStory's errors as you type."
+---
+
 # Validation playground
 
 Edit the story below. `validateStory` runs on every keystroke and reports each problem with a JSON Pointer to the field that caused it.

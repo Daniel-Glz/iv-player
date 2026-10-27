@@ -1,3 +1,7 @@
+---
+description: "Live example: an interactive video player built in Vue on @iv-player/core, without the Web Component."
+---
+
 <script setup>
 import { adventure } from "./stories/adventure";
 </script>

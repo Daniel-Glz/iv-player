@@ -1,3 +1,7 @@
+---
+description: "Live example: custom hotspot variants and badges added with renderHotspot."
+---
+
 <script setup>
 import { shapes } from "./stories/shapes";
 

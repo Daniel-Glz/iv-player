@@ -1,3 +1,7 @@
+---
+description: "Theme the <iv-player> Web Component with --iv-* custom properties, ::part() selectors and slots."
+---
+
 # Styling the player
 
 `<iv-player>` renders inside a shadow root, so page styles don't leak into it. You customize it in two ways:

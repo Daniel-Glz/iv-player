@@ -1,3 +1,7 @@
+---
+description: "Live example: clickable rectangle, ellipse and polygon hotspots with the outline, pulse, label and hidden variants."
+---
+
 <script setup>
 import { shapes } from "./stories/shapes";
 </script>

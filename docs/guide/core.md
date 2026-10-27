@@ -1,3 +1,7 @@
+---
+description: "Build your own interactive video player in any framework with StoryEngine and MediaController from @iv-player/core."
+---
+
 # Custom players with core
 
 `<iv-player>` is built on `@iv-player/core`, and you can build your own interface the same way: in React, on a canvas, in a game engine, or anywhere else.
