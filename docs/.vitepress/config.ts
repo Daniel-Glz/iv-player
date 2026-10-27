@@ -36,6 +36,7 @@ export default defineConfig({
           text: "Guide",
           items: [
             { text: "Getting started", link: "/guide/getting-started" },
+            { text: "Server-side rendering", link: "/guide/ssr" },
             { text: "Writing stories", link: "/guide/stories" },
             { text: "Hotspots", link: "/guide/hotspots" },
             { text: "Styling the player", link: "/guide/styling" },

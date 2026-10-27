@@ -6,6 +6,37 @@ import { IvPlayer } from "@iv-player/player";
 
 Importing `@iv-player/player` registers the element as `iv-player`, unless something else already registered that name. The `IvPlayer` class is exported for `instanceof` checks and for subclassing.
 
+## Entry points
+
+| Import | Registers the element | Use it when |
+| --- | --- | --- |
+| `@iv-player/player` | Yes, as `iv-player`, on import. | Almost always. |
+| `@iv-player/player/element` | No. Call `defineIvPlayer()`. | You want another tag name, or to choose when the element is defined. |
+
+Both export `IvPlayer`, `defineIvPlayer` and the types `HotspotRenderer` and `IvPlayerEventMap`.
+
+### `defineIvPlayer(name?: string): void`
+
+Registers the player as `name`, `"iv-player"` by default. It does nothing if that name is already taken, or when there's no `customElements`, such as on the server.
+
+```ts
+import { defineIvPlayer } from "@iv-player/player/element";
+
+defineIvPlayer("story-player");
+```
+
+```html
+<story-player controls></story-player>
+```
+
+A class can only be registered once, so use a single name per page. The `HTMLElementTagNameMap` typing only covers `iv-player`.
+
+### Server builds
+
+Edge runtimes and React Server Components get a server build of both entries through [export conditions](https://nodejs.org/api/packages.html#conditional-exports): `react-server`, `workerd` (Cloudflare) and `edge-light` (Vercel Edge). It has the same exports, but `IvPlayer` is an empty stand-in, `defineIvPlayer` does nothing, and none of the player's DOM code is included.
+
+Plain Node, which Nuxt, SvelteKit and Astro use for server rendering, gets the full build. It's also safe to import there: without `HTMLElement` and `customElements`, it doesn't register anything. Test runners such as Vitest load dependencies through Node while providing a DOM, so they need the real element. See [Server-side rendering](/guide/ssr).
+
 ## Attributes
 
 | Attribute | Description |

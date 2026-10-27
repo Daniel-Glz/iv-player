@@ -50,6 +50,9 @@ jobs:
       - name: Build and check bundle size
         run: pnpm check:size
 
+      - name: Check package exports
+        run: pnpm check:exports
+
       - name: Upload coverage report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

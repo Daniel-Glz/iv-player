@@ -75,6 +75,14 @@ const hotspotContent = /* html */ `
 export type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 
 /**
+ * `HTMLElement`, or a stand-in where it doesn't exist (server-side rendering), so
+ * importing the package never throws there. The stand-in is never instantiated:
+ * without `customElements`, nothing creates players.
+ */
+const Base: typeof HTMLElement =
+  typeof HTMLElement === "undefined" ? (class {} as typeof HTMLElement) : HTMLElement;
+
+/**
  * `<iv-player>`: plays a `Story` set through the `story` property.
  *
  * Attributes:
@@ -88,7 +96,7 @@ export type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => 
  * Slots: `start` (start button content) and `end` (shown when the story ends;
  * defaults to a replay button).
  */
-export class IvPlayer extends HTMLElement {
+export class IvPlayer extends Base {
   static readonly observedAttributes = ["muted", "controls"];
 
   readonly #videos: [HTMLVideoElement, HTMLVideoElement];
