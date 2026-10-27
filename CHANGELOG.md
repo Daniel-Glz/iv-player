@@ -6,9 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-27
+
+The first release of `@ivkit/player`, which wasn't published as 0.1.0.
+
+### Fixed
+
+- `@ivkit/core`: `VERSION` reported `0.0.0` instead of the package's version. It's now read from `package.json` at build time.
+
 ## [0.1.0] - 2026-10-27
 
-The first release.
+The first release of `@ivkit/core`.
 
 ### Added
 
@@ -34,5 +42,6 @@ The first release.
 - Safe to import during server-side rendering. React Server Components, Cloudflare Workers and Vercel Edge get a server build without DOM code.
 - A standalone build, `ivkit-player.min.js`, that includes core and loads straight from a CDN, under an 8 KiB gzip budget.
 
-[Unreleased]: https://github.com/Daniel-Glz/ivkit/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Daniel-Glz/ivkit/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Daniel-Glz/ivkit/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Daniel-Glz/ivkit/releases/tag/v0.1.0

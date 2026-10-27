@@ -1,4 +1,7 @@
-export const VERSION = "0.0.0";
+import { version } from "../package.json";
+
+/** The version of @ivkit/core, read from its package.json at build time. */
+export const VERSION: string = version;
 
 export type * from "./types.js";
 export { StoryEngine } from "./engine.js";

@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-agnostic engine for interactive videos: story format, validation, engine and media controller",
   "license": "MIT",
   "author": "Alexis Gonzalez",

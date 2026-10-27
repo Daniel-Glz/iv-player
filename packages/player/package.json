@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/player",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "<ivkit-player> Web Component for interactive videos, built on @ivkit/core",
   "license": "MIT",
   "author": "Alexis Gonzalez",
