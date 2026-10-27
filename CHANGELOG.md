@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `@ivkit/core`: `StoryEngine.goTo(sceneId)`, which enters any scene from any state, dismissing the question on screen. It works before `start()`, e.g. to resume a saved story.
+- `@ivkit/player`: `goTo(sceneId)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
+
 ## [0.1.1] - 2026-10-27
 
 The first release of `@ivkit/player`, which wasn't published as 0.1.0.

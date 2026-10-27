@@ -203,6 +203,49 @@ describe("StoryEngine", () => {
     expect(engine.activeQuestion?.id).toBe("q1");
   });
 
+  it("goes to any scene before start(), e.g. to resume a saved story", () => {
+    const engine = new StoryEngine(basicStory);
+    const log = record(engine);
+    engine.goTo("rio");
+    engine.mediaEnded();
+
+    expect(log).toEqual([
+      ["scene", "rio"],
+      ["scene", "final"],
+    ]);
+  });
+
+  it("dismisses the question on screen when going to another scene", () => {
+    const engine = new StoryEngine(basicStory);
+    const log = record(engine);
+    engine.start();
+    engine.update(10);
+    engine.goTo("bosque");
+
+    expect(log.slice(-1)).toEqual([["scene", "bosque"]]);
+    expect(engine.state).toBe("playing");
+    expect(engine.activeQuestion).toBeNull();
+    expect(engine.answer("a")).toBe(false);
+  });
+
+  it("goes to a scene after the story ended", () => {
+    const engine = new StoryEngine(basicStory);
+    engine.goTo("final");
+    engine.mediaEnded();
+    expect(engine.state).toBe("ended");
+
+    engine.goTo("intro");
+    expect(engine.state).toBe("playing");
+    engine.update(10);
+    expect(engine.activeQuestion?.id).toBe("q1");
+  });
+
+  it("throws when going to a scene that does not exist", () => {
+    const engine = new StoryEngine(basicStory);
+    expect(() => engine.goTo("nope")).toThrow('Scene "nope" does not exist');
+    expect(engine.state).toBe("idle");
+  });
+
   it("stops calling a listener after it unsubscribes", () => {
     const engine = new StoryEngine(basicStory);
     const listener = vi.fn();

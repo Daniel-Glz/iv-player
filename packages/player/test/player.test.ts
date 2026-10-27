@@ -195,6 +195,48 @@ describe("<ivkit-player>", () => {
     expect($("[part=question]").hidden).toBe(true);
   });
 
+  it("goes to a scene before playing, hiding the start button", () => {
+    const { player, $, videos } = mount();
+    const onScene = vi.fn();
+    player.addEventListener("iv-scene", onScene);
+    player.story = story;
+    player.goTo("hall");
+
+    expect($("[part=start]").hidden).toBe(true);
+    expect(player.engine!.currentSceneId).toBe("hall");
+    expect(onScene.mock.calls[0]![0].detail.sceneId).toBe("hall");
+    expect(videos[1]!.src).toContain("hall.mp4");
+  });
+
+  it("dismisses the question and hotspots when going to another scene", () => {
+    const { player, $, $$ } = playing();
+    player.engine!.update(2);
+    expect($$("[part~=hotspot]")).toHaveLength(1);
+    player.engine!.update(5);
+    player.goTo("hall");
+
+    expect($("[part=question]").hidden).toBe(true);
+    expect($$("[part~=hotspot]")).toHaveLength(0);
+    expect(player.engine!.currentSceneId).toBe("hall");
+  });
+
+  it("goes to a scene from the end overlay", () => {
+    const { player, $, videos } = playing();
+    player.engine!.update(5);
+    $("[part=option]").click();
+    frameReady(videos[0]!);
+    videos[0]!.dispatchEvent(new Event("ended"));
+    player.goTo("intro");
+
+    expect($("[part=end]").hidden).toBe(true);
+    expect(player.engine!.state).toBe("playing");
+  });
+
+  it("ignores goTo() without a story", () => {
+    const { player } = mount();
+    expect(() => player.goTo("hall")).not.toThrow();
+  });
+
   it("shows the start button again when autoplay is blocked", async () => {
     const { player, $, videos } = mount();
     player.story = story;

@@ -86,6 +86,33 @@ scenes: {
 }
 ```
 
+## Jumping from code
+
+`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: branching on a score, resuming where the viewer left off, chapter menus or a "back" button.
+
+```ts
+const player = document.querySelector("ivkit-player")!;
+player.story = story;
+
+// Resume a saved story.
+const saved = localStorage.getItem("scene");
+player.addEventListener("iv-scene", (event) => {
+  localStorage.setItem("scene", event.detail.sceneId);
+});
+if (saved && saved in story.scenes) player.goTo(saved);
+
+// Branch on the score once the quiz is over.
+let score = 0;
+player.addEventListener("iv-answer", (event) => {
+  if (event.detail.choice.id === "four") score++;
+});
+player.addEventListener("iv-end", () => {
+  player.goTo(score >= 3 ? "passed" : "failed");
+});
+```
+
+Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-void) instead.
+
 ## Seamless transitions
 
 The player stacks two videos. While one plays, the other preloads the most likely next scene: the scene's `next`, or else the first scene any of its options or hotspots point to. On a scene change, the current video holds its last frame until the next one can draw its first frame, so there's no black flash between scenes.

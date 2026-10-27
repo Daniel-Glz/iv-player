@@ -90,6 +90,15 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.enter(this.story.start);
   }
 
+  /**
+   * Jumps to `sceneId` from any state, dismissing the question on screen, if any.
+   * Works before `start()` too, e.g. to resume a saved story.
+   * Throws if the scene doesn't exist.
+   */
+  goTo(sceneId: SceneId): void {
+    this.enter(sceneId);
+  }
+
   /** Reports the current playback time (seconds) of the active scene's video. */
   update(currentTime: number): void {
     if (this._state !== "playing") return;
