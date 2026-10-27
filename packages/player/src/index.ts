@@ -11,6 +11,7 @@ declare global {
   interface HTMLElementEventMap extends IvPlayerEventMap {}
 }
 
-if (!customElements.get("iv-player")) {
+// On the server there's no registry: the element is defined once this runs in the browser.
+if (typeof customElements !== "undefined" && !customElements.get("iv-player")) {
   customElements.define("iv-player", IvPlayer);
 }

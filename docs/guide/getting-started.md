@@ -141,6 +141,8 @@ import { story } from "./story";
 
 In Vue, tell the compiler that `iv-player` is a custom element with `compilerOptions.isCustomElement`.
 
+Importing the package is safe during server-side rendering. See [Server-side rendering](/guide/ssr) for Next.js, Nuxt, SvelteKit and Astro.
+
 ## Next steps
 
 - [Writing stories](/guide/stories): scenes, questions and branching.
