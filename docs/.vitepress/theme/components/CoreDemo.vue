@@ -1,7 +1,7 @@
 <script setup lang="ts">
-// A player built from @iv-player/core alone: two stacked videos, the engine,
+// A player built from @ivkit/core alone: two stacked videos, the engine,
 // the media controller, and an interface of our own drawn with Vue.
-import { MediaController, StoryEngine, type Question, type Story } from "@iv-player/core";
+import { MediaController, StoryEngine, type Question, type Story } from "@ivkit/core";
 import { onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 
 const props = defineProps<{ story: Story }>();

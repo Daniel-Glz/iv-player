@@ -7,7 +7,7 @@ description: "Check stories from JSON, an API or a CMS with validateStory, and u
 The engine trusts the story it's given: a reference to a missing scene throws when playback reaches it. When a story comes from outside your code, such as a JSON file, an API or a CMS, check it first with `validateStory`.
 
 ```ts
-import { validateStory } from "@iv-player/core";
+import { validateStory } from "@ivkit/core";
 
 const data: unknown = await fetch("/stories/intro.json").then((r) => r.json());
 const result = validateStory(data);
@@ -59,7 +59,7 @@ All errors are reported at once, not just the first one.
 ```ts
 // scripts/check-stories.ts
 import { readFile } from "node:fs/promises";
-import { validateStory } from "@iv-player/core";
+import { validateStory } from "@ivkit/core";
 
 let failed = false;
 for (const file of process.argv.slice(2)) {

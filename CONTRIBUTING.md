@@ -1,10 +1,10 @@
 # Contributing
 
-Thanks for helping improve iv-player! Bug reports, ideas and pull requests are all welcome.
+Thanks for helping improve IVKit! Bug reports, ideas and pull requests are all welcome.
 
 ## Reporting a bug
 
-[Open an issue](https://github.com/Daniel-Glz/iv-player/issues/new) with:
+[Open an issue](https://github.com/Daniel-Glz/ivkit/issues/new) with:
 
 - What you expected and what happened instead.
 - The smallest story that shows the problem. Run it through `validateStory` first, since many problems are invalid stories.
@@ -23,8 +23,8 @@ pnpm install --frozen-lockfile
 
 | Path | What it is |
 | --- | --- |
-| `packages/core` | `@iv-player/core`: the story format, engine, media controller and validation. No DOM dependencies and no runtime dependencies. |
-| `packages/player` | `@iv-player/player`: the `<iv-player>` Web Component, built on core. |
+| `packages/core` | `@ivkit/core`: the story format, engine, media controller and validation. No DOM dependencies and no runtime dependencies. |
+| `packages/player` | `@ivkit/player`: the `<ivkit-player>` Web Component, built on core. |
 | `docs` | The documentation site, built with VitePress and published to GitHub Pages. |
 | `docs/examples` | The live examples. Their stories are in `docs/examples/stories`. |
 | `scripts` | Checks for bundle size and package exports. |
@@ -40,7 +40,7 @@ pnpm install --frozen-lockfile
 | `pnpm build` | Builds both packages into their `dist` folders. |
 | `pnpm check:size` | Builds both packages and checks them against their size budgets. |
 | `pnpm check:exports` | Checks what each runtime resolves from the player's entries. Run it after a build. |
-| `pnpm docs:dev` | Serves the documentation at `http://localhost:5173/iv-player/`. |
+| `pnpm docs:dev` | Serves the documentation at `http://localhost:5173/ivkit/`. |
 | `pnpm docs:build` | Builds the documentation site. |
 
 CI runs `typecheck`, `test:coverage`, `check:size` and `check:exports` on every pull request.
@@ -83,4 +83,4 @@ node docs/scripts/generate-example-videos.mjs --force
 4. Write commit messages in the [Conventional Commits](https://www.conventionalcommits.org/) style used in this repository, such as `feat(player): …`, `fix(core): …` or `docs: …`.
 5. Open a pull request that explains what changed and why.
 
-By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/iv-player/blob/main/LICENSE).
+By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).

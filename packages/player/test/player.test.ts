@@ -1,6 +1,6 @@
-import type { Story } from "@iv-player/core";
+import type { Story } from "@ivkit/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { IvPlayer } from "../src/index";
+import { IvkitPlayer } from "../src/index";
 
 const area = { x: 0.25, y: 0.5, width: 0.1, height: 0.2 };
 
@@ -30,7 +30,7 @@ const story: Story = {
 };
 
 function mount(attributes: Record<string, string> = {}) {
-  const player = document.createElement("iv-player");
+  const player = document.createElement("ivkit-player");
   for (const [name, value] of Object.entries(attributes)) player.setAttribute(name, value);
   document.body.append(player);
   const root = player.shadowRoot!;
@@ -59,10 +59,10 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("<iv-player>", () => {
+describe("<ivkit-player>", () => {
   it("registers the custom element", () => {
-    expect(customElements.get("iv-player")).toBe(IvPlayer);
-    expect(document.createElement("iv-player")).toBeInstanceOf(IvPlayer);
+    expect(customElements.get("ivkit-player")).toBe(IvkitPlayer);
+    expect(document.createElement("ivkit-player")).toBeInstanceOf(IvkitPlayer);
   });
 
   it("shows the start button once a story is set, and nothing plays before", () => {

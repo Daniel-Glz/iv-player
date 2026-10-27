@@ -1,5 +1,5 @@
 {
-  "name": "iv-player-monorepo",
+  "name": "ivkit-monorepo",
   "private": true,
   "description": "Lightweight TypeScript library for interactive videos",
   "license": "MIT",

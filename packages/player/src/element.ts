@@ -1,24 +1,24 @@
 /**
- * `@iv-player/player/element`: the element class, without registering it.
+ * `@ivkit/player/element`: the element class, without registering it.
  * Use it to pick the tag name or the moment it's defined; the main entry
- * registers `<iv-player>` on import.
+ * registers `<ivkit-player>` on import.
  */
-import { IvPlayer, type HotspotRenderer, type IvPlayerEventMap } from "./player.js";
+import { IvkitPlayer, type HotspotRenderer, type IvkitPlayerEventMap } from "./player.js";
 
-export { IvPlayer };
-export type { HotspotRenderer, IvPlayerEventMap };
+export { IvkitPlayer };
+export type { HotspotRenderer, IvkitPlayerEventMap };
 
 declare global {
   // Lets `addEventListener("iv-answer", …)` infer the event's detail type.
-  interface HTMLElementEventMap extends IvPlayerEventMap {}
+  interface HTMLElementEventMap extends IvkitPlayerEventMap {}
 }
 
 /**
- * Registers the player as `name` (default `"iv-player"`). Does nothing if that
+ * Registers the player as `name` (default `"ivkit-player"`). Does nothing if that
  * name is already taken, or where there's no `customElements` (on the server).
  * A class can only be registered once, so call it with a single name.
  */
-export function defineIvPlayer(name = "iv-player"): void {
+export function defineIvkitPlayer(name = "ivkit-player"): void {
   if (typeof customElements === "undefined" || customElements.get(name)) return;
-  customElements.define(name, IvPlayer);
+  customElements.define(name, IvkitPlayer);
 }

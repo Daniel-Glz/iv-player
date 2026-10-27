@@ -1,5 +1,5 @@
 ---
-description: "Live example: an interactive video player built in Vue on @iv-player/core, without the Web Component."
+description: "Live example: an interactive video player built in Vue on @ivkit/core, without the Web Component."
 ---
 
 <script setup>
@@ -8,7 +8,7 @@ import { adventure } from "./stories/adventure";
 
 # Player built with core
 
-This player doesn't use `<iv-player>` at all. It's a Vue component built on `@iv-player/core`: the questions are drawn as cards, and the trail under the video lists the scenes you've visited. The same approach works in React, Svelte, on a canvas, or in a game engine.
+This player doesn't use `<ivkit-player>` at all. It's a Vue component built on `@ivkit/core`: the questions are drawn as cards, and the trail under the video lists the scenes you've visited. The same approach works in React, Svelte, on a canvas, or in a game engine.
 
 <CoreDemo :story="adventure" />
 

@@ -6,7 +6,7 @@
     "types": [],
     // Typecheck against core's sources so it doesn't need to be built first.
     "paths": {
-      "@iv-player/core": ["../core/src/index.ts"]
+      "@ivkit/core": ["../core/src/index.ts"]
     }
   },
   "include": ["src", "test"]

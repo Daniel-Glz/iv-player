@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { validateStory } from "@iv-player/core";
+import { validateStory } from "@ivkit/core";
 import { computed, ref } from "vue";
 
 // Deliberately broken: a typo in a goto, a duplicate id, a negative time,

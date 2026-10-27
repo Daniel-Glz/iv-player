@@ -12,7 +12,7 @@ The simplest interactive video: at second 4, the video pauses and asks where to 
 
 <PlayerDemo :story="adventure" log />
 
-The log under the player shows the events `<iv-player>` dispatches. Use them for analytics, or to react to the viewer's choices elsewhere on the page.
+The log under the player shows the events `<ivkit-player>` dispatches. Use them for analytics, or to react to the viewer's choices elsewhere on the page.
 
 ## Story
 
@@ -21,10 +21,10 @@ The log under the player shows the events `<iv-player>` dispatches. Use them for
 ## Page
 
 ```html
-<iv-player id="player" controls></iv-player>
+<ivkit-player id="player" controls></ivkit-player>
 
 <script type="module">
-  import "@iv-player/player";
+  import "@ivkit/player";
   import { adventure } from "./adventure.js";
 
   const player = document.getElementById("player");

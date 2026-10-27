@@ -9,13 +9,13 @@ import {
   type HotspotGeometry,
   type Question,
   type Story,
-} from "@iv-player/core";
+} from "@ivkit/core";
 import { icons, type IconName } from "./icons.js";
 import { containRect } from "./layout.js";
 import { styles } from "./styles.js";
 
-/** Events dispatched by `<iv-player>`. They bubble and cross the shadow boundary. */
-export interface IvPlayerEventMap {
+/** Events dispatched by `<ivkit-player>`. They bubble and cross the shadow boundary. */
+export interface IvkitPlayerEventMap {
   "iv-scene": CustomEvent<EngineEvents["scene"]>;
   "iv-interaction": CustomEvent<EngineEvents["interaction"]>;
   "iv-answer": CustomEvent<EngineEvents["answer"]>;
@@ -71,7 +71,7 @@ const hotspotContent = /* html */ `
 <span class="hotspot-label" part="hotspot-label"></span>
 `;
 
-/** Customizes a hotspot's button right after the player creates it. See `IvPlayer.renderHotspot`. */
+/** Customizes a hotspot's button right after the player creates it. See `IvkitPlayer.renderHotspot`. */
 export type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 
 /**
@@ -83,7 +83,7 @@ const Base: typeof HTMLElement =
   typeof HTMLElement === "undefined" ? (class {} as typeof HTMLElement) : HTMLElement;
 
 /**
- * `<iv-player>`: plays a `Story` set through the `story` property.
+ * `<ivkit-player>`: plays a `Story` set through the `story` property.
  *
  * Attributes:
  * - `controls`: show the control bar (play/pause, seek within the scene, volume,
@@ -96,7 +96,7 @@ const Base: typeof HTMLElement =
  * Slots: `start` (start button content) and `end` (shown when the story ends;
  * defaults to a replay button).
  */
-export class IvPlayer extends Base {
+export class IvkitPlayer extends Base {
   static readonly observedAttributes = ["muted", "controls"];
 
   readonly #videos: [HTMLVideoElement, HTMLVideoElement];
@@ -136,7 +136,7 @@ export class IvPlayer extends Base {
     root.innerHTML = `<style>${styles}</style>${template}`;
     const find = <T extends HTMLElement>(selector: string) => {
       const element = root.querySelector<T>(selector);
-      if (!element) throw new Error(`<iv-player> template is missing ${selector}`);
+      if (!element) throw new Error(`<ivkit-player> template is missing ${selector}`);
       return element;
     };
 
@@ -595,9 +595,9 @@ export class IvPlayer extends Base {
     });
   }
 
-  #emit<K extends keyof IvPlayerEventMap>(
+  #emit<K extends keyof IvkitPlayerEventMap>(
     type: K,
-    detail: IvPlayerEventMap[K]["detail"],
+    detail: IvkitPlayerEventMap[K]["detail"],
   ): void {
     this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true }));
   }

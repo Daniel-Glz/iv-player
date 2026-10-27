@@ -55,7 +55,7 @@ try {
 }
 
 mkdirSync(outDir, { recursive: true });
-const work = join(tmpdir(), `iv-player-examples-${process.pid}`);
+const work = join(tmpdir(), `ivkit-examples-${process.pid}`);
 mkdirSync(work, { recursive: true });
 
 const ffmpeg = (args) => execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args], { stdio: "inherit" });

@@ -1,39 +1,39 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitepress";
 
-const site = "https://daniel-glz.github.io/iv-player/";
+const site = "https://daniel-glz.github.io/ivkit/";
 const source = (path: string) => fileURLToPath(new URL(`../../packages/${path}`, import.meta.url));
 
 export default defineConfig({
-  title: "iv-player",
+  title: "IVKit",
   description:
     "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 8 KiB gzip.",
-  // Served from https://daniel-glz.github.io/iv-player/
-  base: "/iv-player/",
+  // Served from https://daniel-glz.github.io/ivkit/
+  base: "/ivkit/",
   cleanUrls: true,
   // The examples run the packages from source, so the site needs no build of them.
   vite: {
     resolve: {
       alias: {
-        "@iv-player/core": source("core/src/index.ts"),
-        "@iv-player/player": source("player/src/index.ts"),
+        "@ivkit/core": source("core/src/index.ts"),
+        "@ivkit/player": source("player/src/index.ts"),
       },
     },
   },
   vue: {
-    template: { compilerOptions: { isCustomElement: (tag) => tag === "iv-player" } },
+    template: { compilerOptions: { isCustomElement: (tag) => tag === "ivkit-player" } },
   },
   lastUpdated: true,
   sitemap: { hostname: site },
   head: [
-    ["link", { rel: "icon", href: "/iv-player/favicon.svg", type: "image/svg+xml" }],
+    ["link", { rel: "icon", href: "/ivkit/favicon.svg", type: "image/svg+xml" }],
     ["meta", { name: "theme-color", content: "#5b5bd6" }],
     ["meta", { property: "og:type", content: "website" }],
-    ["meta", { property: "og:site_name", content: "iv-player" }],
+    ["meta", { property: "og:site_name", content: "IVKit" }],
     ["meta", { property: "og:image", content: `${site}og-image.png` }],
     ["meta", { property: "og:image:width", content: "1200" }],
     ["meta", { property: "og:image:height", content: "630" }],
-    ["meta", { property: "og:image:alt", content: "iv-player: interactive videos for the web" }],
+    ["meta", { property: "og:image:alt", content: "ivkit-player: interactive videos for the web" }],
     ["meta", { name: "twitter:card", content: "summary_large_image" }],
   ],
   // Per-page title, description and address for link previews and search engines.
@@ -102,7 +102,7 @@ export default defineConfig({
           text: "Reference",
           items: [
             { text: "Story format", link: "/reference/story-format" },
-            { text: "<iv-player>", link: "/reference/player" },
+            { text: "<ivkit-player>", link: "/reference/player" },
             { text: "StoryEngine", link: "/reference/engine" },
             { text: "MediaController", link: "/reference/media-controller" },
             { text: "Utilities", link: "/reference/utilities" },
@@ -110,13 +110,13 @@ export default defineConfig({
         },
       ],
     },
-    socialLinks: [{ icon: "github", link: "https://github.com/Daniel-Glz/iv-player" }],
+    socialLinks: [{ icon: "github", link: "https://github.com/Daniel-Glz/ivkit" }],
     editLink: {
-      pattern: "https://github.com/Daniel-Glz/iv-player/edit/main/docs/:path",
+      pattern: "https://github.com/Daniel-Glz/ivkit/edit/main/docs/:path",
     },
     search: { provider: "local" },
     footer: {
-      message: 'Released under the <a href="/iv-player/license">MIT License</a>.',
+      message: 'Released under the <a href="/ivkit/license">MIT License</a>.',
       copyright: "Copyright © 2026 Alexis Gonzalez",
     },
   },

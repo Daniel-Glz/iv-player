@@ -1,10 +1,10 @@
 ---
-description: "Reference for validateStory, hotspotGeometryAt, boundsOf, isAnimated and VERSION from @iv-player/core."
+description: "Reference for validateStory, hotspotGeometryAt, boundsOf, isAnimated and VERSION from @ivkit/core."
 ---
 
 # Utilities
 
-Everything on this page is exported from `@iv-player/core`.
+Everything on this page is exported from `@ivkit/core`.
 
 ## `validateStory`
 
@@ -60,4 +60,4 @@ Whether a hotspot changes over time, meaning it has more than one keyframe and m
 const VERSION: string;
 ```
 
-The version of `@iv-player/core`.
+The version of `@ivkit/core`.

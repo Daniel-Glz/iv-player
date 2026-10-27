@@ -1,5 +1,5 @@
 ---
-description: "Write iv-player stories: scenes, questions, branching, loops and how questions are timed, with tips for seamless transitions."
+description: "Write IVKit stories: scenes, questions, branching, loops and how questions are timed, with tips for seamless transitions."
 ---
 
 # Writing stories
@@ -7,7 +7,7 @@ description: "Write iv-player stories: scenes, questions, branching, loops and h
 A story is a plain object, so you can write it in TypeScript, load it as JSON, or generate it from a CMS.
 
 ```ts
-import type { Story } from "@iv-player/core";
+import type { Story } from "@ivkit/core";
 
 export const story: Story = {
   version: "0.1",

@@ -13,7 +13,7 @@ The story starts out broken on purpose. Try fixing it: correct the typo in `goto
 ## Code
 
 ```ts
-import { validateStory } from "@iv-player/core";
+import { validateStory } from "@ivkit/core";
 
 const result = validateStory(JSON.parse(text));
 

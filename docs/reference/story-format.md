@@ -1,13 +1,13 @@
 ---
-description: "Reference for the iv-player story format: Story, Scene, Question, Choice, Hotspot, keyframes, areas and points."
+description: "Reference for the IVKit story format: Story, Scene, Question, Choice, Hotspot, keyframes, areas and points."
 ---
 
 # Story format
 
-All types are exported from `@iv-player/core`:
+All types are exported from `@ivkit/core`:
 
 ```ts
-import type { Story, Scene, Question, Hotspot } from "@iv-player/core";
+import type { Story, Scene, Question, Hotspot } from "@ivkit/core";
 ```
 
 All times are in seconds, relative to the start of the scene's video. All coordinates are fractions (0–1) of the video picture, from its top-left corner.

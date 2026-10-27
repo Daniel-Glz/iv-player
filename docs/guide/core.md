@@ -1,13 +1,13 @@
 ---
-description: "Build your own interactive video player in any framework with StoryEngine and MediaController from @iv-player/core."
+description: "Build your own interactive video player in any framework with StoryEngine and MediaController from @ivkit/core."
 ---
 
 # Custom players with core
 
-`<iv-player>` is built on `@iv-player/core`, and you can build your own interface the same way: in React, on a canvas, in a game engine, or anywhere else.
+`<ivkit-player>` is built on `@ivkit/core`, and you can build your own interface the same way: in React, on a canvas, in a game engine, or anywhere else.
 
 ```sh
-pnpm add @iv-player/core
+pnpm add @ivkit/core
 ```
 
 Core has three pieces:
@@ -21,7 +21,7 @@ Core has three pieces:
 The engine is a state machine. You tell it the playback time, it tells you what to show, and you report what the viewer does:
 
 ```ts
-import { StoryEngine } from "@iv-player/core";
+import { StoryEngine } from "@ivkit/core";
 
 const engine = new StoryEngine(story);
 
@@ -55,7 +55,7 @@ This works with a single `<video>`, but there's a short gap at each scene change
 You only show and hide the elements:
 
 ```ts
-import { MediaController, StoryEngine } from "@iv-player/core";
+import { MediaController, StoryEngine } from "@ivkit/core";
 
 const engine = new StoryEngine(story);
 const front = document.querySelector<HTMLVideoElement>("#a")!;
@@ -86,7 +86,7 @@ Keep both videos rendered, stacked on top of each other, and switch them with `o
 The engine tells you which hotspots are visible. To know where to draw one at the current time, including animated ones, use `hotspotGeometryAt`:
 
 ```ts
-import { boundsOf, hotspotGeometryAt, isAnimated } from "@iv-player/core";
+import { boundsOf, hotspotGeometryAt, isAnimated } from "@ivkit/core";
 
 function place(element: HTMLElement, hotspot: Hotspot, time: number) {
   const geometry = hotspotGeometryAt(hotspot, time);

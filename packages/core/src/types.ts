@@ -1,5 +1,5 @@
 /**
- * Story format consumed by the iv-player engine.
+ * Story format consumed by the IVKit engine.
  *
  * All times are in seconds, relative to the start of the scene's video.
  */

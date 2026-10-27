@@ -1,40 +1,40 @@
 ---
-description: "Install iv-player, write your first interactive video story and use the <iv-player> Web Component from plain HTML, React, Vue or Svelte."
+description: "Install ivkit-player, write your first interactive video story and use the <ivkit-player> Web Component from plain HTML, React, Vue or Svelte."
 ---
 
 # Getting started
 
-iv-player has two packages:
+IVKit has two packages:
 
 | Package | What it is | Use it when |
 | --- | --- | --- |
-| `@iv-player/player` | The `<iv-player>` Web Component: videos, questions, hotspots and controls. | You want a ready-made player. |
-| `@iv-player/core` | A DOM-free engine, media controller and validator. | You're building your own interface. |
+| `@ivkit/player` | The `<ivkit-player>` Web Component: videos, questions, hotspots and controls. | You want a ready-made player. |
+| `@ivkit/core` | A DOM-free engine, media controller and validator. | You're building your own interface. |
 
-`@iv-player/player` depends on `@iv-player/core`, so you only install one of them.
+`@ivkit/player` depends on `@ivkit/core`, so you only install one of them.
 
 ## Install
 
 ::: code-group
 
 ```sh [pnpm]
-pnpm add @iv-player/player
+pnpm add @ivkit/player
 ```
 
 ```sh [npm]
-npm install @iv-player/player
+npm install @ivkit/player
 ```
 
 ```sh [yarn]
-yarn add @iv-player/player
+yarn add @ivkit/player
 ```
 
 :::
 
-Importing the package registers the `<iv-player>` element:
+Importing the package registers the `<ivkit-player>` element:
 
 ```ts
-import "@iv-player/player";
+import "@ivkit/player";
 ```
 
 ### From a CDN
@@ -42,7 +42,7 @@ import "@iv-player/player";
 Without a bundler, load the standalone build. It's a single ES module that includes the core engine:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@iv-player/player/dist/iv-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player/dist/ivkit-player.min.js"></script>
 ```
 
 ## Your first story
@@ -50,10 +50,10 @@ Without a bundler, load the standalone build. It's a single ES module that inclu
 A story is a set of scenes. Each scene is a video, plus the questions and hotspots that appear while it plays.
 
 ```html
-<iv-player id="player" controls></iv-player>
+<ivkit-player id="player" controls></ivkit-player>
 
 <script type="module">
-  import "@iv-player/player";
+  import "@ivkit/player";
 
   const player = document.getElementById("player");
 
@@ -108,42 +108,42 @@ In TypeScript, `event.detail` is typed automatically. See the [full list of even
 
 ## Using it from a framework
 
-`<iv-player>` is a standard custom element, so it works in any framework. Set `story` as a **property**, not an attribute, since it's an object.
+`<ivkit-player>` is a standard custom element, so it works in any framework. Set `story` as a **property**, not an attribute, since it's an object.
 
 ::: code-group
 
 ```tsx [React 19]
-import "@iv-player/player";
+import "@ivkit/player";
 import { story } from "./story";
 
 export function Player() {
-  return <iv-player controls story={story} />;
+  return <ivkit-player controls story={story} />;
 }
 ```
 
 ```vue [Vue]
 <script setup lang="ts">
-import "@iv-player/player";
+import "@ivkit/player";
 import { story } from "./story";
 </script>
 
 <template>
-  <iv-player controls :story.prop="story" />
+  <ivkit-player controls :story.prop="story" />
 </template>
 ```
 
 ```svelte [Svelte]
 <script lang="ts">
-  import "@iv-player/player";
+  import "@ivkit/player";
   import { story } from "./story";
 </script>
 
-<iv-player controls {story}></iv-player>
+<ivkit-player controls {story}></ivkit-player>
 ```
 
 :::
 
-In Vue, tell the compiler that `iv-player` is a custom element with `compilerOptions.isCustomElement`.
+In Vue, tell the compiler that `ivkit-player` is a custom element with `compilerOptions.isCustomElement`.
 
 Importing the package is safe during server-side rendering. See [Server-side rendering](/guide/ssr) for Next.js, Nuxt, SvelteKit and Astro.
 

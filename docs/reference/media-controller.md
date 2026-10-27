@@ -5,7 +5,7 @@ description: "Reference for MediaController: seamless scene swaps, preloading, f
 # `MediaController`
 
 ```ts
-import { MediaController } from "@iv-player/core";
+import { MediaController } from "@ivkit/core";
 ```
 
 Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, with preloading and seamless scene changes.

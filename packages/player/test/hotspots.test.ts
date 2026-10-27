@@ -1,4 +1,4 @@
-import type { Hotspot, Story } from "@iv-player/core";
+import type { Hotspot, Story } from "@ivkit/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import "../src/index";
 
@@ -39,8 +39,8 @@ const story: Story = {
   scenes: { s: { src: "s.mp4", events: hotspots } },
 };
 
-function playing(setup?: (player: HTMLElementTagNameMap["iv-player"]) => void) {
-  const player = document.createElement("iv-player");
+function playing(setup?: (player: HTMLElementTagNameMap["ivkit-player"]) => void) {
+  const player = document.createElement("ivkit-player");
   setup?.(player);
   document.body.append(player);
   const root = player.shadowRoot!;
@@ -63,7 +63,7 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-describe("<iv-player> hotspot rendering", () => {
+describe("<ivkit-player> hotspot rendering", () => {
   it("exposes the variant as a part and a data attribute, outline by default", () => {
     const { hotspot } = playing();
     expect(hotspot("plain").getAttribute("part")).toBe("hotspot hotspot-outline");

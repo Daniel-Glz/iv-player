@@ -1,8 +1,26 @@
 {
-  "name": "@iv-player/core",
-  "version": "0.0.0",
+  "name": "@ivkit/core",
+  "version": "0.1.0",
   "description": "Framework-agnostic engine for interactive videos: story format, validation, engine and media controller",
   "license": "MIT",
+  "author": "Alexis Gonzalez",
+  "homepage": "https://daniel-glz.github.io/ivkit/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daniel-Glz/ivkit.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/Daniel-Glz/ivkit/issues"
+  },
+  "keywords": [
+    "interactive-video",
+    "branching-video",
+    "video",
+    "hotspots",
+    "story",
+    "typescript"
+  ],
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -19,5 +37,8 @@
   "scripts": {
     "build": "tsdown",
     "typecheck": "tsc -p tsconfig.json"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
