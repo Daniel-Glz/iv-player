@@ -60,4 +60,12 @@ Whether a hotspot changes over time, meaning it has more than one keyframe and m
 const VERSION: string;
 ```
 
-The version of `@ivkit/core`.
+The installed version of `@ivkit/core`, the same as in its `package.json`. Useful in bug reports and logs.
+
+```ts
+import { VERSION } from "@ivkit/core";
+
+console.log(VERSION); // "0.1.1"
+```
+
+`@ivkit/core` 0.1.0 reports `"0.0.0"` here by mistake. That's fixed in 0.1.1.

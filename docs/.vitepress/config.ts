@@ -1,8 +1,11 @@
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitepress";
 
 const site = "https://daniel-glz.github.io/ivkit/";
 const source = (path: string) => fileURLToPath(new URL(`../../packages/${path}`, import.meta.url));
+// Both packages share a version, shown in the nav.
+const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8")) as { version: string };
 
 export default defineConfig({
   title: "IVKit",
@@ -58,9 +61,17 @@ export default defineConfig({
       { text: "Examples", link: "/examples/", activeMatch: "/examples/" },
       { text: "Reference", link: "/reference/story-format", activeMatch: "/reference/" },
       {
-        text: "About",
+        text: `v${version}`,
         items: [
           { text: "Changelog", link: "/changelog" },
+          { text: "Releases", link: "https://github.com/Daniel-Glz/ivkit/releases" },
+          { text: "@ivkit/player on npm", link: "https://www.npmjs.com/package/@ivkit/player" },
+          { text: "@ivkit/core on npm", link: "https://www.npmjs.com/package/@ivkit/core" },
+        ],
+      },
+      {
+        text: "About",
+        items: [
           { text: "Contributing", link: "/contributing" },
           { text: "License", link: "/license" },
         ],
@@ -110,7 +121,10 @@ export default defineConfig({
         },
       ],
     },
-    socialLinks: [{ icon: "github", link: "https://github.com/Daniel-Glz/ivkit" }],
+    socialLinks: [
+      { icon: "github", link: "https://github.com/Daniel-Glz/ivkit" },
+      { icon: "npm", link: "https://www.npmjs.com/package/@ivkit/player" },
+    ],
     editLink: {
       pattern: "https://github.com/Daniel-Glz/ivkit/edit/main/docs/:path",
     },
