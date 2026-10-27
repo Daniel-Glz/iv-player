@@ -4,14 +4,18 @@ description: "Install ivkit-player, write your first interactive video story and
 
 # Getting started
 
-IVKit has two packages:
+You can use IVKit with its ready-made player or without it. Each way has its own package:
 
 | Package | What it is | Use it when |
 | --- | --- | --- |
 | `@ivkit/player` | The `<ivkit-player>` Web Component: videos, questions, hotspots and controls. | You want a ready-made player. |
 | `@ivkit/core` | A DOM-free engine, media controller and validator. | You're building your own interface. |
 
-`@ivkit/player` depends on `@ivkit/core`, so you only install one of them.
+`@ivkit/player` depends on `@ivkit/core`, so you only install one of them. Both play the same [stories](/guide/stories), so you can start with the player and switch to core later without rewriting them.
+
+::: tip Building your own player?
+This page sets up `<ivkit-player>`. To use IVKit without it, go to [Custom players with core](/guide/core), or see a [player built in Vue](/examples/core-player).
+:::
 
 ## Install
 
@@ -156,3 +160,4 @@ Importing the package is safe during server-side rendering. See [Server-side ren
 - [Writing stories](/guide/stories): scenes, questions and branching.
 - [Hotspots](/guide/hotspots): clickable areas, shapes and animation.
 - [Styling the player](/guide/styling): colors, fonts and `::part()`.
+- [Custom players with core](/guide/core): the same stories, with your own interface.
