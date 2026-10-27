@@ -93,7 +93,10 @@ export interface Hotspot {
   variant?: string;
 }
 
-export type HotspotShape = "rect" | "ellipse" | "polygon";
+/** Every `HotspotShape`, for checks at runtime. */
+export const HOTSPOT_SHAPES = ["rect", "ellipse", "polygon"] as const;
+
+export type HotspotShape = (typeof HOTSPOT_SHAPES)[number];
 
 /** `[x, y]` in fractions (0–1) of the video frame. */
 export type Point = readonly [x: number, y: number];
@@ -114,7 +117,10 @@ export interface HotspotKeyframe {
   easing?: Easing;
 }
 
-export type Easing = "linear" | "ease-in-out" | "step";
+/** Every `Easing`, for checks at runtime. */
+export const EASINGS = ["linear", "ease-in-out", "step"] as const;
+
+export type Easing = (typeof EASINGS)[number];
 
 /**
  * Rectangle in fractions (0–1) of the video frame, from its top-left corner.
