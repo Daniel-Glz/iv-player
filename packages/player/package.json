@@ -11,7 +11,17 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "react-server": "./dist/server.js",
+      "workerd": "./dist/server.js",
+      "edge-light": "./dist/server.js",
       "import": "./dist/index.js"
+    },
+    "./element": {
+      "types": "./dist/element.d.ts",
+      "react-server": "./dist/server.js",
+      "workerd": "./dist/server.js",
+      "edge-light": "./dist/server.js",
+      "import": "./dist/element.js"
     },
     "./iv-player.min.js": "./dist/iv-player.min.js"
   },

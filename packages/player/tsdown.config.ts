@@ -13,7 +13,7 @@ export default defineConfig([
   // For bundlers and npm: imports @iv-player/core like any other dependency.
   {
     ...shared,
-    entry: ["src/index.ts"],
+    entry: ["src/index.ts", "src/element.ts", "src/server.ts"],
     dts: true,
   },
   // For a <script type="module"> straight from a CDN: everything in one file.

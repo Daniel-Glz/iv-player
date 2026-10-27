@@ -4,6 +4,17 @@ You can import `@iv-player/player` in code that also runs on the server, such as
 
 So the rule is the same in every framework: **import the package in code that also runs in the browser**, and set `story` as a property.
 
+## What the server loads
+
+| Runtime | Gets |
+| --- | --- |
+| Browsers and bundlers for the browser | The full player. |
+| Node, used by Nuxt, SvelteKit, Astro and Next.js's Node runtime | The full player. On import it sees there's no DOM and registers nothing. |
+| React Server Components (`react-server`) | A server build with no DOM code. |
+| Cloudflare Workers (`workerd`) and Vercel Edge (`edge-light`) | The same server build. |
+
+Bundlers pick the server build through `package.json` [export conditions](https://nodejs.org/api/packages.html#conditional-exports), so you don't need to configure anything. It has the same exports, with an empty `IvPlayer` class and a `defineIvPlayer` that does nothing. See [Server builds](/reference/player#server-builds).
+
 ## Avoid layout shift
 
 Until the element is defined in the browser, `<iv-player>` is an unknown inline element with no size. Reserve its space with `:not(:defined)`, so the page doesn't jump when it upgrades:
@@ -18,7 +29,7 @@ iv-player:not(:defined) {
 
 ## Next.js
 
-In the App Router, render the player from a **client component**. A server component can output the `<iv-player>` tag, but none of its code ships to the browser, so the element would never be defined there.
+In the App Router, render the player from a **client component**. A server component can output the `<iv-player>` tag, and importing the package there loads the server build. But none of a server component's code ships to the browser, so the element would never be defined.
 
 ```tsx
 // app/player.tsx
