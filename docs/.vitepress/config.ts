@@ -5,7 +5,9 @@ import { defineConfig } from "vitepress";
 const site = "https://daniel-glz.github.io/ivkit/";
 const source = (path: string) => fileURLToPath(new URL(`../../packages/${path}`, import.meta.url));
 // Both packages share a version, shown in the nav.
-const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8")) as { version: string };
+const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8")) as {
+  version: string;
+};
 
 export default defineConfig({
   title: "IVKit",
@@ -83,13 +85,21 @@ export default defineConfig({
           text: "Guide",
           items: [
             { text: "Getting started", link: "/guide/getting-started" },
-            { text: "Server-side rendering", link: "/guide/ssr" },
             { text: "Writing stories", link: "/guide/stories" },
             { text: "Hotspots", link: "/guide/hotspots" },
-            { text: "Styling the player", link: "/guide/styling" },
             { text: "Validating stories", link: "/guide/validation" },
-            { text: "Custom players with core", link: "/guide/core" },
           ],
+        },
+        {
+          text: "With the player",
+          items: [
+            { text: "Styling the player", link: "/guide/styling" },
+            { text: "Server-side rendering", link: "/guide/ssr" },
+          ],
+        },
+        {
+          text: "Without the player",
+          items: [{ text: "Custom players with core", link: "/guide/core" }],
         },
       ],
       "/examples/": [

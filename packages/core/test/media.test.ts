@@ -156,7 +156,9 @@ describe.each([
       scenes: {
         s: {
           src: "s.mp4",
-          events: [{ type: "question", id: "q", at: 1, text: "¿?", options: [{ id: "ok", label: "Ok" }] }],
+          events: [
+            { type: "question", id: "q", at: 1, text: "¿?", options: [{ id: "ok", label: "Ok" }] },
+          ],
         },
       },
     });

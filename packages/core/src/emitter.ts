@@ -6,7 +6,8 @@ export class Emitter<Events extends object> {
 
   /** Subscribes to `type`. Returns a function that unsubscribes. */
   on<K extends keyof Events>(type: K, listener: Listener<Events[K]>): () => void {
-    (this.listeners[type] ??= new Set()).add(listener);
+    this.listeners[type] ??= new Set();
+    this.listeners[type].add(listener);
     return () => this.off(type, listener);
   }
 

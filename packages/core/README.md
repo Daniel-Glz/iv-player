@@ -4,7 +4,7 @@ The framework-agnostic engine behind [`@ivkit/player`](https://www.npmjs.com/pac
 
 **[Documentation](https://daniel-glz.github.io/ivkit/guide/core)** · **[Live examples](https://daniel-glz.github.io/ivkit/examples/)**
 
-If you want a ready-made player, install `@ivkit/player` instead. It includes core.
+If you want a ready-made player, install [`@ivkit/player`](https://www.npmjs.com/package/@ivkit/player) instead. It includes core and plays the same stories, so you can start with the player and move to core later without rewriting them.
 
 ## Install
 

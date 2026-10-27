@@ -12,7 +12,15 @@ const story: Story = {
     intro: {
       src: "intro.mp4",
       events: [
-        { type: "hotspot", id: "door", from: 1, to: 4, area, label: "Abrir la puerta", goto: "hall" },
+        {
+          type: "hotspot",
+          id: "door",
+          from: 1,
+          to: 4,
+          area,
+          label: "Abrir la puerta",
+          goto: "hall",
+        },
         {
           type: "question",
           id: "q",

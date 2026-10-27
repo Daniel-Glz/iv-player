@@ -9,7 +9,13 @@ const story: Story = {
     intro: {
       src: "intro.mp4",
       events: [
-        { type: "question", id: "q", at: 5, text: "¿Seguimos?", options: [{ id: "ok", label: "Sí" }] },
+        {
+          type: "question",
+          id: "q",
+          at: 5,
+          text: "¿Seguimos?",
+          options: [{ id: "ok", label: "Sí" }],
+        },
       ],
     },
   },
@@ -21,7 +27,8 @@ function playing(attributes: Record<string, string> = { controls: "" }) {
   for (const [name, value] of Object.entries(attributes)) player.setAttribute(name, value);
   document.body.append(player);
   const root = player.shadowRoot!;
-  const $ = <T extends HTMLElement = HTMLElement>(selector: string) => root.querySelector<T>(selector)!;
+  const $ = <T extends HTMLElement = HTMLElement>(selector: string) =>
+    root.querySelector<T>(selector)!;
   const videos = [...root.querySelectorAll("video")];
   player.story = story;
   player.play();

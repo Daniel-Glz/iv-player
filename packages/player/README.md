@@ -4,6 +4,8 @@ The `<ivkit-player>` Web Component for interactive videos: branching stories, qu
 
 **[Documentation](https://daniel-glz.github.io/ivkit/)** · **[Live examples](https://daniel-glz.github.io/ivkit/examples/)**
 
+If you'd rather build your own interface, use [`@ivkit/core`](https://www.npmjs.com/package/@ivkit/core) instead: the same engine and story format, without the Web Component. See [Custom players with core](https://daniel-glz.github.io/ivkit/guide/core).
+
 ## Install
 
 ```sh

@@ -4,7 +4,7 @@ description: "Build your own interactive video player in any framework with Stor
 
 # Custom players with core
 
-`<ivkit-player>` is built on `@ivkit/core`, and you can build your own interface the same way: in React, on a canvas, in a game engine, or anywhere else.
+You don't need `<ivkit-player>` to use IVKit. The player is built on `@ivkit/core`, and you can build your own interface the same way: in React, on a canvas, in a game engine, or anywhere else. Stories, [validation](/guide/validation) and hotspot geometry work exactly as they do with the player.
 
 ```sh
 pnpm add @ivkit/core
