@@ -34,3 +34,5 @@ Thumbs.db
 # Docs
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+# Temporary config bundles written by Vite and VitePress
+*.timestamp-*.mjs
