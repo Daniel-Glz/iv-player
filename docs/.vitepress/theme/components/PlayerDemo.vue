@@ -1,0 +1,87 @@
+<script setup lang="ts">
+import type { Story } from "@iv-player/core";
+import type { IvPlayer } from "@iv-player/player";
+import { onMounted, ref } from "vue";
+
+const props = withDefaults(
+  defineProps<{
+    story: Story;
+    controls?: boolean;
+    renderHotspot?: IvPlayer["renderHotspot"];
+    /** Shows the player's events under it. */
+    log?: boolean;
+  }>(),
+  { controls: true, log: false },
+);
+
+const player = ref<IvPlayer>();
+const entries = ref<string[]>([]);
+
+const describe: Record<string, (detail: any) => string> = {
+  "iv-scene": (d) => `scene → ${d.sceneId}`,
+  "iv-interaction": (d) => `question "${d.question.id}" at ${d.question.at}s`,
+  "iv-answer": (d) => `answer "${d.choice.id}"${d.choice.goto ? ` → ${d.choice.goto}` : ""}`,
+  "iv-hotspot": (d) => `hotspot "${d.hotspot.id}"${d.hotspot.goto ? ` → ${d.hotspot.goto}` : ""}`,
+  "iv-end": (d) => `end on ${d.sceneId}`,
+};
+
+onMounted(async () => {
+  // Custom elements only exist in the browser, not during the static build.
+  await import("@iv-player/player");
+  const element = player.value!;
+  if (props.log) {
+    for (const [type, text] of Object.entries(describe)) {
+      element.addEventListener(type, (event) => {
+        entries.value = [text((event as CustomEvent).detail), ...entries.value].slice(0, 6);
+      });
+    }
+  }
+  element.renderHotspot = props.renderHotspot ?? null;
+  element.story = props.story;
+});
+</script>
+
+<template>
+  <div class="player-demo">
+    <iv-player ref="player" :controls="controls || undefined">
+      <slot />
+    </iv-player>
+    <ol v-if="log" class="player-demo-log" aria-live="polite">
+      <li v-if="entries.length === 0" class="empty">Events will show up here.</li>
+      <li v-for="(entry, i) in entries" :key="entries.length - i">{{ entry }}</li>
+    </ol>
+  </div>
+</template>
+
+<style scoped>
+.player-demo {
+  margin: 24px 0;
+}
+
+iv-player {
+  border-radius: 12px;
+}
+
+.player-demo-log {
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  list-style: none;
+  border-radius: 8px;
+  background: var(--vp-c-bg-soft);
+  font-family: var(--vp-font-family-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.player-demo-log li {
+  margin: 0;
+}
+
+.player-demo-log li:first-child:not(.empty) {
+  color: var(--vp-c-brand-1);
+}
+
+.player-demo-log .empty {
+  color: var(--vp-c-text-3);
+}
+</style>

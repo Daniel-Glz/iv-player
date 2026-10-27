@@ -12,6 +12,7 @@ Use the `<iv-player>` Web Component for a ready-made browser player, or build yo
 - [Writing stories](https://daniel-glz.github.io/iv-player/guide/stories)
 - [Hotspots](https://daniel-glz.github.io/iv-player/guide/hotspots)
 - [Styling the player](https://daniel-glz.github.io/iv-player/guide/styling)
+- [Live examples](https://daniel-glz.github.io/iv-player/examples/): branching, quizzes, hotspots, tracking, theming, custom players and validation
 - [API reference](https://daniel-glz.github.io/iv-player/reference/story-format)
 
 ## Development
