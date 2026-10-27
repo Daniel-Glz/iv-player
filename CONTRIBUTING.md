@@ -8,6 +8,7 @@ Thanks for helping improve IVKit! Bug reports, ideas and pull requests are all w
 
 - What you expected and what happened instead.
 - The smallest story that shows the problem. Run it through `validateStory` first, since many problems are invalid stories.
+- The IVKit version, from `npm ls @ivkit/player` or `VERSION` in `@ivkit/core`.
 - Your browser and operating system, and your framework if you use one.
 
 ## Setting up
@@ -82,5 +83,27 @@ node docs/scripts/generate-example-videos.mjs --force
 3. Run `pnpm typecheck`, `pnpm test` and `pnpm check:size`.
 4. Write commit messages in the [Conventional Commits](https://www.conventionalcommits.org/) style used in this repository, such as `feat(player): …`, `fix(core): …` or `docs: …`.
 5. Open a pull request that explains what changed and why.
+
+## Releasing
+
+Maintainers release both packages together, with the same version:
+
+1. In a pull request, set `version` in `packages/core/package.json` and `packages/player/package.json`, and move the **Unreleased** entries in `CHANGELOG.md` into a section for the new version, with its compare link.
+2. After it's merged, publish from an up-to-date `main` with pnpm, which replaces `workspace:*` with the real version. npm asks you to authenticate for each package:
+
+   ```sh
+   pnpm install --frozen-lockfile
+   pnpm build
+   pnpm -r publish --dry-run
+   pnpm -r publish
+   ```
+
+3. Create the GitHub release, with that version's changelog section as its notes:
+
+   ```sh
+   gh release create v0.1.2 --target main --title v0.1.2 --notes-file notes.md
+   ```
+
+4. If jsDelivr still answers 404 for the new version, clear its cache with `https://purge.jsdelivr.net/npm/@ivkit/player@<version>/dist/ivkit-player.min.js`.
 
 By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).

@@ -13,8 +13,10 @@ npm install @ivkit/player
 Or, without a bundler, load the standalone build from a CDN. It's a single ES module that includes the core engine:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player/dist/ivkit-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
 ```
+
+Until 1.0.0, minor versions may include breaking changes, so `@0.1` takes only 0.1.x fixes. See the [changelog](https://daniel-glz.github.io/ivkit/changelog).
 
 ## Usage
 

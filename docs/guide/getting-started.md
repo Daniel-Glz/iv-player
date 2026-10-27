@@ -31,6 +31,8 @@ yarn add @ivkit/player
 
 :::
 
+Until 1.0.0, minor versions may include breaking changes, so a `^0.1.1` range only accepts 0.1.x updates, which is what npm and pnpm save by default. The [changelog](/changelog) lists what changes in each version.
+
 Importing the package registers the `<ivkit-player>` element:
 
 ```ts
@@ -42,8 +44,10 @@ import "@ivkit/player";
 Without a bundler, load the standalone build. It's a single ES module that includes the core engine:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player/dist/ivkit-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
 ```
+
+`@0.1` loads the latest 0.1.x release, so you get fixes without breaking changes. Use an exact version such as `@0.1.1` to never change, or the same path on [unpkg](https://unpkg.com/@ivkit/player@0.1/dist/ivkit-player.min.js).
 
 ## Your first story
 
