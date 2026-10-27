@@ -10,8 +10,8 @@ hero:
       text: Get started
       link: /guide/getting-started
     - theme: alt
-      text: Story format
-      link: /reference/story-format
+      text: Live examples
+      link: /examples/
     - theme: alt
       text: GitHub
       link: https://github.com/Daniel-Glz/iv-player
