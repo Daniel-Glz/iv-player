@@ -28,7 +28,7 @@ pnpm install --frozen-lockfile
 | `packages/player` | `@ivkit/player`: the `<ivkit-player>` Web Component, built on core. |
 | `docs` | The documentation site, built with VitePress and published to GitHub Pages. |
 | `docs/examples` | The live examples. Their stories are in `docs/examples/stories`. |
-| `scripts` | Checks for bundle size and package exports. |
+| `scripts` | Checks for bundle size and package exports, and the publish script. |
 
 ## Commands
 
@@ -86,24 +86,20 @@ node docs/scripts/generate-example-videos.mjs --force
 
 ## Releasing
 
-Maintainers release both packages together, with the same version:
+Maintainers release both packages together, with the same version. Publishing is automated: creating a GitHub release runs the [release workflow](https://github.com/Daniel-Glz/ivkit/blob/main/.github/workflows/release.yml), which runs every check and publishes to npm through trusted publishing, with provenance and no npm token.
 
 1. In a pull request, set `version` in `packages/core/package.json` and `packages/player/package.json`, and move the **Unreleased** entries in `CHANGELOG.md` into a section for the new version, with its compare link.
-2. After it's merged, publish from an up-to-date `main` with pnpm, which replaces `workspace:*` with the real version. npm asks you to authenticate for each package:
-
-   ```sh
-   pnpm install --frozen-lockfile
-   pnpm build
-   pnpm -r publish --dry-run
-   pnpm -r publish
-   ```
-
-3. Create the GitHub release, with that version's changelog section as its notes:
+2. After it's merged, create the GitHub release from `main`, with that version's changelog section as its notes. The tag must be `v` plus the version:
 
    ```sh
    gh release create v0.1.2 --target main --title v0.1.2 --notes-file notes.md
    ```
 
+   For a prerelease such as `1.0.0-beta.1`, add `--prerelease`. It's published under npm's `next` tag, so it's never installed by default.
+
+3. Follow the **Release** run under Actions. If a step fails, fix the cause and re-run the workflow. Versions already on npm are skipped.
 4. If jsDelivr still answers 404 for the new version, clear its cache with `https://purge.jsdelivr.net/npm/@ivkit/player@<version>/dist/ivkit-player.min.js`.
+
+To check what would be published without publishing, run `pnpm build` and then `node scripts/publish.mjs --dry-run`.
 
 By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).
