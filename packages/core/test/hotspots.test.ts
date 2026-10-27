@@ -17,7 +17,13 @@ const room: Story = {
       events: [
         { type: "hotspot", id: "door", from: 2, to: 6, area, label: "Puerta", goto: "hall" },
         { type: "hotspot", id: "lamp", from: 4, area, label: "Lámpara" },
-        { type: "question", id: "stay", at: 8, text: "¿Te quedas?", options: [{ id: "yes", label: "Sí" }] },
+        {
+          type: "question",
+          id: "stay",
+          at: 8,
+          text: "¿Te quedas?",
+          options: [{ id: "yes", label: "Sí" }],
+        },
       ],
     },
     hall: { src: "hall.mp4" },
@@ -111,7 +117,12 @@ describe("StoryEngine hotspots", () => {
     const engine = new StoryEngine({
       version: "0.1",
       start: "only",
-      scenes: { only: { src: "only.mp4", events: [{ type: "hotspot", id: "h", from: 0, area, label: "H" }] } },
+      scenes: {
+        only: {
+          src: "only.mp4",
+          events: [{ type: "hotspot", id: "h", from: 0, area, label: "H" }],
+        },
+      },
     });
     const log = record(engine);
     engine.start();

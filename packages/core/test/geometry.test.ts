@@ -7,7 +7,11 @@ const box = (x: number, y: number, width = 0.1, height = 0.1) => ({ x, y, width,
 describe("hotspotGeometryAt", () => {
   it("returns a static rect by default", () => {
     const hotspot: Hotspot = { ...base, area: box(0.2, 0.3) };
-    expect(hotspotGeometryAt(hotspot, 5)).toEqual({ kind: "box", area: box(0.2, 0.3), roundness: 0 });
+    expect(hotspotGeometryAt(hotspot, 5)).toEqual({
+      kind: "box",
+      area: box(0.2, 0.3),
+      roundness: 0,
+    });
   });
 
   it("gives ellipses full roundness", () => {
@@ -16,13 +20,32 @@ describe("hotspotGeometryAt", () => {
   });
 
   it("returns static polygons", () => {
-    const points = [[0, 0], [1, 0], [0.5, 1]] as const;
-    expect(hotspotGeometryAt({ ...base, shape: "polygon", points }, 0)).toEqual({ kind: "polygon", points });
+    const points = [
+      [0, 0],
+      [1, 0],
+      [0.5, 1],
+    ] as const;
+    expect(hotspotGeometryAt({ ...base, shape: "polygon", points }, 0)).toEqual({
+      kind: "polygon",
+      points,
+    });
   });
 
   it("returns null without usable geometry", () => {
     expect(hotspotGeometryAt({ ...base }, 0)).toBeNull();
-    expect(hotspotGeometryAt({ ...base, shape: "polygon", points: [[0, 0], [1, 1]] }, 0)).toBeNull();
+    expect(
+      hotspotGeometryAt(
+        {
+          ...base,
+          shape: "polygon",
+          points: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+        0,
+      ),
+    ).toBeNull();
   });
 
   describe("keyframes", () => {
@@ -88,13 +111,31 @@ describe("hotspotGeometryAt", () => {
         ...base,
         shape: "polygon",
         keyframes: [
-          { at: 0, points: [[0, 0], [1, 0], [0, 1]] },
-          { at: 1, points: [[0, 0], [1, 0], [1, 1]] },
+          {
+            at: 0,
+            points: [
+              [0, 0],
+              [1, 0],
+              [0, 1],
+            ],
+          },
+          {
+            at: 1,
+            points: [
+              [0, 0],
+              [1, 0],
+              [1, 1],
+            ],
+          },
         ],
       };
       expect(hotspotGeometryAt(morph, 0.5)).toEqual({
         kind: "polygon",
-        points: [[0, 0], [1, 0], [0.5, 1]],
+        points: [
+          [0, 0],
+          [1, 0],
+          [0.5, 1],
+        ],
       });
     });
 
@@ -103,7 +144,15 @@ describe("hotspotGeometryAt", () => {
         ...base,
         keyframes: [
           { at: 0, area: box(0, 0) },
-          { at: 1, shape: "polygon", points: [[0, 0], [1, 0], [0, 1]] },
+          {
+            at: 1,
+            shape: "polygon",
+            points: [
+              [0, 0],
+              [1, 0],
+              [0, 1],
+            ],
+          },
         ],
       };
       expect(hotspotGeometryAt(swap, 0.9)?.kind).toBe("box");
@@ -115,7 +164,14 @@ describe("hotspotGeometryAt", () => {
 describe("boundsOf", () => {
   it("returns a box's area and a polygon's bounding box", () => {
     expect(boundsOf({ kind: "box", area: box(0.1, 0.2), roundness: 0 })).toEqual(box(0.1, 0.2));
-    const bounds = boundsOf({ kind: "polygon", points: [[0.2, 0.1], [0.6, 0.3], [0.4, 0.5]] });
+    const bounds = boundsOf({
+      kind: "polygon",
+      points: [
+        [0.2, 0.1],
+        [0.6, 0.3],
+        [0.4, 0.5],
+      ],
+    });
     expect(bounds.x).toBeCloseTo(0.2);
     expect(bounds.y).toBeCloseTo(0.1);
     expect(bounds.width).toBeCloseTo(0.4);
@@ -127,6 +183,14 @@ describe("isAnimated", () => {
   it("is true only with two or more keyframes", () => {
     expect(isAnimated({ ...base, area: box(0, 0) })).toBe(false);
     expect(isAnimated({ ...base, keyframes: [{ at: 0, area: box(0, 0) }] })).toBe(false);
-    expect(isAnimated({ ...base, keyframes: [{ at: 0, area: box(0, 0) }, { at: 1, area: box(1, 1) }] })).toBe(true);
+    expect(
+      isAnimated({
+        ...base,
+        keyframes: [
+          { at: 0, area: box(0, 0) },
+          { at: 1, area: box(1, 1) },
+        ],
+      }),
+    ).toBe(true);
   });
 });

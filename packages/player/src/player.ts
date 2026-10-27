@@ -189,7 +189,14 @@ export class IvkitPlayer extends Base {
           if (video === this.#activeVideo() && !this.#frameCallback) this.#positionHotspots();
         });
       }
-      for (const type of ["play", "pause", "timeupdate", "durationchange", "volumechange", "seeked"]) {
+      for (const type of [
+        "play",
+        "pause",
+        "timeupdate",
+        "durationchange",
+        "volumechange",
+        "seeked",
+      ]) {
         video.addEventListener(type, () => {
           if (video === this.#activeVideo()) this.#renderControls();
         });
@@ -202,7 +209,9 @@ export class IvkitPlayer extends Base {
     this.addEventListener("keydown", (event) => this.#onKeydown(event));
 
     this.#resizeObserver =
-      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => this.#layoutHotspots());
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(() => this.#layoutHotspots());
     this.#renderControls();
     this.#renderFullscreen();
   }
@@ -520,7 +529,9 @@ export class IvkitPlayer extends Base {
   }
 
   #renderHotspots(hotspots: readonly Hotspot[]): void {
-    this.#hotspotButtons = new Map(hotspots.map((hotspot) => [hotspot, this.#createHotspot(hotspot)]));
+    this.#hotspotButtons = new Map(
+      hotspots.map((hotspot) => [hotspot, this.#createHotspot(hotspot)]),
+    );
     this.#hotspots.replaceChildren(...this.#hotspotButtons.values());
     this.#positionHotspots();
     this.#animateHotspots();

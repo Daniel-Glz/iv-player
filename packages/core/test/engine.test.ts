@@ -11,8 +11,20 @@ const quiz: Story = {
       src: "lesson.mp4",
       next: "outro",
       events: [
-        { type: "question", id: "late", at: 20, text: "¿Segunda?", options: [{ id: "ok", label: "Sí" }] },
-        { type: "question", id: "early", at: 5, text: "¿Primera?", options: [{ id: "ok", label: "Sí" }] },
+        {
+          type: "question",
+          id: "late",
+          at: 20,
+          text: "¿Segunda?",
+          options: [{ id: "ok", label: "Sí" }],
+        },
+        {
+          type: "question",
+          id: "early",
+          at: 5,
+          text: "¿Primera?",
+          options: [{ id: "ok", label: "Sí" }],
+        },
       ],
     },
     outro: { src: "outro.mp4" },

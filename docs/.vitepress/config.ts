@@ -5,7 +5,9 @@ import { defineConfig } from "vitepress";
 const site = "https://daniel-glz.github.io/ivkit/";
 const source = (path: string) => fileURLToPath(new URL(`../../packages/${path}`, import.meta.url));
 // Both packages share a version, shown in the nav.
-const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8")) as { version: string };
+const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8")) as {
+  version: string;
+};
 
 export default defineConfig({
   title: "IVKit",

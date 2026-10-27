@@ -123,7 +123,9 @@ describe("<ivkit-player> hotspot rendering", () => {
 
   it("lets renderHotspot customize each button before it's shown", () => {
     const renderer = vi.fn((hotspot: Hotspot, element: HTMLButtonElement) => {
-      element.append(Object.assign(document.createElement("img"), { alt: "", src: `${hotspot.id}.svg` }));
+      element.append(
+        Object.assign(document.createElement("img"), { alt: "", src: `${hotspot.id}.svg` }),
+      );
     });
     const { hotspot } = playing((player) => {
       player.renderHotspot = renderer;
@@ -186,7 +188,9 @@ describe("<ivkit-player> hotspot rendering", () => {
     const { player, hotspot } = playing();
     const onHotspot = vi.fn();
     player.addEventListener("iv-hotspot", onHotspot);
-    hotspot("tri").querySelector("polygon")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    hotspot("tri")
+      .querySelector("polygon")!
+      .dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(onHotspot.mock.calls[0]![0].detail.hotspot.id).toBe("tri");
   });

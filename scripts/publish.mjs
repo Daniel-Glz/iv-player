@@ -17,7 +17,9 @@ import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const { values } = parseArgs({ options: { tag: { type: "string" }, "dry-run": { type: "boolean", default: false } } });
+const { values } = parseArgs({
+  options: { tag: { type: "string" }, "dry-run": { type: "boolean", default: false } },
+});
 const dryRun = values["dry-run"];
 
 const packages = [];
@@ -28,15 +30,23 @@ for (const name of ["core", "player"]) {
 
 // Both packages are versioned together, and a release's tag must name that version.
 const version = packages[0].version;
-for (const pkg of packages) assert.equal(pkg.version, version, `${pkg.name} is at ${pkg.version}, not ${version}`);
-if (values.tag) assert.equal(values.tag, `v${version}`, `Release tag ${values.tag} doesn't match the packages' version ${version}`);
+for (const pkg of packages)
+  assert.equal(pkg.version, version, `${pkg.name} is at ${pkg.version}, not ${version}`);
+if (values.tag)
+  assert.equal(
+    values.tag,
+    `v${version}`,
+    `Release tag ${values.tag} doesn't match the packages' version ${version}`,
+  );
 
 // Prereleases such as 1.0.0-beta.1 go to the "next" dist-tag so they're never installed by default.
 const distTag = version.includes("-") ? "next" : "latest";
 
 function isPublished(name) {
   try {
-    execFileSync("npm", ["view", `${name}@${version}`, "version"], { stdio: ["ignore", "pipe", "ignore"] });
+    execFileSync("npm", ["view", `${name}@${version}`, "version"], {
+      stdio: ["ignore", "pipe", "ignore"],
+    });
     return true;
   } catch {
     return false;
@@ -51,7 +61,10 @@ try {
       continue;
     }
     const out = join(temporary, pkg.name.replace("/", "-"));
-    execFileSync("pnpm", ["pack", "--pack-destination", out], { cwd: pkg.dir, stdio: ["ignore", "ignore", "inherit"] });
+    execFileSync("pnpm", ["pack", "--pack-destination", out], {
+      cwd: pkg.dir,
+      stdio: ["ignore", "ignore", "inherit"],
+    });
     const [tarball] = await readdir(out);
     const args = ["publish", join(out, tarball), "--access", "public", "--tag", distTag];
     // Provenance needs the CI's identity, which a local dry run doesn't have.

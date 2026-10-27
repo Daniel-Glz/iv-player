@@ -77,7 +77,10 @@ export class FakeMedia implements MediaElement {
 
   addEventListener(type: string, listener: () => void): void {
     let set = this.listeners.get(type);
-    if (!set) this.listeners.set(type, (set = new Set()));
+    if (!set) {
+      set = new Set();
+      this.listeners.set(type, set);
+    }
     set.add(listener);
   }
 

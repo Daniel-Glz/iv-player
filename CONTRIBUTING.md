@@ -35,6 +35,8 @@ pnpm install --frozen-lockfile
 | Command | What it does |
 | --- | --- |
 | `pnpm typecheck` | Type-checks both packages. |
+| `pnpm lint` | Checks formatting and lint rules with Biome. |
+| `pnpm format` | Formats the code and applies safe lint fixes. |
 | `pnpm test` | Runs every test. Core runs in Node, and the player in happy-dom. |
 | `pnpm test:watch` | Runs the tests in watch mode. |
 | `pnpm test:coverage` | Runs the tests with a coverage report in `coverage/`. |
@@ -44,7 +46,7 @@ pnpm install --frozen-lockfile
 | `pnpm docs:dev` | Serves the documentation at `http://localhost:5173/ivkit/`. |
 | `pnpm docs:build` | Builds the documentation site. |
 
-CI runs `typecheck`, `test:coverage`, `check:size` and `check:exports` on every pull request.
+CI runs `lint`, `typecheck`, `test:coverage`, `check:size` and `check:exports` on every pull request.
 
 ## Size budgets
 

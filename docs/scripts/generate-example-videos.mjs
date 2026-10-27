@@ -35,16 +35,78 @@ const ballPath = [
 const ballSize = { width: 0.1, height: 0.1778 };
 
 const clips = [
-  { name: "adventure-intro", color: [30, 58, 95], duration: 6, title: "THE CROSSROADS", caption: "A question appears at 4 seconds" },
-  { name: "adventure-forest", color: [31, 81, 48], duration: 4, title: "THE FOREST", caption: "You chose the forest" },
-  { name: "adventure-city", color: [74, 45, 92], duration: 4, title: "THE CITY", caption: "You chose the city" },
-  { name: "quiz-question", color: [43, 45, 66], duration: 5, title: "QUICK QUIZ", caption: "What is 7 x 6?" },
-  { name: "quiz-wrong", color: [141, 43, 43], duration: 3, title: "NOT QUITE", caption: "Try that again" },
-  { name: "quiz-right", color: [43, 122, 75], duration: 3, title: "CORRECT!", caption: "7 x 6 = 42" },
-  { name: "shapes", color: [34, 48, 60], duration: 12, title: "", caption: "Click the shapes. Find the hidden key.", objects: ["door", "sun", "mountain", "key"] },
-  { name: "tracking", color: [16, 50, 74], duration: 9, title: "", caption: "Catch the ball", ball: true },
-  { name: "tracking-caught", color: [43, 122, 75], duration: 3, title: "GOT IT!", caption: "The hotspot followed the ball" },
-  { name: "tracking-missed", color: [90, 60, 30], duration: 3, title: "TOO SLOW", caption: "Replay to try again" },
+  {
+    name: "adventure-intro",
+    color: [30, 58, 95],
+    duration: 6,
+    title: "THE CROSSROADS",
+    caption: "A question appears at 4 seconds",
+  },
+  {
+    name: "adventure-forest",
+    color: [31, 81, 48],
+    duration: 4,
+    title: "THE FOREST",
+    caption: "You chose the forest",
+  },
+  {
+    name: "adventure-city",
+    color: [74, 45, 92],
+    duration: 4,
+    title: "THE CITY",
+    caption: "You chose the city",
+  },
+  {
+    name: "quiz-question",
+    color: [43, 45, 66],
+    duration: 5,
+    title: "QUICK QUIZ",
+    caption: "What is 7 x 6?",
+  },
+  {
+    name: "quiz-wrong",
+    color: [141, 43, 43],
+    duration: 3,
+    title: "NOT QUITE",
+    caption: "Try that again",
+  },
+  {
+    name: "quiz-right",
+    color: [43, 122, 75],
+    duration: 3,
+    title: "CORRECT!",
+    caption: "7 x 6 = 42",
+  },
+  {
+    name: "shapes",
+    color: [34, 48, 60],
+    duration: 12,
+    title: "",
+    caption: "Click the shapes. Find the hidden key.",
+    objects: ["door", "sun", "mountain", "key"],
+  },
+  {
+    name: "tracking",
+    color: [16, 50, 74],
+    duration: 9,
+    title: "",
+    caption: "Catch the ball",
+    ball: true,
+  },
+  {
+    name: "tracking-caught",
+    color: [43, 122, 75],
+    duration: 3,
+    title: "GOT IT!",
+    caption: "The hotspot followed the ball",
+  },
+  {
+    name: "tracking-missed",
+    color: [90, 60, 30],
+    duration: 3,
+    title: "TOO SLOW",
+    caption: "Replay to try again",
+  },
 ];
 
 try {
@@ -58,7 +120,8 @@ mkdirSync(outDir, { recursive: true });
 const work = join(tmpdir(), `ivkit-examples-${process.pid}`);
 mkdirSync(work, { recursive: true });
 
-const ffmpeg = (args) => execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args], { stdio: "inherit" });
+const ffmpeg = (args) =>
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...args], { stdio: "inherit" });
 
 /** geq condition that's true inside `shape`, in pixel coordinates X and Y. */
 function inside({ kind, x, y, width, height }) {
@@ -77,11 +140,20 @@ function inside({ kind, x, y, width, height }) {
 /** Draws `objects` over a solid `color` into a PNG. */
 function background(file, color, objects) {
   const channel = (i) =>
-    objects.reduceRight((rest, name) => `if(${inside(shapes[name])},${shapes[name].color[i]},${rest})`, String(color[i]));
+    objects.reduceRight(
+      (rest, name) => `if(${inside(shapes[name])},${shapes[name].color[i]},${rest})`,
+      String(color[i]),
+    );
   ffmpeg([
-    "-f", "lavfi", "-i", `color=c=black:s=${W}x${H}:d=1`,
-    "-vf", `format=rgb24,geq=r='${channel(0)}':g='${channel(1)}':b='${channel(2)}'`,
-    "-frames:v", "1", file,
+    "-f",
+    "lavfi",
+    "-i",
+    `color=c=black:s=${W}x${H}:d=1`,
+    "-vf",
+    `format=rgb24,geq=r='${channel(0)}':g='${channel(1)}':b='${channel(2)}'`,
+    "-frames:v",
+    "1",
+    file,
   ]);
 }
 
@@ -99,9 +171,15 @@ function path(points) {
 const ball = join(work, "ball.png");
 const [bw, bh] = [Math.round(ballSize.width * W), Math.round(ballSize.height * H)];
 ffmpeg([
-  "-f", "lavfi", "-i", `color=c=black:s=${bw}x${bh}:d=1`,
-  "-vf", `format=rgba,geq=r=255:g=120:b=90:a='255*lt(hypot(X-${bw / 2},Y-${bh / 2}),${bw / 2 - 1})'`,
-  "-frames:v", "1", ball,
+  "-f",
+  "lavfi",
+  "-i",
+  `color=c=black:s=${bw}x${bh}:d=1`,
+  "-vf",
+  `format=rgba,geq=r=255:g=120:b=90:a='255*lt(hypot(X-${bw / 2},Y-${bh / 2}),${bw / 2 - 1})'`,
+  "-frames:v",
+  "1",
+  ball,
 ]);
 
 for (const clip of clips) {
@@ -112,7 +190,8 @@ for (const clip of clips) {
   background(bg, clip.color, clip.objects ?? []);
 
   // No "'" or ":" in titles and captions: they would end the drawtext option.
-  const text = (value, size, x, y) => `drawtext=text='${value}':fontsize=${size}:fontcolor=white:x=${x}:y=${y}`;
+  const text = (value, size, x, y) =>
+    `drawtext=text='${value}':fontsize=${size}:fontcolor=white:x=${x}:y=${y}`;
   const centered = "(w-text_w)/2";
   const overlays = [
     // Without a title, the caption goes in the top left corner, clear of the
@@ -135,9 +214,23 @@ for (const clip of clips) {
   console.log(`Generating ${clip.name}.mp4`);
   ffmpeg([
     ...inputs,
-    "-filter_complex", graph, "-map", "[v]",
-    "-c:v", "libx264", "-preset", "slow", "-crf", "30", "-pix_fmt", "yuv420p", "-g", "30",
-    "-movflags", "+faststart", "-an",
+    "-filter_complex",
+    graph,
+    "-map",
+    "[v]",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "slow",
+    "-crf",
+    "30",
+    "-pix_fmt",
+    "yuv420p",
+    "-g",
+    "30",
+    "-movflags",
+    "+faststart",
+    "-an",
     file,
   ]);
 }

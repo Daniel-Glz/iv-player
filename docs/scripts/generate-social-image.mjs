@@ -37,16 +37,23 @@ const text = (value, size, color, y) =>
 execFileSync(
   "ffmpeg",
   [
-    "-y", "-loglevel", "error",
-    "-f", "lavfi", "-i", `color=c=black:s=${W}x${H}:d=1`,
-    "-vf", [
+    "-y",
+    "-loglevel",
+    "error",
+    "-f",
+    "lavfi",
+    "-i",
+    `color=c=black:s=${W}x${H}:d=1`,
+    "-vf",
+    [
       `format=rgb24,geq=r='${channel(0)}':g='${channel(1)}':b='${channel(2)}'`,
       text("IVKit", 104, "white", 150),
       text("Interactive videos for the web", 46, "0xd0d0e0", 278),
       text("Branching stories, questions and animated hotspots", 28, "0x9a9ab0", 352),
       `drawtext=text='daniel-glz.github.io/ivkit':fontsize=28:fontcolor=0xa5a5ff:x=${logo.x}:y=${H - 96}`,
     ].join(","),
-    "-frames:v", "1",
+    "-frames:v",
+    "1",
     out,
   ],
   { stdio: "inherit" },

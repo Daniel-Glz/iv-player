@@ -19,7 +19,9 @@ function load(specifier, conditions) {
   `;
   const flags = conditions.map((condition) => `--conditions=${condition}`);
   // The package resolves its own name (self-reference) from its directory.
-  const output = execFileSync(process.execPath, [...flags, "--input-type=module", "-e", script], { cwd: player });
+  const output = execFileSync(process.execPath, [...flags, "--input-type=module", "-e", script], {
+    cwd: player,
+  });
   return JSON.parse(output);
 }
 
@@ -36,6 +38,10 @@ for (const [specifier, conditions, file] of cases) {
   const result = load(specifier, conditions);
   const label = `${specifier} [${conditions.join(", ") || "node"}]`;
   assert.equal(result.file, file, `${label}: resolved to ${result.file}`);
-  assert.deepEqual(result.exports, ["IvkitPlayer", "defineIvkitPlayer"], `${label}: unexpected exports`);
+  assert.deepEqual(
+    result.exports,
+    ["IvkitPlayer", "defineIvkitPlayer"],
+    `${label}: unexpected exports`,
+  );
   console.log(`PASS ${label} → ${file}`);
 }
