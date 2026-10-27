@@ -14,13 +14,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check:size": "node scripts/check-size.mjs"
+    "check:size": "node scripts/check-size.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
     "@vitest/coverage-v8": "^5.0.5",
     "tsdown": "0.23.1",
     "typescript": "^7.0.2",
+    "vitepress": "1.6.4",
     "vitest": "^5.0.5"
   }
 }

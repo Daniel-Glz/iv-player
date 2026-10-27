@@ -31,3 +31,6 @@ Thumbs.db
 !.vscode/settings.json
 
 .pnpm-store
+# Docs
+docs/.vitepress/cache/
+docs/.vitepress/dist/

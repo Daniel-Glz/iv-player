@@ -6,15 +6,13 @@ Use the `<iv-player>` Web Component for a ready-made browser player, or build yo
 
 ## Documentation
 
-[**Open the documentation →**](docs/README.md)
+[**Read the documentation →**](https://daniel-glz.github.io/iv-player/)
 
-- [Quick start](docs/getting-started.md)
-- [Stories and hotspots](docs/stories.md)
-- [Player API and styling](docs/player-api.md)
-- [Story validation](docs/validation.md)
-- [Core engine and development](docs/development.md)
-
-Documentation is hosted inside this private repository and shares its access permissions.
+- [Getting started](https://daniel-glz.github.io/iv-player/guide/getting-started)
+- [Writing stories](https://daniel-glz.github.io/iv-player/guide/stories)
+- [Hotspots](https://daniel-glz.github.io/iv-player/guide/hotspots)
+- [Styling the player](https://daniel-glz.github.io/iv-player/guide/styling)
+- [API reference](https://daniel-glz.github.io/iv-player/reference/story-format)
 
 ## Development
 
@@ -26,6 +24,7 @@ pnpm typecheck
 pnpm test
 pnpm build
 pnpm check:size
+pnpm docs:dev   # documentation at http://localhost:5173/iv-player/
 ```
 
 No third-party runtime dependencies. The standalone player has an 8 KiB gzip budget, including its core engine, styles, and icons.
