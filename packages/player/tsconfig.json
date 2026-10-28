@@ -4,10 +4,12 @@
     "noEmit": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": [],
+    // tsdown loads its config through Node, which needs the `.ts` extension on imports.
+    "allowImportingTsExtensions": true,
     // Typecheck against core's sources so it doesn't need to be built first.
     "paths": {
       "@ivkit/core": ["../core/src/index.ts"]
     }
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "build", "tsdown.config.ts"]
 }
