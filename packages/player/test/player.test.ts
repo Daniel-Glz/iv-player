@@ -287,6 +287,65 @@ describe("<ivkit-player>", () => {
     vi.useRealTimers();
   });
 
+  it("stops a question's timeout while off the page, and goes on once back", () => {
+    vi.useFakeTimers();
+    const { player } = mount();
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+    vi.advanceTimersByTime(1000);
+
+    player.remove();
+    vi.advanceTimersByTime(60_000);
+    expect(onTimeout).not.toHaveBeenCalled();
+
+    document.body.append(player);
+    vi.advanceTimersByTime(1999);
+    expect(onTimeout).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("pauses a video that starts playing while the player is off the page", () => {
+    const { player, videos } = playing();
+    player.remove();
+    const pause = vi.spyOn(videos[0]!, "pause");
+    videos[0]!.dispatchEvent(new Event("play"));
+    expect(pause).toHaveBeenCalled();
+  });
+
+  it("plays a scene from the time goTo() gives", () => {
+    const { player, videos } = playing();
+    const times: number[] = [];
+    player.addEventListener("iv-scene", (event) => times.push(event.detail.time));
+    player.goTo("hall", 3);
+
+    expect(times).toEqual([3]);
+    expect(videos[0]!.src).toMatch(/hall\.mp4$/);
+    expect(videos[0]!.currentTime).toBe(3);
+  });
+
   it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
     const opened: string[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (

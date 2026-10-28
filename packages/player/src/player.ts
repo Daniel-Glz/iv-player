@@ -211,7 +211,11 @@ export class IvkitPlayer extends Base {
           if (video === this.#activeVideo()) this.#controls.render();
         });
       }
-      video.addEventListener("play", () => this.#controls.wake());
+      video.addEventListener("play", () => {
+        // A scene that finishes loading after the player left the page mustn't play there.
+        if (!this.isConnected) video.pause();
+        this.#controls.wake();
+      });
     }
 
     this.addEventListener("keydown", (event) => {
@@ -241,14 +245,21 @@ export class IvkitPlayer extends Base {
     this.#fullscreen.connect();
     this.#makeFocusable();
     this.#hotspots.animate();
+    this.#engine?.resumeTimeout();
   }
 
+  /** Pauses the story while off the page, question timeouts included, until it's back. */
   disconnectedCallback(): void {
     this.#resizeObserver?.disconnect();
     this.#fullscreen.disconnect();
     this.#hotspots.stop();
     this.#controls.sleep();
     this.pause();
+    this.#engine?.pauseTimeout();
+    // The countdown restarts when the player is back; make it go on from where it was.
+    const bar = this.#timer.firstElementChild as HTMLElement | null;
+    const elapsed = bar?.getAnimations?.()[0]?.currentTime;
+    if (bar && typeof elapsed === "number") bar.style.animationDelay = `${-elapsed}ms`;
   }
 
   attributeChangedCallback(name: string): void {
@@ -288,7 +299,7 @@ export class IvkitPlayer extends Base {
     });
 
     const on = <K extends keyof EngineEvents>(type: K, listener: Listener<EngineEvents[K]>) =>
-      this.#on(engine, type, listener);
+      engine.on(type, listener);
     on("scene", (detail) => {
       // A scene change can interrupt a question, e.g. restart() or goTo() while it's showing.
       this.#question.hidden = true;
@@ -394,13 +405,14 @@ export class IvkitPlayer extends Base {
   }
 
   /**
-   * Jumps to the scene `sceneId` and plays it, dismissing the question on screen, if any.
-   * Use it to resume a saved story or to build chapter menus. Throws if the scene doesn't exist.
+   * Jumps to the scene `sceneId` and plays it from `time` (seconds), dismissing the
+   * question on screen, if any. Use it to resume a saved story or to build chapter
+   * menus. Throws if the scene doesn't exist.
    */
-  goTo(sceneId: SceneId): void {
+  goTo(sceneId: SceneId, time = 0): void {
     if (!this.#engine) return;
     this.#start.hidden = true;
-    this.#engine.goTo(sceneId);
+    this.#engine.goTo(sceneId, time);
   }
 
   /** Whether the player fills the screen, natively or through the iPhone fallback. */
@@ -423,6 +435,8 @@ export class IvkitPlayer extends Base {
     }
     this.#controller?.destroy();
     this.#controller = null;
+    // Also cancels a question's timeout, which would make the old engine go on.
+    this.#engine?.destroy();
     this.#engine = null;
     for (const video of this.#videos) {
       video.pause();
@@ -433,17 +447,6 @@ export class IvkitPlayer extends Base {
     this.#end.hidden = true;
     this.#hotspots.render([]);
     this.#updateControlsVisibility();
-  }
-
-  /** Subscribes to `engine`, ignoring it once replaced: it may still emit, e.g. when a question's timeout runs out. */
-  #on<K extends keyof EngineEvents>(
-    engine: StoryEngine,
-    type: K,
-    listener: Listener<EngineEvents[K]>,
-  ): () => void {
-    return engine.on(type, (detail) => {
-      if (engine === this.#engine) listener(detail);
-    });
   }
 
   /** Runs `plugin` for the current story, if any, in a new layer. */
@@ -461,7 +464,7 @@ export class IvkitPlayer extends Base {
       media,
       layer,
       on: (type, listener) => {
-        offs.push(this.#on(engine, type, listener));
+        offs.push(engine.on(type, listener));
       },
     });
     this.#plugins.set(plugin, () => {

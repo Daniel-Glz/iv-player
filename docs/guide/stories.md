@@ -211,7 +211,7 @@ Like hotspots, cues are active while `from <= currentTime < to` and take an `if`
 
 ## Jumping from code
 
-`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button.
+`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button. It also takes the second to start from, `goTo(sceneId, time)`, and only asks the scene's questions from there on.
 
 ```ts
 const player = document.querySelector("ivkit-player")!;
@@ -228,7 +228,7 @@ if (saved && saved in story.scenes) player.goTo(saved);
 
 To resume with the variables too, save `player.engine.vars` and restore each one with `engine.setVar(name, value)` before calling `goTo()`.
 
-Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-void) instead.
+Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-time-number-void) instead.
 
 ## Scene changes without a black frame
 

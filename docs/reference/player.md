@@ -72,9 +72,11 @@ type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 | `play()` | Starts the story, or resumes it after a pause or a blocked autoplay. |
 | `pause()` | Pauses the current video. |
 | `restart()` | Plays the story again from its start scene. |
-| `goTo(sceneId)` | Jumps to a scene and plays it, dismissing the question on screen, if any. Throws if the scene doesn't exist. |
+| `goTo(sceneId, time?)` | Jumps to a scene and plays it from `time` seconds (default 0), dismissing the question on screen, if any. Throws if the scene doesn't exist. |
 | `use(plugin)` | Adds a [plugin](#plugins). Returns a function that removes it. |
 | `toggleFullscreen()` | Enters or leaves fullscreen with the whole player, questions and hotspots included. |
+
+Removing the player from the page pauses it, including the countdown of a question with `timeout`, which goes on with the time it had left once the player is back. Setting another story discards the previous one's engine with [`destroy()`](/reference/engine#destroy-void).
 
 ## Events
 
@@ -82,7 +84,7 @@ All events are `CustomEvent`s that bubble and cross the shadow boundary (`compos
 
 | Event | `detail` | When |
 | --- | --- | --- |
-| `iv-scene` | `{ sceneId, scene }` | A scene starts. |
+| `iv-scene` | `{ sceneId, scene, time }` | A scene starts, at `time` seconds. |
 | `iv-interaction` | `{ sceneId, question, options }` | A question shows and the video pauses. `options` are the ones whose `if` holds. |
 | `iv-timeout` | `{ sceneId, question }` | Nobody answered within the question's `timeout`. Followed by `iv-answer` if it has a `default`. |
 | `iv-answer` | `{ sceneId, question, choice, choices, correct, goto }` | The viewer answered with `choices` (`choice` is the first), which branches to `goto`, if defined. `correct` says whether exactly the right options were picked. |

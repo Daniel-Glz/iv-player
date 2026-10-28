@@ -21,8 +21,9 @@ import { StoryEngine } from "@ivkit/core";
 
 const engine = new StoryEngine(story);
 
-engine.on("scene", ({ scene }) => {
+engine.on("scene", ({ scene, time }) => {
   video.src = scene.src;
+  video.currentTime = time;
   video.play();
 });
 engine.on("interaction", ({ question }) => {

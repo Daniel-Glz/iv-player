@@ -144,3 +144,56 @@ describe("StoryEngine question timeouts", () => {
     expect(engine.currentSceneId).toBe("after");
   });
 });
+
+describe("pauseTimeout() and resumeTimeout()", () => {
+  it("stops the count and goes on with the time left", () => {
+    const { engine, log } = asked();
+    vi.advanceTimersByTime(4000);
+    engine.pauseTimeout();
+    vi.advanceTimersByTime(60_000);
+    expect(log).toEqual([]);
+
+    engine.resumeTimeout();
+    vi.advanceTimersByTime(5999);
+    expect(log).toEqual([]);
+    vi.advanceTimersByTime(1);
+    expect(log[0]).toEqual(["timeout", "q"]);
+  });
+
+  it("ignore questions without a timeout, and pausing twice", () => {
+    const { engine, log } = asked();
+    engine.pauseTimeout();
+    vi.advanceTimersByTime(3000);
+    engine.pauseTimeout();
+    engine.resumeTimeout();
+    engine.resumeTimeout();
+    vi.advanceTimersByTime(9999);
+    expect(log).toEqual([]);
+
+    const { timeout: _, ...withoutTimeout } = question;
+    const untimed = asked(withoutTimeout).engine;
+    untimed.pauseTimeout();
+    untimed.resumeTimeout();
+    vi.advanceTimersByTime(60_000);
+    expect(untimed.activeQuestion?.id).toBe("q");
+  });
+
+  it("forget a paused timeout once the question is answered", () => {
+    const { engine, log } = asked();
+    engine.pauseTimeout();
+    engine.answer("left");
+    engine.resumeTimeout();
+    vi.advanceTimersByTime(60_000);
+    expect(log.some(([type]) => type === "timeout")).toBe(false);
+  });
+});
+
+describe("destroy()", () => {
+  it("cancels the timeout and removes every listener", () => {
+    const { engine, log } = asked();
+    engine.destroy();
+    vi.advanceTimersByTime(60_000);
+    engine.goTo("left");
+    expect(log).toEqual([]);
+  });
+});

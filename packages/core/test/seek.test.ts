@@ -119,3 +119,60 @@ describe("seek", () => {
     expect(correct).toEqual([undefined, true]);
   });
 });
+
+describe("goTo() with a time and seek()", () => {
+  it("enters a scene at a time, asking only the questions from there on", () => {
+    const engine = new StoryEngine(story);
+    const log = record(engine);
+    const times: number[] = [];
+    engine.on("scene", (e) => times.push(e.time));
+    engine.goTo("lesson", 6);
+    engine.update(6);
+    engine.update(8);
+
+    expect(times).toEqual([6]);
+    expect(log).toEqual([
+      ["scene", "lesson"],
+      ["interaction", "quiz"],
+    ]);
+  });
+
+  it("starts scenes from 0 otherwise", () => {
+    const engine = new StoryEngine(story);
+    const times: number[] = [];
+    engine.on("scene", (e) => times.push(e.time));
+    engine.start();
+    engine.update(5);
+    engine.answer("ok");
+    engine.update(8);
+    engine.answer("next");
+    expect(times).toEqual([0, 0]);
+  });
+
+  it("seeks within the scene, asking again the questions after the time", () => {
+    const engine = new StoryEngine(story);
+    const log = record(engine);
+    engine.start();
+    engine.update(6);
+    engine.answer("ok");
+    log.length = 0;
+
+    expect(engine.seek(4)).toBe(true);
+    engine.update(5);
+    expect(log).toEqual([
+      ["resume", 4],
+      ["interaction", "early"],
+    ]);
+  });
+
+  it("doesn't seek unless the scene is playing", () => {
+    const engine = new StoryEngine(story);
+    const log = record(engine);
+    expect(engine.seek(2)).toBe(false);
+    engine.start();
+    engine.update(5);
+    expect(engine.seek(2)).toBe(false);
+    expect(engine.activeQuestion?.id).toBe("early");
+    expect(log.some(([type]) => type === "resume")).toBe(false);
+  });
+});

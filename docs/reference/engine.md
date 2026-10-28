@@ -49,9 +49,25 @@ type EngineState = "idle" | "playing" | "interacting" | "ended";
 
 Enters the start scene with the initial variables. Calling it again restarts the story.
 
-### `goTo(sceneId: SceneId): void`
+### `goTo(sceneId: SceneId, time?: number): void`
 
-Enters `sceneId` from any state, dismissing the question on screen, if any. Works before `start()` too, e.g. to resume a saved story. Throws if the scene doesn't exist.
+Enters `sceneId` from any state, dismissing the question on screen, if any, and plays it from `time` seconds (default 0). Only the scene's questions at or after `time` are asked. Works before `start()` too, e.g. to resume a saved story. Throws if the scene doesn't exist.
+
+### `seek(time: number): boolean`
+
+Resumes the current scene from `time` seconds, as a `seek` in the story does: it emits `resume`, and the questions at or after `time` are asked again. Returns `false`, and does nothing, unless `state` is `playing`.
+
+### `pauseTimeout(): void`
+
+Stops counting the `timeout` of the question on screen, e.g. while the player is off the page. Does nothing if there's no timed question.
+
+### `resumeTimeout(): void`
+
+Goes on counting a timeout stopped with `pauseTimeout()`, with the time it had left.
+
+### `destroy(): void`
+
+Cancels the question's timeout and removes every listener. Call it when you stop using the engine, e.g. before replacing it with another story's.
 
 ### `setVar(name: string, value: VarValue): void`
 
@@ -90,7 +106,7 @@ off();
 
 | Event | Payload | What to do |
 | --- | --- | --- |
-| `scene` | `{ sceneId, scene }` | Load and play `scene.src` from the beginning. |
+| `scene` | `{ sceneId, scene, time }` | Load and play `scene.src` from `time`, which is 0 unless `goTo()` gave one. |
 | `interaction` | `{ sceneId, question, options }` | Pause the video and show `question` with `options`, the ones whose `if` holds. |
 | `answer` | `{ sceneId, question, choice, choices, correct, goto }` | Hide the question. `choices` are the picked options in option order, and `choice` is the first of them. `correct` is whether exactly the options marked `correct` were picked, or `undefined` if no offered option has `correct`. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
 | `timeout` | `{ sceneId, question }` | Nobody answered within the question's `timeout`. Hide the question. Followed by `answer` with its `default`, or else by `scene`, `resume` or `end` as the question decides. |
@@ -106,12 +122,12 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 
 ## Timing rules
 
-- Each question fires once per visit to its scene, as soon as playback reaches its `at`. Re-entering a scene re-arms its questions.
+- Each question fires once per visit to its scene, as soon as playback reaches its `at`. Re-entering a scene re-arms its questions; `goTo()` with a time re-arms only those at or after it.
 - Seeking past several questions fires only the earliest. The rest follow after it's answered.
 - Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.
 - Cues are active while `from <= currentTime < to`, like hotspots, and their `if` is checked on every update too. Unlike hotspots, they stay active while a question is showing. They clear when leaving the scene and when the story ends.
 - A hotspot with `pause` emits `pause` the first time it shows in each visit, not when a seek skips it entirely. The engine stays `playing`, so the hotspot can be activated.
-- A question's `timeout` counts in real time with `setTimeout`, not with `update()`, because the video stays paused. Answering, `goTo()` and `start()` cancel it, and the count starts over every time the question is asked.
-- A `seek` re-arms the questions at or after it, and the pausing hotspots from it on, so they happen again. Questions before it don't.
+- A question's `timeout` counts in real time with `setTimeout`, not with `update()`, because the video stays paused. Answering, `goTo()`, `start()` and `destroy()` cancel it, `pauseTimeout()` stops it, and the count starts over every time the question is asked.
+- A `seek`, in the story or through `seek()`, re-arms the questions at or after it, and the pausing hotspots from it on, so they happen again. Questions before it don't.
 - A hotspot's `if` is checked on every update, so it appears or hides as soon as variables change. An option's `if` is checked when its question shows, and a question with no options left is skipped.

@@ -384,6 +384,41 @@ describe.each([
     expect(controller.active).toBe(b);
   });
 
+  it("starts a scene at the time goTo() gives, revealing it once it's there", () => {
+    const { engine, a, swaps } = started(options);
+    engine.goTo("right", 3);
+    expect(a.src).toBe("right.mp4");
+    expect(a.currentTime).toBe(3);
+
+    a.finishLoading();
+    expect(swaps).toEqual(["b"]);
+    a.finishSeek();
+    expect(swaps).toEqual(["b", "a"]);
+    expect(a.playing).toBe(true);
+  });
+
+  it("starts a preloaded scene at the time goTo() gives", () => {
+    const { engine, a, swaps } = started(options);
+    a.finishLoading();
+    engine.goTo("left", 2);
+    expect(a.currentTime).toBe(2);
+    expect(swaps).toEqual(["b"]);
+
+    a.finishSeek();
+    expect(swaps).toEqual(["b", "a"]);
+  });
+
+  it("seeks in place when goTo() re-enters the scene on screen at a time", () => {
+    const { engine, controller, b } = started(options);
+    b.advanceTo(2);
+    engine.goTo("intro", 4);
+    expect(b.currentTime).toBe(4);
+
+    b.finishSeek();
+    expect(b.playing).toBe(true);
+    expect(controller.active).toBe(b);
+  });
+
   it("does not preload over a pending swap or the scene on screen", () => {
     const { engine, controller, a, b } = started(options);
     controller.preload("intro");

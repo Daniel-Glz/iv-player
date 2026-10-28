@@ -9,8 +9,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Added
 
 - `@ivkit/core`: `answerRange(question, offered)`, the fewest and most options an answer takes. The engine, `validateStory` and the player now share it.
-- `@ivkit/core`: `StoryEngine.goTo(sceneId)`, which enters any scene from any state, dismissing the question on screen. It works before `start()`, e.g. to resume a saved story.
-- `@ivkit/player`: `goTo(sceneId)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
+- `@ivkit/core`: `StoryEngine.goTo(sceneId, time?)`, which enters any scene from any state, dismissing the question on screen, and plays it from `time`, asking its questions from there on. It works before `start()`, e.g. to resume a saved story. The `scene` event now carries that `time`, and `MediaController` starts the video there.
+- `@ivkit/core`: `StoryEngine.seek(time)`, which resumes the current scene from `time` like a `seek` in the story.
+- `@ivkit/core`: `StoryEngine.destroy()`, which cancels a question's timeout and removes every listener, and `pauseTimeout()` and `resumeTimeout()`, which stop and go on with a question's countdown.
+- `@ivkit/player`: `goTo(sceneId, time?)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
+- `@ivkit/player`: removing the player from the page pauses a question's timeout until it's back, and keeps a scene that finishes loading meanwhile from playing. Setting another story destroys the previous engine.
 - `@ivkit/core`: `pause` on hotspots, which pauses the video when the hotspot appears until it's activated. The engine emits a new `pause` event, and `MediaController` pauses on the hotspot's first frame and resumes when it's activated without a `goto`.
 - `@ivkit/core`: variables and conditions in the story format. `Story.vars` declares variables, `set` changes them on choices, hotspots and scenes, `branches` pick a scene by condition before falling back to `goto` or `next`, and `if` offers a choice or shows a hotspot only while it holds. `validateStory` reports undeclared variables with the new `missing_variable` code.
 - `@ivkit/core`: `StoryEngine.vars`, `StoryEngine.setVar()` and a `vars` event. The `interaction` event now includes the `options` offered, and `answer` and `hotspot` include the scene they branch to as `goto`.
@@ -32,7 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - The license is now the Apache License 2.0 instead of MIT, for both packages.
 - Size budgets: the standalone player now stays under 9.5 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 6 KiB (was 4 KiB), to fit variables, conditions, multiple-answer questions and timeouts.
-- `@ivkit/player`: its CSS is now minified at build time, which takes about 500 B off the standalone player (9.2 KiB gzip).
+- `@ivkit/player`: its CSS is now minified at build time, which takes about 500 B off the standalone player.
 
 ## [0.1.1] - 2026-10-27
 
