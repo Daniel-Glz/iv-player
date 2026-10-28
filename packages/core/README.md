@@ -38,4 +38,4 @@ engine.on("hotspots", ({ hotspots }) => renderHotspots(hotspots));
 
 ## License
 
-[MIT](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE) © Alexis Gonzalez
+[Apache-2.0](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE) © Alexis Gonzalez

@@ -96,6 +96,27 @@ With `multiple: true` the viewer picks several options and confirms. `min` and `
 
 Single questions can use the question's `goto`, `branches` and `seek` too, as a fallback for the options that neither branch nor seek.
 
+### Time limits
+
+`timeout` gives the viewer that many seconds to answer. When they run out, the question answers with `default`, as if the viewer had picked it. Without `default`, the question's own `branches`, `goto` and `seek` decide, and without those the video simply resumes. The player shows a countdown bar.
+
+```ts
+{
+  type: "question",
+  id: "bridge",
+  at: 30,
+  text: "The bridge is falling. Jump?",
+  timeout: 5,
+  default: "stay", // hesitating means staying
+  options: [
+    { id: "jump", label: "Jump", goto: "river" },
+    { id: "stay", label: "Stay", goto: "fall" },
+  ],
+}
+```
+
+The video is paused while a question shows, so the time counts in real time instead of video time. Options already picked in a `multiple` question but not confirmed don't count: the `default` applies.
+
 ## Branching and loops
 
 `goto` and `next` can point to any scene, including earlier ones, so stories can loop:
@@ -174,6 +195,19 @@ const story: Story = {
 ```
 
 Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen.
+
+## Cues and data for plugins
+
+A cue marks a span of a scene for something outside IVKit, such as a chapter list, subtitles or analytics. It doesn't pause the video and the player draws nothing for it: the engine reports the active cues in its `cues` event, and a [plugin](/reference/player#plugins) or your app does the rest. `kind` says which plugin it's for, and `data` holds whatever that plugin needs:
+
+```ts
+events: [
+  { type: "cue", id: "intro", kind: "chapter", from: 0, to: 12, data: { title: "Introduction" } },
+  { type: "cue", id: "engines", kind: "chapter", from: 12, data: { title: "The engines" } },
+]
+```
+
+Like hotspots, cues are active while `from <= currentTime < to` and take an `if`. The story, scenes, questions, options and hotspots take `data` too, for anything else your app or plugins need to keep in the story.
 
 ## Jumping from code
 

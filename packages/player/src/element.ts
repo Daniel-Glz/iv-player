@@ -3,10 +3,16 @@
  * Use it to pick the tag name or the moment it's defined; the main entry
  * registers `<ivkit-player>` on import.
  */
-import { IvkitPlayer, type HotspotRenderer, type IvkitPlayerEventMap } from "./player.js";
+import {
+  IvkitPlayer,
+  type HotspotRenderer,
+  type IvkitPlayerEventMap,
+  type PlayerPlugin,
+  type PlayerPluginContext,
+} from "./player.js";
 
 export { IvkitPlayer };
-export type { HotspotRenderer, IvkitPlayerEventMap };
+export type { HotspotRenderer, IvkitPlayerEventMap, PlayerPlugin, PlayerPluginContext };
 
 declare global {
   // Lets `addEventListener("iv-answer", …)` infer the event's detail type.

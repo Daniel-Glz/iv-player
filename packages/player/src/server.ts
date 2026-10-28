@@ -10,7 +10,12 @@
  */
 import type { IvkitPlayer as Player } from "./player.js";
 
-export type { HotspotRenderer, IvkitPlayerEventMap } from "./player.js";
+export type {
+  HotspotRenderer,
+  IvkitPlayerEventMap,
+  PlayerPlugin,
+  PlayerPluginContext,
+} from "./player.js";
 
 /** Stand-in for the element class; players only exist in the browser. */
 export const IvkitPlayer = class {} as unknown as typeof Player;

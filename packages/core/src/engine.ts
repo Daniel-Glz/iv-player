@@ -3,6 +3,7 @@ import type {
   Branch,
   Choice,
   Conditions,
+  Cue,
   Hotspot,
   Question,
   Scene,
@@ -12,6 +13,10 @@ import type {
   VarValue,
   Vars,
 } from "./types.js";
+
+// Core has no DOM or Node types, but every JavaScript runtime has these timers.
+declare function setTimeout(callback: () => void, ms: number): unknown;
+declare function clearTimeout(handle: unknown): void;
 
 /**
  * - `idle`: created, `start()` not called yet.
@@ -41,10 +46,17 @@ export interface EngineEvents {
     correct: boolean | undefined;
     goto: SceneId | undefined;
   };
+  /**
+   * Nobody answered `question` within its `timeout`. Followed by `answer` with its
+   * `default`, if offered, or else by `scene`, `resume` or `end` as the question decides.
+   */
+  timeout: { sceneId: SceneId; question: Question };
   /** The answer or hotspot didn't branch: resume the current video from `time`. */
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
   hotspots: { sceneId: SceneId; hotspots: readonly Hotspot[] };
+  /** The set of active cues changed: `cues` are exactly the active ones (possibly none). */
+  cues: { sceneId: SceneId; cues: readonly Cue[] };
   /** A hotspot with `pause` appeared: pause the video at `hotspot.from`. */
   pause: { sceneId: SceneId; hotspot: Hotspot };
   /**
@@ -58,10 +70,17 @@ export interface EngineEvents {
   end: { sceneId: SceneId };
 }
 
+/** Hotspots on screen and active cues. */
+interface Shown {
+  hotspots: readonly Hotspot[];
+  cues: readonly Cue[];
+}
+
 /** A scene's events split by kind, questions sorted by `at`. */
 interface Timeline {
   questions: readonly Question[];
   hotspots: readonly Hotspot[];
+  cues: readonly Cue[];
 }
 
 /**
@@ -81,6 +100,9 @@ interface Timeline {
  * `pause` emits `pause` the first time it shows in each visit; the engine stays
  * `playing` meanwhile, so it can be activated.
  *
+ * Cues are active while `from <= currentTime < to`, like hotspots, but they stay
+ * active while a question is showing. Both are cleared when leaving the scene.
+ *
  * Variables start from `story.vars` and reset on `start()`. A `set` applies before
  * its `branches` are checked, so they see the new values. Conditions are checked
  * when needed: hotspots on every update, options when their question shows.
@@ -90,17 +112,19 @@ interface Timeline {
 export class StoryEngine extends Emitter<EngineEvents> {
   private _state: EngineState = "idle";
   private sceneId: SceneId | null = null;
-  private timeline: Timeline = { questions: [], hotspots: [] };
+  private timeline: Timeline = { questions: [], hotspots: [], cues: [] };
   /** Questions of the current scene that haven't fired yet, sorted by `at`. */
   private pending: Question[] = [];
   private question: Question | null = null;
   /** Options of `question` offered to the viewer. */
   private options: readonly Choice[] = [];
   private values: Vars;
-  private visible: readonly Hotspot[] = [];
+  private shown: Shown = { hotspots: [], cues: [] };
   /** Hotspots with `pause` that already paused during this visit. */
   private readonly paused = new Set<Hotspot>();
   private hasMediaEnded = false;
+  /** Pending `timeout` of the question on screen. */
+  private timer: unknown;
   private readonly timelines = new Map<SceneId, Timeline>();
 
   constructor(readonly story: Story) {
@@ -126,7 +150,12 @@ export class StoryEngine extends Emitter<EngineEvents> {
 
   /** Hotspots currently on screen. */
   get visibleHotspots(): readonly Hotspot[] {
-    return this.visible;
+    return this.shown.hotspots;
+  }
+
+  /** Cues currently active. */
+  get activeCues(): readonly Cue[] {
+    return this.shown.cues;
   }
 
   /** Current values of the story's variables. */
@@ -160,18 +189,19 @@ export class StoryEngine extends Emitter<EngineEvents> {
   /** Reports the current playback time (seconds) of the active scene's video. */
   update(currentTime: number): void {
     if (this._state !== "playing") return;
+    const within = <T extends Hotspot | Cue>(events: readonly T[]) =>
+      events.filter(
+        (e) =>
+          currentTime >= e.from && (e.to === undefined || currentTime < e.to) && this.test(e.if),
+      );
+    this.show("cues", within(this.timeline.cues));
     const next = this.pending[0];
     if (next !== undefined && currentTime >= next.at) {
       this.ask();
       return;
     }
-    this.show(
-      this.timeline.hotspots.filter(
-        (h) =>
-          currentTime >= h.from && (h.to === undefined || currentTime < h.to) && this.test(h.if),
-      ),
-    );
-    const hold = this.visible.find((h) => h.pause === true && !this.paused.has(h));
+    this.show("hotspots", within(this.timeline.hotspots));
+    const hold = this.shown.hotspots.find((h) => h.pause === true && !this.paused.has(h));
     if (hold !== undefined && this.sceneId !== null) {
       this.paused.add(hold);
       this.emit("pause", { sceneId: this.sceneId, hotspot: hold });
@@ -203,8 +233,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (!choice || choices.length !== ids.length || ids.length < min || ids.length > max)
       return false;
 
-    this.question = null;
-    this._state = "playing";
+    this.dismiss();
     for (const { set } of choices) this.change(set);
     // The option decides first; the question only if the option neither branches nor seeks.
     let goto = this.branch(choice.branches, choice.goto);
@@ -218,11 +247,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
       ? options.every((option) => !option.correct === !choices.includes(option))
       : undefined;
     this.emit("answer", { sceneId, question, choice, choices, correct, goto });
-
-    if (goto !== undefined) this.enter(goto);
-    else if (seek !== undefined) this.seek(seek);
-    else if (this.hasMediaEnded) this.leaveScene();
-    else this.emit("resume", { sceneId, time: question.at });
+    this.go(sceneId, question, goto, seek);
     return true;
   }
 
@@ -233,7 +258,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
   activate(hotspotId: string): boolean {
     const { sceneId } = this;
     if (this._state !== "playing" || sceneId === null) return false;
-    const hotspot = this.visible.find((h) => h.id === hotspotId);
+    const hotspot = this.shown.hotspots.find((h) => h.id === hotspotId);
     if (!hotspot) return false;
 
     this.change(hotspot.set);
@@ -247,14 +272,14 @@ export class StoryEngine extends Emitter<EngineEvents> {
   private enter(sceneId: SceneId): void {
     const scene = this.story.scenes[sceneId];
     if (!scene) throw new Error(`Scene "${sceneId}" does not exist`);
-    this.show([]);
+    this.show("hotspots", []);
+    this.show("cues", []);
     this.sceneId = sceneId;
     this.timeline = this.timelineOf(sceneId, scene);
     this.pending = [...this.timeline.questions];
     this.paused.clear();
-    this.question = null;
+    this.dismiss();
     this.hasMediaEnded = false;
-    this._state = "playing";
     this.change(scene.set);
     this.emit("scene", { sceneId, scene });
   }
@@ -276,11 +301,44 @@ export class StoryEngine extends Emitter<EngineEvents> {
       if (this.hasMediaEnded) this.leaveScene();
       return;
     }
-    this.show([]);
+    this.show("hotspots", []);
     this.question = question;
     this.options = options;
     this._state = "interacting";
+    if (question.timeout !== undefined) {
+      this.timer = setTimeout(() => this.expire(), question.timeout * 1000);
+    }
     this.emit("interaction", { sceneId: this.sceneId, question, options });
+  }
+
+  /** Answers the question on screen with its `default`, or else lets the question decide. */
+  private expire(): void {
+    const { question, sceneId } = this;
+    if (question === null || sceneId === null) return;
+    this.emit("timeout", { sceneId, question });
+    if (question.default !== undefined && this.answer(question.default)) return;
+    this.dismiss();
+    this.go(sceneId, question, this.branch(question.branches, question.goto), question.seek);
+  }
+
+  /** Clears the question on screen, if any, and its timer. */
+  private dismiss(): void {
+    clearTimeout(this.timer);
+    this.question = null;
+    this._state = "playing";
+  }
+
+  /** Moves on after `question`: to `goto`, to `seek`, or past it. */
+  private go(
+    sceneId: SceneId,
+    question: Question,
+    goto: SceneId | undefined,
+    seek: number | undefined,
+  ): void {
+    if (goto !== undefined) this.enter(goto);
+    else if (seek !== undefined) this.seek(seek);
+    else if (this.hasMediaEnded) this.leaveScene();
+    else this.emit("resume", { sceneId, time: question.at });
   }
 
   /** Called once the video has ended: asks any questions still pending, then moves on. */
@@ -297,7 +355,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (next !== undefined) {
       this.enter(next);
     } else {
-      this.show([]);
+      this.show("hotspots", []);
+      this.show("cues", []);
       this._state = "ended";
       this.emit("end", { sceneId });
     }
@@ -337,13 +396,14 @@ export class StoryEngine extends Emitter<EngineEvents> {
     });
   }
 
-  /** Sets the visible hotspots, emitting `hotspots` only if the set changed. */
-  private show(hotspots: readonly Hotspot[]): void {
+  /** Sets the visible hotspots or the active cues, emitting `type` only if they changed. */
+  private show<K extends keyof Shown>(type: K, items: Shown[K]): void {
+    const current: readonly unknown[] = this.shown[type];
     const unchanged =
-      hotspots.length === this.visible.length && hotspots.every((h, i) => h === this.visible[i]);
+      items.length === current.length && items.every((item, i) => item === current[i]);
     if (unchanged || this.sceneId === null) return;
-    this.visible = hotspots;
-    this.emit("hotspots", { sceneId: this.sceneId, hotspots });
+    this.shown[type] = items;
+    this.emit(type, { sceneId: this.sceneId, [type]: items } as unknown as EngineEvents[K]);
   }
 
   private timelineOf(sceneId: SceneId, scene: Scene): Timeline {
@@ -355,6 +415,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
           .filter((e): e is Question => e.type === "question")
           .sort((a, b) => a.at - b.at),
         hotspots: events.filter((e): e is Hotspot => e.type === "hotspot"),
+        cues: events.filter((e): e is Cue => e.type === "cue"),
       };
       this.timelines.set(sceneId, timeline);
     }

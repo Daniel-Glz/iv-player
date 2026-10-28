@@ -277,7 +277,7 @@ function firstTarget(targets: readonly Target[]): SceneId | undefined {
 function firstGoto(scene: Scene): SceneId | undefined {
   return firstTarget(
     (scene.events ?? []).flatMap((event) =>
-      event.type === "question" ? [...event.options, event] : event,
+      event.type === "question" ? [...event.options, event] : event.type === "cue" ? [] : event,
     ),
   );
 }

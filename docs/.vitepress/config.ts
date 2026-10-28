@@ -12,7 +12,7 @@ const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8
 export default defineConfig({
   title: "IVKit",
   description:
-    "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 9 KiB gzip.",
+    "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 9.5 KiB gzip.",
   // Served from https://daniel-glz.github.io/ivkit/
   base: "/ivkit/",
   cleanUrls: true,
@@ -115,10 +115,12 @@ export default defineConfig({
             { text: "Overview", link: "/examples/" },
             { text: "Branching story", link: "/examples/branching" },
             { text: "Quiz with retries", link: "/examples/quiz" },
+            { text: "Timed quiz with a score", link: "/examples/timed-quiz" },
             { text: "Hotspot shapes", link: "/examples/hotspot-shapes" },
             { text: "Tracking a moving object", link: "/examples/tracking" },
             { text: "Custom theme", link: "/examples/theming" },
             { text: "Custom hotspot content", link: "/examples/custom-hotspots" },
+            { text: "Chapters plugin", link: "/examples/chapters-plugin" },
             { text: "Player built with core", link: "/examples/core-player" },
             { text: "Validation playground", link: "/examples/validation" },
           ],
@@ -154,7 +156,7 @@ export default defineConfig({
     },
     search: { provider: "local" },
     footer: {
-      message: 'Released under the <a href="/ivkit/license">MIT License</a>.',
+      message: 'Released under the <a href="/ivkit/license">Apache License 2.0</a>.',
       copyright: "Copyright © 2026 Alexis Gonzalez",
     },
   },

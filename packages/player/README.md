@@ -64,4 +64,4 @@ To register the element yourself, or under another name, import `IvkitPlayer` an
 
 ## License
 
-[MIT](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE) © Alexis Gonzalez
+[Apache-2.0](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE) © Alexis Gonzalez

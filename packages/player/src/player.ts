@@ -3,6 +3,7 @@ import {
   StoryEngine,
   type Choice,
   type EngineEvents,
+  type Listener,
   type Question,
   type SceneId,
   type Story,
@@ -14,12 +15,36 @@ import { styles } from "./styles.js";
 
 export type { HotspotRenderer };
 
+/** What a plugin gets each time a story is set on the player. */
+export interface PlayerPluginContext {
+  player: IvkitPlayer;
+  engine: StoryEngine;
+  media: MediaController<HTMLVideoElement>;
+  /**
+   * The plugin's own element, covering the stage above the video and hotspots and
+   * below questions and controls. It lets clicks through: give clickable content
+   * `pointer-events: auto`. Give elements a `part` so pages can style them.
+   */
+  layer: HTMLElement;
+  /** Subscribes to an engine event until the plugin is cleaned up. */
+  on<K extends keyof EngineEvents>(type: K, listener: Listener<EngineEvents[K]>): void;
+}
+
+/**
+ * Extends the player. It runs each time a story is set, and may return a cleanup
+ * that runs when the story is replaced or the plugin removed.
+ */
+// biome-ignore lint/suspicious/noConfusingVoidType: lets plugins without a cleanup return nothing.
+export type PlayerPlugin = (context: PlayerPluginContext) => (() => void) | void;
+
 /** Events dispatched by `<ivkit-player>`. They bubble and cross the shadow boundary. */
 export interface IvkitPlayerEventMap {
   "iv-scene": CustomEvent<EngineEvents["scene"]>;
   "iv-interaction": CustomEvent<EngineEvents["interaction"]>;
   "iv-answer": CustomEvent<EngineEvents["answer"]>;
+  "iv-timeout": CustomEvent<EngineEvents["timeout"]>;
   "iv-hotspot": CustomEvent<EngineEvents["hotspot"]>;
+  "iv-cues": CustomEvent<EngineEvents["cues"]>;
   "iv-end": CustomEvent<EngineEvents["end"]>;
 }
 
@@ -29,10 +54,12 @@ const template = /* html */ `
   <video part="video" playsinline disablepictureinpicture></video>
   <video part="video" playsinline disablepictureinpicture></video>
   <div class="hotspots" part="hotspots"></div>
+  <div class="plugins" part="plugins"></div>
   <div class="overlay question" part="question" hidden>
     <p class="question-text" part="question-text" id="question-text"></p>
     <div class="options" part="options" role="group" aria-labelledby="question-text"></div>
     <button class="submit" part="submit" type="button" hidden>Confirm</button>
+    <div class="timer" part="timer" hidden></div>
   </div>
   <div class="overlay start" part="start" hidden>
     <button class="start-button" part="start-button" type="button">
@@ -89,11 +116,15 @@ export class IvkitPlayer extends Base {
   readonly #questionText: HTMLElement;
   readonly #options: HTMLElement;
   readonly #submit: HTMLButtonElement;
+  readonly #timer: HTMLElement;
   readonly #start: HTMLElement;
   readonly #end: HTMLElement;
   readonly #controls: Controls;
   readonly #fullscreen: Fullscreen;
   readonly #hotspots: HotspotLayer;
+  readonly #layers: HTMLElement;
+  /** Plugins in use, each with the cleanup of its run for the current story, if any. */
+  readonly #plugins = new Map<PlayerPlugin, (() => void) | null>();
   readonly #resizeObserver: ResizeObserver | null;
 
   #story: Story | null = null;
@@ -119,6 +150,7 @@ export class IvkitPlayer extends Base {
     this.#questionText = find(".question-text");
     this.#options = find(".options");
     this.#submit = find(".submit");
+    this.#timer = find(".timer");
     this.#start = find(".start");
     this.#end = find(".end");
     const activeVideo = () => this.#activeVideo();
@@ -138,6 +170,7 @@ export class IvkitPlayer extends Base {
     );
     const hotspots = find(".hotspots");
     this.#hotspots = new HotspotLayer(hotspots, this.#stage, activeVideo);
+    this.#layers = find(".plugins");
 
     find(".start-button").addEventListener("click", () => this.play());
     find(".replay-button").addEventListener("click", () => this.restart());
@@ -253,25 +286,33 @@ export class IvkitPlayer extends Base {
       this.#updateControlsVisibility();
     });
 
-    engine.on("scene", (detail) => {
+    const on = <K extends keyof EngineEvents>(type: K, listener: Listener<EngineEvents[K]>) =>
+      this.#on(engine, type, listener);
+    on("scene", (detail) => {
       // A scene change can interrupt a question, e.g. restart() or goTo() while it's showing.
       this.#question.hidden = true;
       this.#end.hidden = true;
       this.#updateControlsVisibility();
       this.#emit("iv-scene", detail);
     });
-    engine.on("interaction", (detail) => {
+    on("interaction", (detail) => {
       this.#showQuestion(detail.question, detail.options);
       this.#updateControlsVisibility();
       this.#emit("iv-interaction", detail);
     });
-    engine.on("answer", (detail) => {
+    on("answer", (detail) => {
       this.#question.hidden = true;
       this.#updateControlsVisibility();
       this.#emit("iv-answer", detail);
     });
-    engine.on("hotspots", ({ hotspots }) => this.#hotspots.render(hotspots));
-    engine.on("hotspot", (detail) => {
+    on("timeout", (detail) => {
+      this.#question.hidden = true;
+      this.#updateControlsVisibility();
+      this.#emit("iv-timeout", detail);
+    });
+    on("hotspots", ({ hotspots }) => this.#hotspots.render(hotspots));
+    on("cues", (detail) => this.#emit("iv-cues", detail));
+    on("hotspot", (detail) => {
       const { href } = detail.hotspot;
       if (href !== undefined) {
         // Clicking a link keeps the user gesture, so popup blockers allow it.
@@ -283,12 +324,13 @@ export class IvkitPlayer extends Base {
       }
       this.#emit("iv-hotspot", detail);
     });
-    engine.on("end", (detail) => {
+    on("end", (detail) => {
       this.#end.hidden = false;
       this.#updateControlsVisibility();
       this.#emit("iv-end", detail);
     });
 
+    for (const plugin of this.#plugins.keys()) this.#run(plugin);
     if (this.hasAttribute("autoplay")) this.play();
     else this.#start.hidden = false;
     this.#updateControlsVisibility();
@@ -307,6 +349,23 @@ export class IvkitPlayer extends Base {
 
   set renderHotspot(renderer: HotspotRenderer | null) {
     this.#hotspots.renderer = renderer;
+  }
+
+  /**
+   * Adds `plugin`, running it now if a story is set (it may have missed events, so
+   * read the engine's state) and for every story set from then on. Plugins run in the
+   * order they were added; adding one twice does nothing. Returns a function that
+   * removes it, running its cleanup.
+   */
+  use(plugin: PlayerPlugin): () => void {
+    if (!this.#plugins.has(plugin)) {
+      this.#plugins.set(plugin, null);
+      this.#run(plugin);
+    }
+    return () => {
+      this.#plugins.get(plugin)?.();
+      this.#plugins.delete(plugin);
+    };
   }
 
   /** Engine driving the current story, for advanced control. `null` without a story. */
@@ -357,6 +416,10 @@ export class IvkitPlayer extends Base {
   }
 
   #reset(): void {
+    for (const [plugin, cleanup] of this.#plugins) {
+      cleanup?.();
+      this.#plugins.set(plugin, null);
+    }
     this.#controller?.destroy();
     this.#controller = null;
     this.#engine = null;
@@ -369,6 +432,42 @@ export class IvkitPlayer extends Base {
     this.#end.hidden = true;
     this.#hotspots.render([]);
     this.#updateControlsVisibility();
+  }
+
+  /** Subscribes to `engine`, ignoring it once replaced: it may still emit, e.g. when a question's timeout runs out. */
+  #on<K extends keyof EngineEvents>(
+    engine: StoryEngine,
+    type: K,
+    listener: Listener<EngineEvents[K]>,
+  ): () => void {
+    return engine.on(type, (detail) => {
+      if (engine === this.#engine) listener(detail);
+    });
+  }
+
+  /** Runs `plugin` for the current story, if any, in a new layer. */
+  #run(plugin: PlayerPlugin): void {
+    const engine = this.#engine;
+    const media = this.#controller;
+    if (!engine || !media) return;
+    const layer = document.createElement("div");
+    layer.setAttribute("part", "plugin");
+    this.#layers.append(layer);
+    const offs: (() => void)[] = [];
+    const cleanup = plugin({
+      player: this,
+      engine,
+      media,
+      layer,
+      on: (type, listener) => {
+        offs.push(this.#on(engine, type, listener));
+      },
+    });
+    this.#plugins.set(plugin, () => {
+      for (const off of offs) off();
+      cleanup?.();
+      layer.remove();
+    });
   }
 
   #activeVideo(): HTMLVideoElement {
@@ -427,6 +526,11 @@ export class IvkitPlayer extends Base {
     );
     this.#range = [Math.min(question.min ?? 1, options.length), question.max ?? options.length];
     this.#submit.hidden = !multiple;
+    // A new bar restarts the countdown animation.
+    const bar = document.createElement("div");
+    bar.style.animationDuration = `${question.timeout}s`;
+    this.#timer.replaceChildren(bar);
+    this.#timer.hidden = question.timeout === undefined;
     this.#updateSubmit();
     this.#question.hidden = false;
     this.#options.querySelector("button")?.focus({ preventScroll: true });

@@ -10,10 +10,12 @@ Every example on these pages is a live player running the current version of the
 | --- | --- |
 | [Branching story](./branching) | A question that sends the viewer down one of two paths. |
 | [Quiz with retries](./quiz) | Right and wrong answers, with a loop back to the question. |
+| [Timed quiz with a score](./timed-quiz) | Countdowns, a score in story variables, a hint shown by a condition and a retry branch. |
 | [Hotspot shapes](./hotspot-shapes) | Rectangles, ellipses and polygons, the four built-in variants, and the events they report. |
 | [Tracking a moving object](./tracking) | An animated hotspot that follows a ball across the video, frame by frame. |
 | [Custom theme](./theming) | Custom properties, `::part()` and slots to restyle the whole player. |
 | [Custom hotspot content](./custom-hotspots) | `renderHotspot` and custom variants to draw your own hotspots. |
+| [Chapters plugin](./chapters-plugin) | Chapter cues in the story, and a player plugin that shows them as a menu over the video. |
 | [Player built with core](./core-player) | Your own interface on top of `StoryEngine` and `MediaController`, without `<ivkit-player>`. |
 | [Validation playground](./validation) | Edit a story and see what `validateStory` reports, as you type. |
 

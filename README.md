@@ -8,12 +8,12 @@
   <a href="https://www.npmjs.com/package/@ivkit/player"><img src="https://img.shields.io/npm/v/@ivkit/player?label=%40ivkit%2Fplayer" alt="npm: @ivkit/player"></a>
   <a href="https://www.npmjs.com/package/@ivkit/core"><img src="https://img.shields.io/npm/v/@ivkit/core?label=%40ivkit%2Fcore" alt="npm: @ivkit/core"></a>
   <a href="https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml"><img src="https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache 2.0"></a>
 </p>
 
 # IVKit
 
-**Turn any video into an interactive one.** Viewers answer questions, choose where the story goes and click animated hotspots, all with a single `<ivkit-player>` tag. No dependencies, under 9 KiB gzip.
+**Turn any video into an interactive one.** Viewers answer questions, choose where the story goes and click animated hotspots, all with a single `<ivkit-player>` tag. No dependencies, under 9.5 KiB gzip.
 
 ## Two ways to use it
 
@@ -122,4 +122,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, commands and size budgets.
 
 ## License
 
-[MIT](LICENSE) © Alexis Gonzalez
+[Apache-2.0](LICENSE) © Alexis Gonzalez

@@ -9,8 +9,24 @@ export interface StoryValidationError {
     | "duplicate_id"
     | "missing_scene"
     | "missing_geometry"
-    | "missing_variable";
+    | "missing_variable"
+    | "invalid_cue";
   message: string;
+}
+
+/**
+ * Checks a plugin's cue, already checked by IVKit itself. Call `report` for each
+ * problem, with a JSON Pointer relative to the cue (e.g. `"/data/title"`, or `""` for
+ * the cue itself); it's reported with the code `invalid_cue`.
+ */
+export type CueCheck = (
+  cue: Readonly<Record<string, unknown>>,
+  report: (path: string, message: string) => void,
+) => void;
+
+export interface StoryValidationOptions {
+  /** Checks for cues, keyed by their `kind`. Cues of other kinds only get IVKit's checks. */
+  cues?: Readonly<Record<string, CueCheck>>;
 }
 
 export type StoryValidationResult =
@@ -28,15 +44,26 @@ interface Context {
   eventIds: Set<string>;
   /** The story's variables, so conditions and changes can be checked against them. */
   vars: RecordValue;
+  cues: Readonly<Record<string, CueCheck>>;
 }
 
 /**
  * Checks parsed story data without mutating it or loading media. Unknown fields
  * and non-empty format versions are allowed. Playback remains opt-in: validate
  * before constructing an engine or assigning the player's story property.
+ * Plugins check their own cues through `options.cues`.
  */
-export function validateStory(input: unknown): StoryValidationResult {
-  const ctx: Context = { errors: [], scenes: null, eventIds: new Set(), vars: {} };
+export function validateStory(
+  input: unknown,
+  options: StoryValidationOptions = {},
+): StoryValidationResult {
+  const ctx: Context = {
+    errors: [],
+    scenes: null,
+    eventIds: new Set(),
+    vars: {},
+    cues: options.cues ?? {},
+  };
   if (isObject(ctx, input, "")) checkStory(ctx, input);
   return ctx.errors.length === 0
     ? { valid: true, story: input as Story, errors: [] }
@@ -54,6 +81,7 @@ function checkStory(ctx: Context, story: RecordValue): void {
     for (const [name, value] of Object.entries(vars))
       isVarValue(ctx, value, pointer("/vars", name));
   }
+  checkData(ctx, story, "");
   if (!ctx.scenes) return;
 
   const entries = Object.entries(ctx.scenes);
@@ -70,6 +98,7 @@ function checkScene(ctx: Context, scene: RecordValue, path: string): void {
   isString(ctx, scene["src"], pointer(path, "src"));
   if (scene["next"] !== undefined) checkReference(ctx, scene["next"], pointer(path, "next"));
   checkLogic(ctx, scene, path);
+  checkData(ctx, scene, path);
   const events = scene["events"];
   const eventsPath = pointer(path, "events");
   if (events === undefined || !isArray(ctx, events, eventsPath)) return;
@@ -81,9 +110,41 @@ function checkScene(ctx: Context, scene: RecordValue, path: string): void {
 
 function checkEvent(ctx: Context, event: RecordValue, path: string): void {
   checkUnique(ctx, event["id"], pointer(path, "id"), ctx.eventIds);
+  checkData(ctx, event, path);
   if (event["type"] === "question") checkQuestion(ctx, event, path);
   else if (event["type"] === "hotspot") checkHotspot(ctx, event, path);
-  else addError(ctx, pointer(path, "type"), "invalid_value", "Expected question or hotspot.");
+  else if (event["type"] === "cue") checkCue(ctx, event, path);
+  else addError(ctx, pointer(path, "type"), "invalid_value", "Expected question, hotspot or cue.");
+}
+
+function checkCue(ctx: Context, cue: RecordValue, path: string): void {
+  const kind = cue["kind"];
+  isString(ctx, kind, pointer(path, "kind"));
+  checkSpan(ctx, cue, path);
+  if (cue["if"] !== undefined) checkConditions(ctx, cue["if"], pointer(path, "if"));
+  const check = typeof kind === "string" && Object.hasOwn(ctx.cues, kind) ? ctx.cues[kind] : null;
+  check?.(cue, (relative, message) => {
+    addError(ctx, path + relative, "invalid_cue", message);
+  });
+}
+
+/** Checks the `data` of `value`, if defined: a JSON object. */
+function checkData(ctx: Context, value: RecordValue, path: string): void {
+  const data = value["data"];
+  const dataPath = pointer(path, "data");
+  if (data !== undefined && isObject(ctx, data, dataPath)) checkJson(ctx, data, dataPath, []);
+}
+
+/** Checks that `value` is JSON: null, a boolean, a string, a finite number, or arrays and objects of them. */
+function checkJson(ctx: Context, value: unknown, path: string, parents: unknown[]): void {
+  if (value === null || ["string", "boolean"].includes(typeof value) || isFiniteNumber(value))
+    return;
+  if (typeof value !== "object" || parents.includes(value)) {
+    addError(ctx, path, "invalid_value", "Expected JSON, without cycles.");
+    return;
+  }
+  for (const [key, item] of Object.entries(value))
+    checkJson(ctx, item, pointer(path, key), [...parents, value]);
 }
 
 function checkQuestion(ctx: Context, question: RecordValue, path: string): void {
@@ -115,6 +176,7 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
     if (choice["goto"] !== undefined)
       checkReference(ctx, choice["goto"], pointer(choicePath, "goto"));
     checkLogic(ctx, choice, choicePath);
+    checkData(ctx, choice, choicePath);
     if (multiple !== true) return;
     for (const key of ["goto", "branches", "seek"]) {
       if (choice[key] !== undefined) {
@@ -127,6 +189,51 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
       }
     }
   });
+  const timeout = question["timeout"];
+  if (timeout !== undefined && !(isFiniteNumber(timeout) && timeout > 0)) {
+    addError(
+      ctx,
+      pointer(path, "timeout"),
+      "invalid_value",
+      "Expected a positive number of seconds.",
+    );
+  }
+  checkDefault(ctx, question, path, choiceIds);
+}
+
+/** Checks that a question's `default` picks its own options, as many as it takes. */
+function checkDefault(
+  ctx: Context,
+  question: RecordValue,
+  path: string,
+  choiceIds: Set<string>,
+): void {
+  const value = question["default"];
+  const defaultPath = pointer(path, "default");
+  if (value === undefined) return;
+  if (question["timeout"] === undefined) {
+    addError(ctx, defaultPath, "invalid_value", "Only questions with a timeout take a default.");
+    return;
+  }
+  const ids = [value].flat();
+  for (const id of ids) {
+    if (isString(ctx, id, defaultPath) && !choiceIds.has(id)) {
+      addError(ctx, defaultPath, "invalid_value", `"${id}" isn't an option of this question.`);
+    }
+  }
+  const { min, max } = question;
+  const [fewest, most] =
+    question["multiple"] === true
+      ? [isFiniteNumber(min) ? min : 1, isFiniteNumber(max) ? max : choiceIds.size]
+      : [1, 1];
+  if (new Set(ids).size !== ids.length || ids.length < fewest || ids.length > most) {
+    addError(
+      ctx,
+      defaultPath,
+      "invalid_value",
+      "Expected distinct options, as many as an answer takes.",
+    );
+  }
 }
 
 /** Checks the `min` and `max` of a question with `count` options. */
@@ -151,9 +258,9 @@ function checkCounts(ctx: Context, question: RecordValue, path: string, count: n
   }
 }
 
-function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
-  const from = hotspot["from"];
-  const to = hotspot["to"];
+/** Checks the `from` and `to` of a hotspot or cue. */
+function checkSpan(ctx: Context, event: RecordValue, path: string): void {
+  const { from, to } = event;
   isTime(ctx, from, pointer(path, "from"));
   if (
     to !== undefined &&
@@ -161,8 +268,12 @@ function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
     isFiniteNumber(from) &&
     to <= from
   ) {
-    addError(ctx, pointer(path, "to"), "invalid_value", "Hotspot end must be after its start.");
+    addError(ctx, pointer(path, "to"), "invalid_value", "The end must be after the start.");
   }
+}
+
+function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
+  checkSpan(ctx, hotspot, path);
   isString(ctx, hotspot["label"], pointer(path, "label"));
   if (hotspot["goto"] !== undefined) checkReference(ctx, hotspot["goto"], pointer(path, "goto"));
   if (hotspot["pause"] !== undefined) isBoolean(ctx, hotspot["pause"], pointer(path, "pause"));

@@ -41,23 +41,44 @@ All errors are reported at once, not just the first one.
 | `missing_scene` | `start`, `next` or `goto` names a scene that doesn't exist. | `goto: "forst"` |
 | `missing_geometry` | A hotspot has no geometry for its shape. | A `polygon` without `points`. |
 | `missing_variable` | A condition or `set` uses a variable not declared in `vars`. | `{ var: "scroe", gte: 1 }` |
+| `invalid_cue` | A plugin's check rejected a cue. See [Plugins' cues](#plugins-cues). | A chapter cue without a title. |
 
 ## What gets checked
 
 - `version` and every `src`, `text` and `label` are non-empty strings.
 - There's at least one scene, and `start`, `next` and every `goto` point to existing scenes.
-- Times, including every `seek`, are finite and non-negative, and a hotspot's `to` comes after its `from`.
-- Question and hotspot ids are unique across the story, and option ids within their question.
+- Times, including every `seek`, are finite and non-negative, and the `to` of a hotspot or cue comes after its `from`.
+- Question, hotspot and cue ids are unique across the story, and option ids within their question.
 - Every question has at least one option.
 - `multiple` is a boolean. `min` and `max` only appear on `multiple` questions, as whole numbers from 1 to the number of options, with `max` not below `min`. Options of a `multiple` question have no `goto`, `branches` or `seek`.
+- `timeout` is a positive number. `default` only appears with a `timeout` and picks distinct options of its question, as many as an answer takes.
 - `area` values are fractions from 0 to 1, with positive width and height, inside the frame.
 - Polygons have at least three points inside the frame.
 - Every keyframe has a unique `at` and a valid `easing`, and resolves to a usable geometry.
+- Every cue has a non-empty `kind`.
+- `data`, wherever it appears, is a JSON object: no functions, `undefined`, `NaN`, `Infinity` or cycles inside.
 - `vars` values are strings, booleans or finite numbers. Conditions and `set` only use declared variables, every condition has an operator, and `{ add }` only applies to numbers.
+
+## Plugins' cues
+
+IVKit only checks a cue's own fields. A plugin can check the rest, usually its `data`, by passing a check for its `kind`:
+
+```ts
+import { validateStory, type CueCheck } from "@ivkit/core";
+
+const checkChapter: CueCheck = (cue, report) => {
+  const data = cue.data as { title?: unknown } | undefined;
+  if (typeof data?.title !== "string") report("/data/title", "A chapter needs a title.");
+};
+
+const result = validateStory(story, { cues: { chapter: checkChapter } });
+```
+
+A check gets the cue after IVKit has checked it, as plain data, since its fields may still be invalid. It calls `report` with a JSON Pointer relative to the cue, or `""` for the cue itself, and each report becomes an `invalid_cue` error with the full path, such as `/scenes/intro/events/0/data/title`. Cues of kinds without a check only get IVKit's checks.
 
 ## In the editor and in CI
 
-`validateStory` is small (about 2.3 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
+`validateStory` is small (about 2.8 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
 
 ```ts
 // scripts/check-stories.ts

@@ -40,6 +40,7 @@ type EngineState = "idle" | "playing" | "interacting" | "ended";
 | `currentSceneId` | `SceneId \| null` | Read-only. `null` before `start()`. |
 | `activeQuestion` | `Question \| null` | Read-only. The question waiting for an answer. |
 | `visibleHotspots` | `readonly Hotspot[]` | Read-only. Hotspots currently on screen. |
+| `activeCues` | `readonly Cue[]` | Read-only. [Cues](/reference/story-format#cue) currently active. |
 | `vars` | `Readonly<Vars>` | Read-only. Current values of the story's [variables](/reference/story-format#variables). |
 
 ## Methods
@@ -92,8 +93,10 @@ off();
 | `scene` | `{ sceneId, scene }` | Load and play `scene.src` from the beginning. |
 | `interaction` | `{ sceneId, question, options }` | Pause the video and show `question` with `options`, the ones whose `if` holds. |
 | `answer` | `{ sceneId, question, choice, choices, correct, goto }` | Hide the question. `choices` are the picked options in option order, and `choice` is the first of them. `correct` is whether exactly the options marked `correct` were picked, or `undefined` if no offered option has `correct`. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
+| `timeout` | `{ sceneId, question }` | Nobody answered within the question's `timeout`. Hide the question. Followed by `answer` with its `default`, or else by `scene`, `resume` or `end` as the question decides. |
 | `resume` | `{ sceneId, time }` | The answer or hotspot didn't branch: resume the current video from `time`. That's the question's `at`, or the `seek` of the option, question or hotspot. |
 | `hotspots` | `{ sceneId, hotspots }` | Render exactly `hotspots`, possibly none. Only fires when the set changes. |
+| `cues` | `{ sceneId, cues }` | The active cues changed: `cues` are exactly the active ones, possibly none. Only fires when the set changes. |
 | `pause` | `{ sceneId, hotspot }` | A hotspot with `pause` appeared: pause the video at `hotspot.from`. |
 | `hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated `hotspot`. `goto` is the scene it branches to, if any. Followed by `scene` if it branches, or `resume` if it has a `seek`. If neither, resume playback if it has `pause`. |
 | `vars` | `{ vars }` | Variables changed, through `set` or `setVar()`. Emitted before the `answer`, `hotspot` or `scene` event that caused it. |
@@ -107,6 +110,8 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 - Seeking past several questions fires only the earliest. The rest follow after it's answered.
 - Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.
+- Cues are active while `from <= currentTime < to`, like hotspots, and their `if` is checked on every update too. Unlike hotspots, they stay active while a question is showing. They clear when leaving the scene and when the story ends.
 - A hotspot with `pause` emits `pause` the first time it shows in each visit, not when a seek skips it entirely. The engine stays `playing`, so the hotspot can be activated.
+- A question's `timeout` counts in real time with `setTimeout`, not with `update()`, because the video stays paused. Answering, `goTo()` and `start()` cancel it, and the count starts over every time the question is asked.
 - A `seek` re-arms the questions at or after it, and the pausing hotspots from it on, so they happen again. Questions before it don't.
 - A hotspot's `if` is checked on every update, so it appears or hides as soon as variables change. An option's `if` is checked when its question shows, and a question with no options left is skipped.

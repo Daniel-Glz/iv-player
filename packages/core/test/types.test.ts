@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, it } from "vitest";
-import type { Choice, Hotspot, Question, Scene, SceneEvent, Story } from "../src/index";
+import type { Choice, Cue, Hotspot, Question, Scene, SceneEvent, Story } from "../src/index";
 import { basicStory } from "./fixtures/basic-story";
 
 describe("story format types", () => {
@@ -11,14 +11,27 @@ describe("story format types", () => {
     const event = {} as SceneEvent;
     if (event.type === "question") {
       expectTypeOf(event).toEqualTypeOf<Question>();
-    } else {
+    } else if (event.type === "hotspot") {
       expectTypeOf(event).toEqualTypeOf<Hotspot>();
+    } else {
+      expectTypeOf(event).toEqualTypeOf<Cue>();
     }
   });
 
   it("allows scenes and choices without branching", () => {
     expectTypeOf({ src: "end.mp4" }).toExtend<Scene>();
     expectTypeOf({ id: "a", label: "Continue" }).toExtend<Choice>();
+  });
+
+  it("takes free-form data", () => {
+    expectTypeOf({ src: "a.mp4", data: { tags: ["intro"], level: 1 } }).toExtend<Scene>();
+    expectTypeOf({
+      type: "cue",
+      id: "c",
+      kind: "chapter",
+      from: 0,
+      data: { title: "Intro" },
+    } as const).toExtend<Cue>();
   });
 
   it("rejects malformed definitions", () => {

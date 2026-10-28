@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Story } from "@ivkit/core";
-import type { IvkitPlayer } from "@ivkit/player";
+import type { IvkitPlayer, PlayerPlugin } from "@ivkit/player";
 import { onMounted, ref } from "vue";
 
 const props = withDefaults(
@@ -8,6 +8,7 @@ const props = withDefaults(
     story: Story;
     controls?: boolean;
     renderHotspot?: IvkitPlayer["renderHotspot"];
+    plugins?: PlayerPlugin[];
     /** Shows the player's events under it. */
     log?: boolean;
   }>(),
@@ -20,8 +21,12 @@ const entries = ref<string[]>([]);
 const describe: Record<string, (detail: any) => string> = {
   "iv-scene": (d) => `scene → ${d.sceneId}`,
   "iv-interaction": (d) => `question "${d.question.id}" at ${d.question.at}s`,
-  "iv-answer": (d) => `answer "${d.choice.id}"${d.choice.goto ? ` → ${d.choice.goto}` : ""}`,
-  "iv-hotspot": (d) => `hotspot "${d.hotspot.id}"${d.hotspot.goto ? ` → ${d.hotspot.goto}` : ""}`,
+  "iv-timeout": (d) => `timeout on "${d.question.id}"`,
+  "iv-answer": (d) =>
+    `answer ${d.choices.map((c: { id: string }) => `"${c.id}"`).join(", ")}` +
+    `${d.correct === undefined ? "" : d.correct ? " ✓" : " ✗"}${d.goto ? ` → ${d.goto}` : ""}`,
+  "iv-hotspot": (d) => `hotspot "${d.hotspot.id}"${d.goto ? ` → ${d.goto}` : ""}`,
+  "iv-cues": (d) => `cues: ${d.cues.map((c: { id: string }) => c.id).join(", ") || "none"}`,
   "iv-end": (d) => `end on ${d.sceneId}`,
 };
 
@@ -32,11 +37,15 @@ onMounted(async () => {
   if (props.log) {
     for (const [type, text] of Object.entries(describe)) {
       element.addEventListener(type, (event) => {
-        entries.value = [text((event as CustomEvent).detail), ...entries.value].slice(0, 6);
+        // Stories with variables show them after each event.
+        const vars = Object.entries(element.engine?.vars ?? {});
+        const suffix = vars.length ? `  {${vars.map(([k, v]) => ` ${k}: ${v}`).join(",")} }` : "";
+        entries.value = [text((event as CustomEvent).detail) + suffix, ...entries.value].slice(0, 6);
       });
     }
   }
   element.renderHotspot = props.renderHotspot ?? null;
+  for (const plugin of props.plugins ?? []) element.use(plugin);
   element.story = props.story;
 });
 </script>

@@ -61,6 +61,18 @@ video.front {
   z-index: 2;
 }
 
+/* Above hotspots, below questions and controls; plugin content opts into clicks. */
+.plugins,
+.plugins > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plugins {
+  z-index: 2;
+}
+
 /*
  * The button only positions the hotspot and holds focus; clicks land on the
  * SVG shape (or the label), so they follow the exact shape.
@@ -182,6 +194,28 @@ video.front {
   background: transparent;
   color: var(--iv-accent, #fff);
   box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.timer {
+  width: min(20em, 80%);
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.25);
+  overflow: hidden;
+}
+
+/* Shrinks over the question's timeout. */
+.timer > div {
+  height: 100%;
+  background: var(--iv-accent, #fff);
+  transform-origin: left;
+  animation: iv-timer linear forwards;
+}
+
+@keyframes iv-timer {
+  to {
+    transform: scaleX(0);
+  }
 }
 
 .overlay button:disabled {

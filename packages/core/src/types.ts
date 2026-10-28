@@ -17,7 +17,14 @@ export interface Story {
   scenes: Readonly<Record<SceneId, Scene>>;
   /** Variables and their initial values. Conditions and `set` can only use these. */
   vars?: Readonly<Vars>;
+  data?: Data;
 }
+
+/**
+ * Free-form JSON for apps and plugins, on the story, scenes, events and options.
+ * IVKit never reads it; `validateStory` only checks that it's a JSON object.
+ */
+export type Data = Readonly<Record<string, unknown>>;
 
 /** Value of a story variable. */
 export type VarValue = number | string | boolean;
@@ -70,12 +77,13 @@ export interface Scene {
   branches?: readonly Branch[];
   /** Changes variables each time the scene is entered, e.g. to count visits. */
   set?: VarChanges;
+  data?: Data;
 }
 
 /**
  * Anything that can happen during a scene's timeline. Discriminated by `type`.
  */
-export type SceneEvent = Question | Hotspot;
+export type SceneEvent = Question | Hotspot | Cue;
 
 /**
  * Pauses the video at `at` and asks the viewer to pick one of `options`, or
@@ -105,6 +113,15 @@ export interface Question {
   branches?: readonly Branch[];
   /** Second of the current scene to resume from when nothing branches. */
   seek?: number;
+  /**
+   * Seconds the question waits for an answer, counted in real time since the video
+   * is paused. Then it answers with `default`, or else the question's `goto`,
+   * `branches` and `seek` decide, or else the scene resumes.
+   */
+  timeout?: number;
+  /** Option picked when `timeout` runs out, or a list of them for a `multiple` question. */
+  default?: string | readonly string[];
+  data?: Data;
 }
 
 /** One answer of a question. */
@@ -131,6 +148,7 @@ export interface Choice {
    * to replay a part before asking again. Re-arms the questions from there on.
    */
   seek?: number;
+  data?: Data;
 }
 
 /**
@@ -187,6 +205,27 @@ export interface Hotspot {
    * can be styled through `::part(hotspot-<variant>)`.
    */
   variant?: string;
+  data?: Data;
+}
+
+/**
+ * Marks a span of the scene for plugins and apps, e.g. a chapter or a subtitle. It's
+ * active while `from <= currentTime < to`, and IVKit does nothing else with it: no
+ * pause, nothing drawn. Plugins pick their cues by `kind` and read `data`.
+ */
+export interface Cue {
+  type: "cue";
+  /** Unique within the story. */
+  id: string;
+  /** What the cue is for, e.g. `"chapter"`. */
+  kind: string;
+  /** Second of the scene at which the cue becomes active. */
+  from: number;
+  /** Second at which it stops being active. Without it, it lasts until the scene ends. */
+  to?: number;
+  /** Makes the cue active only while this holds. */
+  if?: Conditions;
+  data?: Data;
 }
 
 /** Every `HotspotShape`, for checks at runtime. */

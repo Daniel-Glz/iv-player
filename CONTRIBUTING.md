@@ -54,12 +54,12 @@ The library is meant to stay small, so `pnpm check:size` fails when a build grow
 
 | Build | Gzip budget |
 | --- | --- |
-| Standalone player, including core and CSS | 9 KiB |
-| All of core | 5.5 KiB |
-| `StoryEngine` only | 1.75 KiB |
-| `validateStory` only | 2.5 KiB |
+| Standalone player, including core and CSS | 9.5 KiB |
+| All of core | 6 KiB |
+| `StoryEngine` only | 2 KiB |
+| `validateStory` only | 3 KiB |
 
-The player, core and validation budgets grew by 0.5, 1 and 0.25 KiB for variables and conditions, which are part of the story format and so belong in core rather than in a plugin. Multiple-answer questions, also part of the format, added 0.5 KiB to the player and core and 0.25 KiB to the engine and validation.
+The player, core and validation budgets grew by 0.5, 1 and 0.25 KiB for variables and conditions, which are part of the story format and so belong in core rather than in a plugin. Multiple-answer questions, also part of the format, added 0.5 KiB to the player and core and 0.25 KiB to the engine and validation. Question timeouts added another 0.5 KiB to the player and core and 0.25 KiB to validation. Cues and plugin support added 0.25 KiB to the engine and validation, so plugins can build on the format instead of growing it.
 
 It also checks that validation isn't bundled into the player, and that neither package gains a runtime dependency. If a change needs a bigger budget, explain why in the pull request.
 
@@ -102,4 +102,4 @@ Maintainers release both packages together, with the same version. Publishing is
 
 To check what would be published without publishing, run `pnpm build` and then `node scripts/publish.mjs --dry-run`.
 
-By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).
+By contributing, you agree that your contributions are licensed under the project's [Apache License 2.0](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).

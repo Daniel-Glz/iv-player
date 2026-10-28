@@ -1,6 +1,6 @@
 import type { Story } from "@ivkit/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { IvkitPlayer } from "../src/index";
+import { IvkitPlayer, type PlayerPluginContext } from "../src/index";
 
 const area = { x: 0.25, y: 0.5, width: 0.1, height: 0.2 };
 
@@ -206,6 +206,87 @@ describe("<ivkit-player>", () => {
     expect($$("[part=option]")[0]!.hasAttribute("aria-pressed")).toBe(false);
   });
 
+  it("shows a countdown and hides the question when its timeout runs out", () => {
+    vi.useFakeTimers();
+    const { player, $ } = mount();
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+    const timer = $("[part=timer]");
+    expect(timer.hidden).toBe(false);
+    expect(timer.querySelector("div")?.style.animationDuration).toBe("3s");
+
+    vi.advanceTimersByTime(3000);
+    expect(onTimeout.mock.calls[0]![0].detail.question.id).toBe("q");
+    expect($("[part=question]").hidden).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it("hides the countdown for questions without a timeout", () => {
+    const { player, $ } = playing();
+    player.engine!.update(5);
+    expect($("[part=timer]").hidden).toBe(true);
+  });
+
+  it("ignores a replaced engine whose question times out", () => {
+    vi.useFakeTimers();
+    const { player, $ } = mount();
+    const timed: Story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = timed;
+    player.engine!.start();
+    player.engine!.update(1);
+    player.story = { ...timed };
+    player.engine!.start();
+    vi.advanceTimersByTime(2000);
+    player.engine!.update(1);
+
+    // The first engine times out while the second one's question shows.
+    vi.advanceTimersByTime(1000);
+    expect(onTimeout).not.toHaveBeenCalled();
+    expect($("[part=question]").hidden).toBe(false);
+    vi.useRealTimers();
+  });
+
   it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
     const opened: string[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
@@ -388,5 +469,87 @@ describe("<ivkit-player>", () => {
     // The old engine no longer drives the UI.
     first!.answer("a");
     expect($("[part=question]").hidden).toBe(true);
+  });
+});
+
+describe("<ivkit-player> plugins", () => {
+  const cued: Story = {
+    ...story,
+    scenes: {
+      ...story.scenes,
+      intro: {
+        src: "intro.mp4",
+        events: [{ type: "cue", id: "c", kind: "chapter", from: 1, data: { title: "Uno" } }],
+      },
+    },
+  };
+
+  it("runs a plugin for each story, in its own layer, until the story is replaced", () => {
+    const { player, root } = mount();
+    const runs: string[] = [];
+    player.use(({ engine, layer, on }) => {
+      runs.push(`run:${engine.story.start}`);
+      layer.textContent = "chapter";
+      on("cues", ({ cues }) => runs.push(`cues:${cues.map((c) => c.id).join()}`));
+      return () => runs.push("cleanup");
+    });
+    expect(runs).toEqual([]);
+
+    player.story = cued;
+    const first = player.engine!;
+    expect(root.querySelector("[part=plugin]")?.textContent).toBe("chapter");
+    player.play();
+    first.update(1);
+
+    player.story = { ...cued, start: "hall" };
+    expect(runs).toEqual(["run:intro", "cues:c", "cleanup", "run:hall"]);
+    expect(root.querySelectorAll("[part=plugin]")).toHaveLength(1);
+
+    // Listeners added through `on` are gone with the old story.
+    first.goTo("intro");
+    first.update(1);
+    expect(runs).toHaveLength(4);
+  });
+
+  it("runs at once when a story is set, and stops when removed", () => {
+    const { player, root } = playing();
+    const cleanup = vi.fn();
+    const plugin = vi.fn((_context: PlayerPluginContext) => cleanup);
+    const remove = player.use(plugin);
+    player.use(plugin);
+    expect(plugin).toHaveBeenCalledTimes(1);
+    expect(plugin.mock.calls[0]![0]).toMatchObject({
+      player,
+      engine: player.engine,
+      media: expect.anything(),
+    });
+
+    remove();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(root.querySelector("[part=plugin]")).toBeNull();
+    player.story = story;
+    expect(plugin).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs plugins in order, after the player handles each event", () => {
+    const { player, $ } = mount();
+    const order: string[] = [];
+    player.use(({ on }) => on("interaction", () => order.push(`a:${$("[part=question]").hidden}`)));
+    player.use(({ on }) => on("interaction", () => order.push("b")));
+    player.story = story;
+    player.play();
+    player.engine!.update(5);
+    expect(order).toEqual(["a:false", "b"]);
+  });
+
+  it("dispatches iv-cues", () => {
+    const { player } = mount();
+    const cues: string[][] = [];
+    player.addEventListener("iv-cues", (e) => cues.push(e.detail.cues.map((c) => c.id)));
+    player.story = cued;
+    player.play();
+    player.engine!.update(1);
+    player.engine!.goTo("hall");
+    expect(cues).toEqual([["c"], []]);
   });
 });
