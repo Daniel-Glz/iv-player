@@ -102,4 +102,4 @@ Maintainers release both packages together, with the same version. Publishing is
 
 To check what would be published without publishing, run `pnpm build` and then `node scripts/publish.mjs --dry-run`.
 
-By contributing, you agree that your contributions are licensed under the project's [MIT License](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).
+By contributing, you agree that your contributions are licensed under the project's [Apache License 2.0](https://github.com/Daniel-Glz/ivkit/blob/main/LICENSE).

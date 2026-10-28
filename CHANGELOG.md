@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- The license is now the Apache License 2.0 instead of MIT, for both packages.
 - Size budgets: the standalone player now stays under 9.5 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 6 KiB (was 4 KiB), to fit variables, conditions, multiple-answer questions and timeouts.
 
 ## [0.1.1] - 2026-10-27

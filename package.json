@@ -2,7 +2,7 @@
   "name": "ivkit-monorepo",
   "private": true,
   "description": "Lightweight TypeScript library for interactive videos",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "type": "module",
   "packageManager": "pnpm@11.15.0",
   "engines": {

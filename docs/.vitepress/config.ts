@@ -155,7 +155,7 @@ export default defineConfig({
     },
     search: { provider: "local" },
     footer: {
-      message: 'Released under the <a href="/ivkit/license">MIT License</a>.',
+      message: 'Released under the <a href="/ivkit/license">Apache License 2.0</a>.',
       copyright: "Copyright © 2026 Alexis Gonzalez",
     },
   },
