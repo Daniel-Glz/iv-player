@@ -40,6 +40,7 @@ Create it **before** calling `engine.start()`, so it sees the first `scene` even
 | --- | --- | --- |
 | `swap` | `{ active, inactive }` | Put `active` on top and hide `inactive`. The first swap reveals the first scene. |
 | `blocked` | `{ media, error }` | `play()` was rejected, typically by the autoplay policy. Ask for a user gesture, then call `play()`. |
+| `time` | `{ media, time }` | The active element reached `time`, just reported to the engine: once per presented frame, or on `timeupdate` while frames don't arrive. Use it to sync anything drawn over the video, like animated hotspots. |
 
 Showing and hiding the elements is left to you, so core stays free of the DOM. Hide the inactive element with `opacity: 0` rather than `display: none`, so it keeps decoding its first frame.
 
