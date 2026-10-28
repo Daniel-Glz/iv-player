@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `@ivkit/core`: `StoryEngine.goTo(sceneId)`, which enters any scene from any state, dismissing the question on screen. It works before `start()`, e.g. to resume a saved story.
 - `@ivkit/player`: `goTo(sceneId)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
+- `@ivkit/core`: `pause` on hotspots, which pauses the video when the hotspot appears until it's activated. The engine emits a new `pause` event, and `MediaController` pauses on the hotspot's first frame and resumes when it's activated without a `goto`.
 - `@ivkit/core`: a `time` event on `MediaController`, with each playback time it reports to the engine. `<ivkit-player>` now moves animated hotspots on it instead of keeping its own frame callbacks.
 
 ## [0.1.1] - 2026-10-27

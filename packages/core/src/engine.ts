@@ -20,7 +20,12 @@ export interface EngineEvents {
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
   hotspots: { sceneId: SceneId; hotspots: readonly Hotspot[] };
-  /** The viewer activated `hotspot`. Followed by `scene` if it has a `goto`. */
+  /** A hotspot with `pause` appeared: pause the video at `hotspot.from`. */
+  pause: { sceneId: SceneId; hotspot: Hotspot };
+  /**
+   * The viewer activated `hotspot`. Followed by `scene` if it has a `goto`; without
+   * one, a hotspot with `pause` resumes playback.
+   */
   hotspot: { sceneId: SceneId; hotspot: Hotspot };
   /** The story finished on `sceneId`. */
   end: { sceneId: SceneId };
@@ -45,7 +50,9 @@ interface Timeline {
  *
  * Hotspots are visible while `from <= currentTime < to`, recomputed on every
  * update, so they stay correct after seeking in either direction. They're
- * hidden while a question is showing and when leaving the scene.
+ * hidden while a question is showing and when leaving the scene. A hotspot with
+ * `pause` emits `pause` the first time it shows in each visit; the engine stays
+ * `playing` meanwhile, so it can be activated.
  *
  * The story is trusted as-is: a reference to a missing scene throws when reached.
  */
@@ -57,6 +64,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
   private pending: Question[] = [];
   private question: Question | null = null;
   private visible: readonly Hotspot[] = [];
+  /** Hotspots with `pause` that already paused during this visit. */
+  private readonly paused = new Set<Hotspot>();
   private hasMediaEnded = false;
   private readonly timelines = new Map<SceneId, Timeline>();
 
@@ -112,6 +121,11 @@ export class StoryEngine extends Emitter<EngineEvents> {
         (h) => currentTime >= h.from && (h.to === undefined || currentTime < h.to),
       ),
     );
+    const hold = this.visible.find((h) => h.pause === true && !this.paused.has(h));
+    if (hold !== undefined && this.sceneId !== null) {
+      this.paused.add(hold);
+      this.emit("pause", { sceneId: this.sceneId, hotspot: hold });
+    }
   }
 
   /** Reports that the active scene's video reached its end. */
@@ -163,6 +177,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.sceneId = sceneId;
     this.timeline = this.timelineOf(sceneId, scene);
     this.pending = [...this.timeline.questions];
+    this.paused.clear();
     this.question = null;
     this.hasMediaEnded = false;
     this._state = "playing";

@@ -4,7 +4,7 @@ description: "Add clickable hotspots to videos: rectangles, ellipses and polygon
 
 # Hotspots
 
-A hotspot is a clickable area over the video. Unlike a question, it **doesn't pause playback**.
+A hotspot is a clickable area over the video. Unlike a question, it **doesn't pause playback**, unless you [ask it to](#pausing).
 
 ```ts
 {
@@ -24,6 +24,25 @@ A hotspot is a clickable area over the video. Unlike a question, it **doesn't pa
 - Hotspots hide while a question is showing.
 
 Hotspots are rendered as real `<button>`s, so they can be reached with the keyboard.
+
+## Pausing
+
+With `pause: true`, the video pauses on the hotspot's `from` frame when it appears, and waits for the viewer:
+
+```ts
+{
+  type: "hotspot",
+  id: "key",
+  from: 5,
+  label: "The key",
+  pause: true,
+  area: { x: 0.4, y: 0.6, width: 0.1, height: 0.1 },
+}
+```
+
+- Activating it branches to its `goto`, or resumes playback without one.
+- The viewer can still resume with the play button, skipping it. The hotspot stays clickable until `to`.
+- It pauses once per visit to the scene, and not when a seek skips past it entirely.
 
 ## Coordinates
 

@@ -106,6 +106,7 @@ function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
   }
   isString(ctx, hotspot["label"], pointer(path, "label"));
   if (hotspot["goto"] !== undefined) checkReference(ctx, hotspot["goto"], pointer(path, "goto"));
+  if (hotspot["pause"] !== undefined) isBoolean(ctx, hotspot["pause"], pointer(path, "pause"));
   if (hotspot["variant"] !== undefined) isString(ctx, hotspot["variant"], pointer(path, "variant"));
   checkGeometryFields(ctx, hotspot, path);
 
@@ -254,6 +255,12 @@ function isArray(ctx: Context, value: unknown, path: string): value is unknown[]
 function isString(ctx: Context, value: unknown, path: string): value is string {
   if (typeof value === "string" && value.trim().length > 0) return true;
   addError(ctx, path, "invalid_value", "Expected a non-empty string.");
+  return false;
+}
+
+function isBoolean(ctx: Context, value: unknown, path: string): value is boolean {
+  if (typeof value === "boolean") return true;
+  addError(ctx, path, "invalid_type", "Expected a boolean.");
   return false;
 }
 

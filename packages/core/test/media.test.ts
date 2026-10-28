@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { MediaController, StoryEngine, type Story } from "../src/index";
 import { FakeMedia, type FakeMediaOptions } from "./fixtures/fake-media";
 
+const area = { x: 0.1, y: 0.1, width: 0.2, height: 0.2 };
+
 /** intro asks at 5s: "a" → left → outro, "b" → right. */
 const story: Story = {
   version: "0.1",
@@ -200,6 +202,31 @@ describe.each([
 
     expect(b.playing).toBe(true);
     expect(a.playing).toBe(false);
+  });
+
+  it("pauses on a pausing hotspot's start and resumes when it's activated", () => {
+    const engine = new StoryEngine({
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [{ type: "hotspot", id: "h", from: 1, area, label: "H", pause: true }],
+        },
+      },
+    });
+    const a = new FakeMedia("a", options);
+    const b = new FakeMedia("b", options);
+    new MediaController(engine, [a, b]);
+    engine.start();
+    b.finishLoading();
+    b.advanceTo(1.2);
+
+    expect(b.playing).toBe(false);
+    expect(b.currentTime).toBe(1);
+
+    engine.activate("h");
+    expect(b.playing).toBe(true);
   });
 
   it("swaps instantly to a preloaded branch", () => {

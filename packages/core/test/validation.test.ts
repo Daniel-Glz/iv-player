@@ -136,6 +136,7 @@ describe("validateStory", () => {
         [0, Infinity],
       ],
     },
+    { ...hotspot, pause: "yes" },
     { ...hotspot, keyframes: null },
     { ...hotspot, keyframes: [null] },
     { ...hotspot, keyframes: [{ at: 0, easing: "bounce" }] },
@@ -149,6 +150,7 @@ describe("validateStory", () => {
     for (const event of [
       hotspot,
       { ...hotspot, shape: "ellipse", variant: "custom" },
+      { ...hotspot, pause: true },
       { ...hotspot, keyframes: [] },
       {
         ...hotspot,

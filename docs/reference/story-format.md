@@ -54,7 +54,7 @@ Pauses the video at `at` and asks the viewer to pick one of `options`.
 
 ## `Hotspot`
 
-A clickable area shown between `from` and `to`. It doesn't pause playback.
+A clickable area shown between `from` and `to`. It doesn't pause playback unless `pause` is set.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -64,6 +64,7 @@ A clickable area shown between `from` and `to`. It doesn't pause playback.
 | `to?` | `number` | Second at which it disappears. Without it, it lasts until the scene ends. |
 | `label` | `string` | Accessible name of the area. |
 | `goto?` | `SceneId` | Scene to branch to when activated. Without it, activation is only reported. |
+| `pause?` | `boolean` | Pauses the video at `from`, once per visit, until the hotspot is activated or the viewer resumes. Default `false`. |
 | `shape?` | `HotspotShape` | `"rect"` (default), `"ellipse"` or `"polygon"`. |
 | `area?` | `Area` | Bounds of a static `rect` or `ellipse`. |
 | `points?` | `Point[]` | Vertices of a static `polygon`. |
