@@ -46,7 +46,7 @@ All errors are reported at once, not just the first one.
 
 - `version` and every `src`, `text` and `label` are non-empty strings.
 - There's at least one scene, and `start`, `next` and every `goto` point to existing scenes.
-- Times are finite and non-negative, and a hotspot's `to` comes after its `from`.
+- Times, including every `seek`, are finite and non-negative, and a hotspot's `to` comes after its `from`.
 - Question and hotspot ids are unique across the story, and option ids within their question.
 - Every question has at least one option.
 - `area` values are fractions from 0 to 1, with positive width and height, inside the frame.

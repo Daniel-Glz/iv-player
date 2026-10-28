@@ -31,7 +31,7 @@ export interface EngineEvents {
    * `scene`, `resume` or `end`.
    */
   answer: { sceneId: SceneId; question: Question; choice: Choice; goto: SceneId | undefined };
-  /** The answer didn't branch: resume the current video from `time`. */
+  /** The answer or hotspot didn't branch: resume the current video from `time`. */
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
   hotspots: { sceneId: SceneId; hotspots: readonly Hotspot[] };
@@ -192,6 +192,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.emit("answer", { sceneId, question, choice, goto });
 
     if (goto !== undefined) this.enter(goto);
+    else if (choice.seek !== undefined) this.seek(choice.seek);
     else if (this.hasMediaEnded) this.leaveScene();
     else this.emit("resume", { sceneId, time: question.at });
     return true;
@@ -211,6 +212,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     const goto = this.branch(hotspot.branches, hotspot.goto);
     this.emit("hotspot", { sceneId, hotspot, goto });
     if (goto !== undefined) this.enter(goto);
+    else if (hotspot.seek !== undefined) this.seek(hotspot.seek);
     return true;
   }
 
@@ -227,6 +229,15 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this._state = "playing";
     this.change(scene.set);
     this.emit("scene", { sceneId, scene });
+  }
+
+  /** Resumes the current scene from `time`, re-arming its questions and pauses from there on. */
+  private seek(time: number): void {
+    if (this.sceneId === null) return;
+    this.pending = this.timeline.questions.filter((question) => question.at >= time);
+    for (const hotspot of this.paused) if (hotspot.from >= time) this.paused.delete(hotspot);
+    this.hasMediaEnded = false;
+    this.emit("resume", { sceneId: this.sceneId, time });
   }
 
   private ask(): void {

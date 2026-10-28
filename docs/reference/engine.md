@@ -66,11 +66,11 @@ Reports that the active scene's video reached its end. Asks any questions still 
 
 ### `answer(choiceId: string): boolean`
 
-Answers the active question. Returns `false`, and does nothing, if no question is active or the option doesn't exist or isn't offered because its `if` doesn't hold.
+Answers the active question, applying the option's `set`, then branching or resuming from its `seek` or where the question paused. Returns `false`, and does nothing, if no question is active or the option doesn't exist or isn't offered because its `if` doesn't hold.
 
 ### `activate(hotspotId: string): boolean`
 
-Activates a visible hotspot, applying its `set` and branching to the first of its `branches` that holds, or to its `goto`. Returns `false`, and does nothing, if no such hotspot is on screen.
+Activates a visible hotspot, applying its `set` and branching to the first of its `branches` that holds, or to its `goto`. Without a branch, a `seek` resumes the scene from there. Returns `false`, and does nothing, if no such hotspot is on screen.
 
 ### `on(event, listener): () => void`
 
@@ -92,10 +92,10 @@ off();
 | `scene` | `{ sceneId, scene }` | Load and play `scene.src` from the beginning. |
 | `interaction` | `{ sceneId, question, options }` | Pause the video and show `question` with `options`, the ones whose `if` holds. |
 | `answer` | `{ sceneId, question, choice, goto }` | Hide the question. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
-| `resume` | `{ sceneId, time }` | The answer didn't branch: resume the current video from `time`. |
+| `resume` | `{ sceneId, time }` | The answer or hotspot didn't branch: resume the current video from `time`. That's the question's `at`, or the `seek` of the option or hotspot. |
 | `hotspots` | `{ sceneId, hotspots }` | Render exactly `hotspots`, possibly none. Only fires when the set changes. |
 | `pause` | `{ sceneId, hotspot }` | A hotspot with `pause` appeared: pause the video at `hotspot.from`. |
-| `hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated `hotspot`. `goto` is the scene it branches to, if any. Followed by `scene` if it branches. If not, resume playback if it has `pause`. |
+| `hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated `hotspot`. `goto` is the scene it branches to, if any. Followed by `scene` if it branches, or `resume` if it has a `seek`. If neither, resume playback if it has `pause`. |
 | `vars` | `{ vars }` | Variables changed, through `set` or `setVar()`. Emitted before the `answer`, `hotspot` or `scene` event that caused it. |
 | `end` | `{ sceneId }` | The story finished on `sceneId`. |
 
@@ -108,4 +108,5 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 - Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.
 - A hotspot with `pause` emits `pause` the first time it shows in each visit, not when a seek skips it entirely. The engine stays `playing`, so the hotspot can be activated.
+- A `seek` re-arms the questions at or after it, and the pausing hotspots from it on, so they happen again. Questions before it don't.
 - A hotspot's `if` is checked on every update, so it appears or hides as soon as variables change. An option's `if` is checked when its question shows, and a question with no options left is skipped.

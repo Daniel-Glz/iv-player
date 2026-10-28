@@ -60,6 +60,19 @@ A question pauses the video at `at` and shows its options. The video stays pause
 - A question near the end of the video is still asked, even if playback ended between two time updates.
 - The player pauses on the question's exact frame, not wherever playback was when it noticed.
 
+### Correct answers and replays
+
+Mark the right option of a quiz with `correct`. The engine only reports it, in the `answer` event (`iv-answer` in the player), so combine it with [`set`](#variables-and-conditions) to keep a score.
+
+`seek` sends the viewer back, or forward, within the same scene when the option doesn't branch. The questions from there on are asked again, so a wrong answer can replay the explanation:
+
+```ts
+options: [
+  { id: "four", label: "4", correct: true, set: { score: { add: 1 } } },
+  { id: "five", label: "5", seek: 12 }, // replays from 0:12, then asks again
+]
+```
+
 ## Branching and loops
 
 `goto` and `next` can point to any scene, including earlier ones, so stories can loop:

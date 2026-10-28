@@ -57,6 +57,8 @@ Pauses the video at `at` and asks the viewer to pick one of `options`.
 | `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
 | `set?` | `VarChanges` | Changes variables when the option is picked. |
 | `if?` | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
+| `correct?` | `boolean` | Marks the right answer of a quiz. Only reported, in the `answer` event: score it with `set`. |
+| `seek?` | `number` | Second of the current scene to resume from when the option doesn't branch. Questions from there on are asked again. |
 
 ## `Hotspot`
 
@@ -73,6 +75,8 @@ A clickable area shown between `from` and `to`. It doesn't pause playback unless
 | `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
 | `set?` | `VarChanges` | Changes variables when the hotspot is activated. |
 | `if?` | `Conditions` | Shows the hotspot only while this holds. |
+| `seek?` | `number` | Second of the current scene to jump to when the hotspot doesn't branch. Questions from there on are asked again. |
+| `href?` | `string` | Link the player opens in a new tab when the hotspot is activated. Only `http:` and `https:` URLs open. |
 | `pause?` | `boolean` | Pauses the video at `from`, once per visit, until the hotspot is activated or the viewer resumes. Default `false`. |
 | `shape?` | `HotspotShape` | `"rect"` (default), `"ellipse"` or `"polygon"`. |
 | `area?` | `Area` | Bounds of a static `rect` or `ellipse`. |

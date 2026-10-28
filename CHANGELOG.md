@@ -14,6 +14,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: variables and conditions in the story format. `Story.vars` declares variables, `set` changes them on choices, hotspots and scenes, `branches` pick a scene by condition before falling back to `goto` or `next`, and `if` offers a choice or shows a hotspot only while it holds. `validateStory` reports undeclared variables with the new `missing_variable` code.
 - `@ivkit/core`: `StoryEngine.vars`, `StoryEngine.setVar()` and a `vars` event. The `interaction` event now includes the `options` offered, and `answer` and `hotspot` include the scene they branch to as `goto`.
 - `@ivkit/player`: questions show only the options whose `if` holds, and `iv-interaction`, `iv-answer` and `iv-hotspot` carry the same new fields as the engine's events.
+- `@ivkit/core`: `correct` on choices, reported in the `answer` event to score quizzes.
+- `@ivkit/core`: `seek` on choices and hotspots, which resumes the current scene from another second when they don't branch, asking the questions from there on again. `MediaController` now seeks on `resume` when its `time` isn't the current one.
+- `@ivkit/player`: `href` on hotspots, which opens `http:` and `https:` links in a new tab when activated.
 - `@ivkit/core`: a `time` event on `MediaController`, with each playback time it reports to the engine. `<ivkit-player>` now moves animated hotspots on it instead of keeping its own frame callbacks.
 
 ### Changed

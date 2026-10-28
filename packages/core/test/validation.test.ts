@@ -317,3 +317,30 @@ describe("validateStory variables", () => {
     ]);
   });
 });
+
+describe("validateStory correct, seek and href", () => {
+  it("accepts them", () => {
+    const result = validateStory(
+      storyWith(
+        { ...question, options: [{ id: "a", label: "A", correct: true, seek: 0 }] },
+        { ...hotspot, seek: 1.5, href: "https://example.com" },
+      ),
+    );
+    expect(result.errors).toEqual([]);
+  });
+
+  it("checks their types", () => {
+    const errors = errorsOf(
+      storyWith(
+        { ...question, options: [{ id: "a", label: "A", correct: "yes", seek: -1 }] },
+        { ...hotspot, seek: "1", href: "" },
+      ),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/options/0/correct", "invalid_type"],
+      ["/scenes/intro/events/0/options/0/seek", "invalid_value"],
+      ["/scenes/intro/events/1/seek", "invalid_value"],
+      ["/scenes/intro/events/1/href", "invalid_value"],
+    ]);
+  });
+});

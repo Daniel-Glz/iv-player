@@ -257,7 +257,18 @@ export class IvkitPlayer extends Base {
       this.#emit("iv-answer", detail);
     });
     engine.on("hotspots", ({ hotspots }) => this.#hotspots.render(hotspots));
-    engine.on("hotspot", (detail) => this.#emit("iv-hotspot", detail));
+    engine.on("hotspot", (detail) => {
+      const { href } = detail.hotspot;
+      if (href !== undefined) {
+        // Clicking a link keeps the user gesture, so popup blockers allow it.
+        const link = document.createElement("a");
+        link.href = href;
+        link.target = "_blank";
+        link.rel = "noopener";
+        if (/^https?:$/.test(link.protocol)) link.click();
+      }
+      this.#emit("iv-hotspot", detail);
+    });
     engine.on("end", (detail) => {
       this.#end.hidden = false;
       this.#updateControlsVisibility();
