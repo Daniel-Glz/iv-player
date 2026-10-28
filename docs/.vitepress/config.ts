@@ -115,6 +115,7 @@ export default defineConfig({
             { text: "Overview", link: "/examples/" },
             { text: "Branching story", link: "/examples/branching" },
             { text: "Quiz with retries", link: "/examples/quiz" },
+            { text: "Timed quiz with a score", link: "/examples/timed-quiz" },
             { text: "Hotspot shapes", link: "/examples/hotspot-shapes" },
             { text: "Tracking a moving object", link: "/examples/tracking" },
             { text: "Custom theme", link: "/examples/theming" },
