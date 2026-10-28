@@ -96,6 +96,27 @@ With `multiple: true` the viewer picks several options and confirms. `min` and `
 
 Single questions can use the question's `goto`, `branches` and `seek` too, as a fallback for the options that neither branch nor seek.
 
+### Time limits
+
+`timeout` gives the viewer that many seconds to answer. When they run out, the question answers with `default`, as if the viewer had picked it. Without `default`, the question's own `branches`, `goto` and `seek` decide, and without those the video simply resumes. The player shows a countdown bar.
+
+```ts
+{
+  type: "question",
+  id: "bridge",
+  at: 30,
+  text: "The bridge is falling. Jump?",
+  timeout: 5,
+  default: "stay", // hesitating means staying
+  options: [
+    { id: "jump", label: "Jump", goto: "river" },
+    { id: "stay", label: "Stay", goto: "fall" },
+  ],
+}
+```
+
+The video is paused while a question shows, so the time counts in real time instead of video time. Options already picked in a `multiple` question but not confirmed don't count: the `default` applies.
+
 ## Branching and loops
 
 `goto` and `next` can point to any scene, including earlier ones, so stories can loop:

@@ -64,6 +64,7 @@ ivkit-player::part(option) {
 | `stage` | Wrapper of everything inside the player. |
 | `video` | Both stacked `<video>` elements. |
 | `question`, `question-text`, `options`, `option` | Question overlay, its text, the options group and each option button. In a `multiple` question, options are toggle buttons, and the picked ones are also `option-picked`. |
+| `timer` | Countdown bar of a question with `timeout`. The bar inside shrinks with a CSS animation. |
 | `submit` | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
 | `start`, `start-button` | Start screen and its Play button. |
 | `end`, `replay-button` | End screen and its default Replay button. |

@@ -19,6 +19,7 @@ export interface IvkitPlayerEventMap {
   "iv-scene": CustomEvent<EngineEvents["scene"]>;
   "iv-interaction": CustomEvent<EngineEvents["interaction"]>;
   "iv-answer": CustomEvent<EngineEvents["answer"]>;
+  "iv-timeout": CustomEvent<EngineEvents["timeout"]>;
   "iv-hotspot": CustomEvent<EngineEvents["hotspot"]>;
   "iv-end": CustomEvent<EngineEvents["end"]>;
 }
@@ -33,6 +34,7 @@ const template = /* html */ `
     <p class="question-text" part="question-text" id="question-text"></p>
     <div class="options" part="options" role="group" aria-labelledby="question-text"></div>
     <button class="submit" part="submit" type="button" hidden>Confirm</button>
+    <div class="timer" part="timer" hidden></div>
   </div>
   <div class="overlay start" part="start" hidden>
     <button class="start-button" part="start-button" type="button">
@@ -89,6 +91,7 @@ export class IvkitPlayer extends Base {
   readonly #questionText: HTMLElement;
   readonly #options: HTMLElement;
   readonly #submit: HTMLButtonElement;
+  readonly #timer: HTMLElement;
   readonly #start: HTMLElement;
   readonly #end: HTMLElement;
   readonly #controls: Controls;
@@ -119,6 +122,7 @@ export class IvkitPlayer extends Base {
     this.#questionText = find(".question-text");
     this.#options = find(".options");
     this.#submit = find(".submit");
+    this.#timer = find(".timer");
     this.#start = find(".start");
     this.#end = find(".end");
     const activeVideo = () => this.#activeVideo();
@@ -253,25 +257,38 @@ export class IvkitPlayer extends Base {
       this.#updateControlsVisibility();
     });
 
-    engine.on("scene", (detail) => {
+    // A replaced engine may still emit, e.g. when a question's timeout runs out.
+    const on = <K extends keyof EngineEvents>(
+      type: K,
+      listener: (detail: EngineEvents[K]) => void,
+    ) =>
+      engine.on(type, (detail) => {
+        if (engine === this.#engine) listener(detail);
+      });
+    on("scene", (detail) => {
       // A scene change can interrupt a question, e.g. restart() or goTo() while it's showing.
       this.#question.hidden = true;
       this.#end.hidden = true;
       this.#updateControlsVisibility();
       this.#emit("iv-scene", detail);
     });
-    engine.on("interaction", (detail) => {
+    on("interaction", (detail) => {
       this.#showQuestion(detail.question, detail.options);
       this.#updateControlsVisibility();
       this.#emit("iv-interaction", detail);
     });
-    engine.on("answer", (detail) => {
+    on("answer", (detail) => {
       this.#question.hidden = true;
       this.#updateControlsVisibility();
       this.#emit("iv-answer", detail);
     });
-    engine.on("hotspots", ({ hotspots }) => this.#hotspots.render(hotspots));
-    engine.on("hotspot", (detail) => {
+    on("timeout", (detail) => {
+      this.#question.hidden = true;
+      this.#updateControlsVisibility();
+      this.#emit("iv-timeout", detail);
+    });
+    on("hotspots", ({ hotspots }) => this.#hotspots.render(hotspots));
+    on("hotspot", (detail) => {
       const { href } = detail.hotspot;
       if (href !== undefined) {
         // Clicking a link keeps the user gesture, so popup blockers allow it.
@@ -283,7 +300,7 @@ export class IvkitPlayer extends Base {
       }
       this.#emit("iv-hotspot", detail);
     });
-    engine.on("end", (detail) => {
+    on("end", (detail) => {
       this.#end.hidden = false;
       this.#updateControlsVisibility();
       this.#emit("iv-end", detail);
@@ -427,6 +444,11 @@ export class IvkitPlayer extends Base {
     );
     this.#range = [Math.min(question.min ?? 1, options.length), question.max ?? options.length];
     this.#submit.hidden = !multiple;
+    // A new bar restarts the countdown animation.
+    const bar = document.createElement("div");
+    bar.style.animationDuration = `${question.timeout}s`;
+    this.#timer.replaceChildren(bar);
+    this.#timer.hidden = question.timeout === undefined;
     this.#updateSubmit();
     this.#question.hidden = false;
     this.#options.querySelector("button")?.focus({ preventScroll: true });

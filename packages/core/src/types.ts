@@ -105,6 +105,14 @@ export interface Question {
   branches?: readonly Branch[];
   /** Second of the current scene to resume from when nothing branches. */
   seek?: number;
+  /**
+   * Seconds the question waits for an answer, counted in real time since the video
+   * is paused. Then it answers with `default`, or else the question's `goto`,
+   * `branches` and `seek` decide, or else the scene resumes.
+   */
+  timeout?: number;
+  /** Option picked when `timeout` runs out, or a list of them for a `multiple` question. */
+  default?: string | readonly string[];
 }
 
 /** One answer of a question. */

@@ -52,6 +52,8 @@ Pauses the video at `at` and asks the viewer to pick one of `options`, or severa
 | `goto?` | `SceneId` | Scene to branch to when the picked option doesn't branch or seek. |
 | `branches?` | `Branch[]` | Checked before `goto`, after the options' `set`. The first that holds is branched to instead. |
 | `seek?` | `number` | Second of the current scene to resume from when nothing branches. |
+| `timeout?` | `number` | Seconds the question waits for an answer, greater than 0. They count in real time, since the video is paused. Then it answers with `default`, or else the question's `branches`, `goto` and `seek` decide, or else the scene resumes. |
+| `default?` | `string \| string[]` | Option picked when `timeout` runs out. A list for a `multiple` question, within its `min` and `max`. If it isn't offered because of its `if`, the question decides as if there were no `default`. |
 
 ### `Choice`
 

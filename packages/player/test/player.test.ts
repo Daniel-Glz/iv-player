@@ -206,6 +206,87 @@ describe("<ivkit-player>", () => {
     expect($$("[part=option]")[0]!.hasAttribute("aria-pressed")).toBe(false);
   });
 
+  it("shows a countdown and hides the question when its timeout runs out", () => {
+    vi.useFakeTimers();
+    const { player, $ } = mount();
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+    const timer = $("[part=timer]");
+    expect(timer.hidden).toBe(false);
+    expect(timer.querySelector("div")?.style.animationDuration).toBe("3s");
+
+    vi.advanceTimersByTime(3000);
+    expect(onTimeout.mock.calls[0]![0].detail.question.id).toBe("q");
+    expect($("[part=question]").hidden).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it("hides the countdown for questions without a timeout", () => {
+    const { player, $ } = playing();
+    player.engine!.update(5);
+    expect($("[part=timer]").hidden).toBe(true);
+  });
+
+  it("ignores a replaced engine whose question times out", () => {
+    vi.useFakeTimers();
+    const { player, $ } = mount();
+    const timed: Story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = timed;
+    player.engine!.start();
+    player.engine!.update(1);
+    player.story = { ...timed };
+    player.engine!.start();
+    vi.advanceTimersByTime(2000);
+    player.engine!.update(1);
+
+    // The first engine times out while the second one's question shows.
+    vi.advanceTimersByTime(1000);
+    expect(onTimeout).not.toHaveBeenCalled();
+    expect($("[part=question]").hidden).toBe(false);
+    vi.useRealTimers();
+  });
+
   it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
     const opened: string[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
