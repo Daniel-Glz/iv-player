@@ -89,7 +89,8 @@ off();
 | `answer` | `{ sceneId, question, choice }` | Hide the question. Followed by `scene`, `resume` or `end`. |
 | `resume` | `{ sceneId, time }` | The answer didn't branch: resume the current video from `time`. |
 | `hotspots` | `{ sceneId, hotspots }` | Render exactly `hotspots`, possibly none. Only fires when the set changes. |
-| `hotspot` | `{ sceneId, hotspot }` | The viewer activated `hotspot`. Followed by `scene` if it has a `goto`. |
+| `pause` | `{ sceneId, hotspot }` | A hotspot with `pause` appeared: pause the video at `hotspot.from`. |
+| `hotspot` | `{ sceneId, hotspot }` | The viewer activated `hotspot`. Followed by `scene` if it has a `goto`. Without one, resume playback if it has `pause`. |
 | `end` | `{ sceneId }` | The story finished on `sceneId`. |
 
 The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answer"]`, and so on.
@@ -100,3 +101,4 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 - Seeking past several questions fires only the earliest. The rest follow after it's answered.
 - Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.
+- A hotspot with `pause` emits `pause` the first time it shows in each visit, not when a seek skips it entirely. The engine stays `playing`, so the hotspot can be activated.

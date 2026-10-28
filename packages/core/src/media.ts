@@ -116,6 +116,13 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("resume", () => this.play()),
+      engine.on("pause", ({ hotspot }) => {
+        this.pauseAt(hotspot.from);
+        if (hotspot.goto !== undefined) this.preload(hotspot.goto);
+      }),
+      engine.on("hotspot", ({ hotspot }) => {
+        if (hotspot.pause === true && hotspot.goto === undefined) this.play();
+      }),
     );
   }
 
@@ -173,8 +180,8 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
   }
 
   /**
-   * Pauses on the question's exact frame: the time that triggered it is usually a bit
-   * past `at` (up to a frame with frame callbacks, ~250ms with `timeupdate`).
+   * Pauses on the exact frame of a question or a pausing hotspot: the time that triggered
+   * it is usually a bit past `time` (up to a frame with frame callbacks, ~250ms with `timeupdate`).
    */
   private pauseAt(time: number): void {
     this.front.pause();

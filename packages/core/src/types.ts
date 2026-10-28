@@ -60,7 +60,7 @@ export interface Choice {
 
 /**
  * Clickable area shown over the video between `from` and `to`.
- * Unlike a question, it doesn't pause playback.
+ * Unlike a question, it doesn't pause playback unless `pause` is set.
  *
  * Its geometry is either static (`area`, or `points` for polygons) or animated
  * through `keyframes`, which take precedence.
@@ -77,6 +77,11 @@ export interface Hotspot {
   label: string;
   /** Scene to branch to when activated. Without it, activation is only reported. */
   goto?: SceneId;
+  /**
+   * Pause the video at `from`, once per visit, until the hotspot is activated
+   * (which resumes playback without a `goto`) or the viewer resumes it. Default `false`.
+   */
+  pause?: boolean;
   /** Default `"rect"`. */
   shape?: HotspotShape;
   /** Bounds of a static `rect` or `ellipse`. */

@@ -14,6 +14,7 @@ Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, preloa
 - On a scene change, the front element pauses on its last frame and stays visible until the back one can draw its first frame. Only then are they swapped.
 - Playback time reaches the engine through `requestVideoFrameCallback`, once per presented frame with its exact media time. `timeupdate` takes over whenever frames stop arriving, for example in background tabs.
 - On each question, it pauses on the question's exact frame. On `resume`, it plays again.
+- On each `pause` from a hotspot, it pauses on the hotspot's `from` frame, preloading its `goto`, if any. Activating that hotspot without a `goto` plays again.
 
 ## Constructor
 
