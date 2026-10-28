@@ -1,5 +1,5 @@
 ---
-description: "Write IVKit stories: scenes, questions, branching, loops and how questions are timed, with tips for seamless transitions."
+description: "Write IVKit stories: scenes, questions, branching, loops and how questions are timed, with tips for smooth scene changes."
 ---
 
 # Writing stories
@@ -113,11 +113,11 @@ player.addEventListener("iv-end", () => {
 
 Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-void) instead.
 
-## Seamless transitions
+## Scene changes without a black frame
 
 The player stacks two videos. While one plays, the other preloads the most likely next scene: the scene's `next`, or else the first scene any of its options or hotspots point to. On a scene change, the current video holds its last frame until the next one can draw its first frame, so there's no black flash between scenes.
 
-For the smoothest transitions:
+For the smoothest scene changes:
 
 - Encode every scene with the same resolution and aspect ratio.
 - Serve videos with `Accept-Ranges` and fast-start (`moov` atom first, e.g. `ffmpeg -movflags +faststart`).

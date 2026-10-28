@@ -1,5 +1,5 @@
 ---
-description: "Reference for MediaController: seamless scene swaps, preloading, frame-accurate timing and the MediaElement interface."
+description: "Reference for MediaController: scene swaps without a black frame, preloading, frame-accurate timing and the MediaElement interface."
 ---
 
 # `MediaController`
@@ -8,7 +8,7 @@ description: "Reference for MediaController: seamless scene swaps, preloading, f
 import { MediaController } from "@ivkit/core";
 ```
 
-Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, with preloading and seamless scene changes.
+Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, preloading the next scene and swapping without a black frame.
 
 - The visible ("front") element plays the current scene, while the hidden ("back") one preloads the most likely next scene: the scene's `next`, or else the first `goto` of its questions and hotspots. While a question shows, it preloads the first option that branches.
 - On a scene change, the front element pauses on its last frame and stays visible until the back one can draw its first frame. Only then are they swapped.

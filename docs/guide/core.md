@@ -13,7 +13,7 @@ pnpm add @ivkit/core
 Core has three pieces:
 
 - **[`StoryEngine`](/reference/engine)** decides what happens, based only on playback time. It never touches media or the DOM.
-- **[`MediaController`](/reference/media-controller)** connects the engine to two video elements, with preloading and seamless swaps.
+- **[`MediaController`](/reference/media-controller)** connects the engine to two video elements: it preloads the next scene and swaps without a black frame.
 - **[Utilities](/reference/utilities)** compute where to draw hotspots at a given time.
 
 ## The engine on its own

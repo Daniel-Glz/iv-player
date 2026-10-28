@@ -12,7 +12,7 @@ This player doesn't use `<ivkit-player>` at all. It's a Vue component built on `
 
 <CoreDemo :story="adventure" />
 
-`StoryEngine` decides what happens and when. `MediaController` plays it on two stacked `<video>` elements, with preloading and seamless swaps. The component only draws the interface and reports clicks back to the engine.
+`StoryEngine` decides what happens and when. `MediaController` plays it on two stacked `<video>` elements, preloading the next scene and swapping without a black frame. The component only draws the interface and reports clicks back to the engine.
 
 ## Component
 
