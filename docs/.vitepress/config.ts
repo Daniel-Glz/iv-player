@@ -123,6 +123,14 @@ export default defineConfig({
             { text: "Validation playground", link: "/examples/validation" },
           ],
         },
+        {
+          text: "Showcase",
+          items: [
+            { text: "Lesson: a rocket launch", link: "/examples/rocket-launch" },
+            { text: "Following traffic", link: "/examples/traffic" },
+            { text: "Stories player", link: "/examples/stories-player" },
+          ],
+        },
       ],
       "/reference/": [
         {

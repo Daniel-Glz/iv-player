@@ -1,7 +1,9 @@
 import DefaultTheme from "vitepress/theme";
 import type { Theme } from "vitepress";
 import CoreDemo from "./components/CoreDemo.vue";
+import LessonDemo from "./components/LessonDemo.vue";
 import PlayerDemo from "./components/PlayerDemo.vue";
+import StoriesDemo from "./components/StoriesDemo.vue";
 import ValidationPlayground from "./components/ValidationPlayground.vue";
 
 export default {
@@ -9,6 +11,8 @@ export default {
   enhanceApp({ app }) {
     app.component("PlayerDemo", PlayerDemo);
     app.component("CoreDemo", CoreDemo);
+    app.component("LessonDemo", LessonDemo);
+    app.component("StoriesDemo", StoriesDemo);
     app.component("ValidationPlayground", ValidationPlayground);
   },
 } satisfies Theme;

@@ -2,7 +2,7 @@
 // Generates the placeholder clips used by the live examples, with ffmpeg: a
 // background with the objects hotspots point at, a title, a caption and a
 // running timer. Objects are drawn from the same fractions used in the stories
-// (docs/.vitepress/theme/examples/*.ts), so hotspots line up with the picture.
+// (docs/examples/stories/*.ts), so hotspots line up with the picture.
 //
 // Usage: node docs/scripts/generate-example-videos.mjs [--force]
 // Existing files are kept unless --force is passed. The output is committed.
