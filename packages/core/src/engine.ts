@@ -1,4 +1,5 @@
 import { Emitter } from "./emitter.js";
+import { answerRange } from "./question.js";
 import type {
   Branch,
   Choice,
@@ -226,9 +227,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (this._state !== "interacting" || question === null || sceneId === null) return false;
     const ids = [choiceIds].flat();
     const choices = options.filter((option) => ids.includes(option.id));
-    const [min, max] = question.multiple
-      ? [Math.min(question.min ?? 1, options.length), question.max ?? options.length]
-      : [1, 1];
+    const [min, max] = answerRange(question, options.length);
     const [choice] = choices;
     if (!choice || choices.length !== ids.length || ids.length < min || ids.length > max)
       return false;

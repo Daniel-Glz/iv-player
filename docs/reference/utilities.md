@@ -1,5 +1,5 @@
 ---
-description: "Reference for validateStory, hotspotGeometryAt, boundsOf, isAnimated and VERSION from @ivkit/core."
+description: "Reference for validateStory, answerRange, hotspotGeometryAt, boundsOf, isAnimated and VERSION from @ivkit/core."
 ---
 
 # Utilities
@@ -29,6 +29,17 @@ interface StoryValidationError {
 ```
 
 Checks parsed story data without modifying it or loading media. See [Validating stories](/guide/validation).
+
+## `answerRange`
+
+```ts
+function answerRange(
+  question: { multiple?: boolean; min?: number; max?: number },
+  offered: number,
+): [min: number, max: number];
+```
+
+The fewest and most options an answer to `question` takes when `offered` options are shown. A question takes exactly one unless it's `multiple`. Then `min` defaults to `1` and is capped to `offered`, so options hidden by their `if` never make it unanswerable, and `max` defaults to `offered`. It's the rule `StoryEngine.answer()` applies, so custom question UIs can enable their confirm button with it.
 
 ## `hotspotGeometryAt`
 

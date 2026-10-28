@@ -9,6 +9,7 @@ export type { EngineEvents, EngineState } from "./engine.js";
 export { boundsOf, hotspotGeometryAt, isAnimated } from "./geometry.js";
 export type { HotspotGeometry } from "./geometry.js";
 export { MediaController } from "./media.js";
+export { answerRange } from "./question.js";
 export type { MediaControllerEvents, MediaElement, VideoFrameCallback } from "./media.js";
 export type { Listener } from "./emitter.js";
 

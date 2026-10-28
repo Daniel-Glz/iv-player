@@ -1,4 +1,5 @@
 import {
+  answerRange,
   MediaController,
   StoryEngine,
   type Choice,
@@ -524,7 +525,7 @@ export class IvkitPlayer extends Base {
         return button;
       }),
     );
-    this.#range = [Math.min(question.min ?? 1, options.length), question.max ?? options.length];
+    this.#range = answerRange(question, options.length);
     this.#submit.hidden = !multiple;
     // A new bar restarts the countdown animation.
     const bar = document.createElement("div");
