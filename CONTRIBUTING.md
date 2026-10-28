@@ -56,10 +56,10 @@ The library is meant to stay small, so `pnpm check:size` fails when a build grow
 | --- | --- |
 | Standalone player, including core and CSS | 9.5 KiB |
 | All of core | 6 KiB |
-| `StoryEngine` only | 1.75 KiB |
-| `validateStory` only | 2.75 KiB |
+| `StoryEngine` only | 2 KiB |
+| `validateStory` only | 3 KiB |
 
-The player, core and validation budgets grew by 0.5, 1 and 0.25 KiB for variables and conditions, which are part of the story format and so belong in core rather than in a plugin. Multiple-answer questions, also part of the format, added 0.5 KiB to the player and core and 0.25 KiB to the engine and validation. Question timeouts added another 0.5 KiB to the player and core and 0.25 KiB to validation.
+The player, core and validation budgets grew by 0.5, 1 and 0.25 KiB for variables and conditions, which are part of the story format and so belong in core rather than in a plugin. Multiple-answer questions, also part of the format, added 0.5 KiB to the player and core and 0.25 KiB to the engine and validation. Question timeouts added another 0.5 KiB to the player and core and 0.25 KiB to validation. Cues and plugin support added 0.25 KiB to the engine and validation, so plugins can build on the format instead of growing it.
 
 It also checks that validation isn't bundled into the player, and that neither package gains a runtime dependency. If a change needs a bigger budget, explain why in the pull request.
 

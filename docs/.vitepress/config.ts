@@ -120,6 +120,7 @@ export default defineConfig({
             { text: "Tracking a moving object", link: "/examples/tracking" },
             { text: "Custom theme", link: "/examples/theming" },
             { text: "Custom hotspot content", link: "/examples/custom-hotspots" },
+            { text: "Chapters plugin", link: "/examples/chapters-plugin" },
             { text: "Player built with core", link: "/examples/core-player" },
             { text: "Validation playground", link: "/examples/validation" },
           ],

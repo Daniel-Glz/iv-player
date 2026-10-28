@@ -15,6 +15,7 @@ Every example on these pages is a live player running the current version of the
 | [Tracking a moving object](./tracking) | An animated hotspot that follows a ball across the video, frame by frame. |
 | [Custom theme](./theming) | Custom properties, `::part()` and slots to restyle the whole player. |
 | [Custom hotspot content](./custom-hotspots) | `renderHotspot` and custom variants to draw your own hotspots. |
+| [Chapters plugin](./chapters-plugin) | Chapter cues in the story, and a player plugin that shows them as a menu over the video. |
 | [Player built with core](./core-player) | Your own interface on top of `StoryEngine` and `MediaController`, without `<ivkit-player>`. |
 | [Validation playground](./validation) | Edit a story and see what `validateStory` reports, as you type. |
 

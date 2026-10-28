@@ -73,6 +73,7 @@ type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 | `pause()` | Pauses the current video. |
 | `restart()` | Plays the story again from its start scene. |
 | `goTo(sceneId)` | Jumps to a scene and plays it, dismissing the question on screen, if any. Throws if the scene doesn't exist. |
+| `use(plugin)` | Adds a [plugin](#plugins). Returns a function that removes it. |
 | `toggleFullscreen()` | Enters or leaves fullscreen with the whole player, questions and hotspots included. |
 
 ## Events
@@ -86,6 +87,7 @@ All events are `CustomEvent`s that bubble and cross the shadow boundary (`compos
 | `iv-timeout` | `{ sceneId, question }` | Nobody answered within the question's `timeout`. Followed by `iv-answer` if it has a `default`. |
 | `iv-answer` | `{ sceneId, question, choice, choices, correct, goto }` | The viewer answered with `choices` (`choice` is the first), which branches to `goto`, if defined. `correct` says whether exactly the right options were picked. |
 | `iv-hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated a hotspot, which branches to `goto`, if defined. |
+| `iv-cues` | `{ sceneId, cues }` | The active [cues](/reference/story-format#cue) changed. `cues` are exactly the active ones, possibly none. |
 | `iv-end` | `{ sceneId }` | The story finished. |
 
 ```ts
@@ -93,6 +95,57 @@ player.addEventListener("iv-hotspot", (event) => {
   if (!event.detail.hotspot.goto) openProductPage(event.detail.hotspot.id);
 });
 ```
+
+## Plugins
+
+A plugin is a function that runs each time a story is set on the player. It gets what it needs to extend it, and may return a cleanup:
+
+```ts
+type PlayerPlugin = (context: PlayerPluginContext) => (() => void) | void;
+
+interface PlayerPluginContext {
+  player: IvkitPlayer;
+  engine: StoryEngine;
+  media: MediaController<HTMLVideoElement>;
+  layer: HTMLElement;
+  on(type, listener): void;
+}
+```
+
+| Field | Description |
+| --- | --- |
+| `player` | The `<ivkit-player>` element. |
+| `engine` | The [engine](/reference/engine) of this story. |
+| `media` | The [media controller](/reference/media-controller) of this story, with both video elements. |
+| `layer` | The plugin's own element, covering the player above the video and hotspots, and below questions and controls. It lets clicks through: give clickable content `pointer-events: auto`. It's inside the shadow DOM, so give elements a `part` for pages to style them. |
+| `on(type, listener)` | Subscribes to an engine event until the plugin is cleaned up. Prefer it to `engine.on()`, which you'd have to unsubscribe yourself. |
+
+Rules:
+
+- Plugins run in the order they were added, each with a new layer, right after the player sets up the story and before it plays. They see each engine event after the player has handled it.
+- The cleanup runs, and the layer goes away, when another story is set (also `null`) or the plugin is removed.
+- `use()` runs the plugin at once if a story is already set. It may have missed events by then, so read the engine's state, such as `activeCues` or `currentSceneId`.
+- Adding the same plugin twice does nothing.
+
+```ts
+import type { PlayerPlugin } from "@ivkit/player";
+
+/** Shows the title of the active chapter cue. */
+const chapters: PlayerPlugin = ({ layer, on }) => {
+  const title = document.createElement("p");
+  title.setAttribute("part", "chapter-title");
+  title.style.cssText = "position: absolute; top: 0.5rem; left: 1rem; margin: 0";
+  layer.append(title);
+  on("cues", ({ cues }) => {
+    const chapter = cues.find((cue) => cue.kind === "chapter");
+    title.textContent = (chapter?.data?.["title"] as string | undefined) ?? "";
+  });
+};
+
+const remove = player.use(chapters);
+```
+
+Pages style its elements through their parts, like the player's own: `ivkit-player::part(chapter-title) { font-weight: 600; }`. Plugins can check their cues when a story is validated, too: see [Plugins' cues](/guide/validation#plugins-cues).
 
 ## Keyboard shortcuts
 

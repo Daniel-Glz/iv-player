@@ -1,5 +1,5 @@
 ---
-description: "Reference for the IVKit story format: Story, Scene, Question, Choice, Hotspot, keyframes, areas and points."
+description: "Reference for the IVKit story format: Story, Scene, Question, Choice, Hotspot, Cue, keyframes, areas, points and data."
 ---
 
 # Story format
@@ -20,6 +20,7 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | `start` | `SceneId` | Scene the story starts at. Must be a key of `scenes`. |
 | `scenes` | `Record<SceneId, Scene>` | Every scene, keyed by id. |
 | `vars?` | `Record<string, VarValue>` | [Variables](#variables) and their initial values. Conditions and `set` can only use these. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 `SceneId` is a `string`.
 
@@ -28,12 +29,13 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | Field | Type | Description |
 | --- | --- | --- |
 | `src` | `string` | URL of the scene's video. |
-| `events?` | `SceneEvent[]` | Questions and hotspots, in any order. |
+| `events?` | `SceneEvent[]` | Questions, hotspots and cues, in any order. |
 | `next?` | `SceneId` | Scene to play when the video ends without branching. Without it, the story ends. |
 | `branches?` | `Branch[]` | Checked before `next` when the video ends. The first that holds is played instead. |
 | `set?` | `VarChanges` | Changes variables each time the scene is entered. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
-`SceneEvent` is `Question | Hotspot`, discriminated by `type`.
+`SceneEvent` is `Question | Hotspot | Cue`, discriminated by `type`.
 
 ## `Question`
 
@@ -54,6 +56,7 @@ Pauses the video at `at` and asks the viewer to pick one of `options`, or severa
 | `seek?` | `number` | Second of the current scene to resume from when nothing branches. |
 | `timeout?` | `number` | Seconds the question waits for an answer, greater than 0. They count in real time, since the video is paused. Then it answers with `default`, or else the question's `branches`, `goto` and `seek` decide, or else the scene resumes. |
 | `default?` | `string \| string[]` | Option picked when `timeout` runs out. A list for a `multiple` question, within its `min` and `max`. If it isn't offered because of its `if`, the question decides as if there were no `default`. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ### `Choice`
 
@@ -67,6 +70,7 @@ Pauses the video at `at` and asks the viewer to pick one of `options`, or severa
 | `if?` | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
 | `correct?` | `boolean` | Marks a right answer of a quiz. The `answer` event reports whether exactly the right options were picked: score it with `set`. |
 | `seek?` | `number` | Second of the current scene to resume from when the option doesn't branch. Questions from there on are asked again. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ## `Hotspot`
 
@@ -91,6 +95,7 @@ A clickable area shown between `from` and `to`. It doesn't pause playback unless
 | `points?` | `Point[]` | Vertices of a static `polygon`. |
 | `keyframes?` | `HotspotKeyframe[]` | Animated geometry. Takes precedence over `area` and `points`. |
 | `variant?` | `string` | How the player draws it: `"outline"` (default), `"pulse"`, `"label"`, `"hidden"`, or a custom name. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ### `HotspotKeyframe`
 
@@ -120,6 +125,34 @@ A rectangle from its top-left corner, relative to the picture, not the `<video>`
 ```ts
 type Point = readonly [x: number, y: number];
 ```
+
+## `Cue`
+
+Marks a span of the scene for plugins and apps, such as a chapter, a subtitle or a moment to track. IVKit does nothing else with it: it doesn't pause, and the player draws nothing. The engine reports the active cues in its `cues` event, and plugins pick theirs by `kind`.
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | `"cue"` | |
+| `id` | `string` | Unique within the story. |
+| `kind` | `string` | What the cue is for, e.g. `"chapter"`. |
+| `from` | `number` | Second at which it becomes active. |
+| `to?` | `number` | Second at which it stops being active. Without it, it lasts until the scene ends. |
+| `if?` | `Conditions` | Makes it active only while this holds. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+
+```json
+{ "type": "cue", "id": "intro", "kind": "chapter", "from": 0, "to": 12, "data": { "title": "Introduction" } }
+```
+
+## Data
+
+The story, scenes, questions, options, hotspots and cues take a `data` field: a JSON object for apps and plugins, such as a chapter title, tags or analytics names. Events carry it along with the object it's on, but IVKit never reads it, and `validateStory` only checks that it's JSON: `null`, booleans, strings, finite numbers, and arrays and objects of them.
+
+```ts
+type Data = Readonly<Record<string, unknown>>;
+```
+
+Unknown fields are allowed too, but `data` is the place for them: future versions of the format won't add fields inside it.
 
 ## Variables
 

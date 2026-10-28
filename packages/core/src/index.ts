@@ -13,4 +13,9 @@ export type { MediaControllerEvents, MediaElement, VideoFrameCallback } from "./
 export type { Listener } from "./emitter.js";
 
 export { validateStory } from "./validation.js";
-export type { StoryValidationError, StoryValidationResult } from "./validation.js";
+export type {
+  CueCheck,
+  StoryValidationError,
+  StoryValidationOptions,
+  StoryValidationResult,
+} from "./validation.js";

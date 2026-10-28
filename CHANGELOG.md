@@ -21,6 +21,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/player`: `multiple` questions show toggle options and a Confirm button, exposed as `::part(submit)`.
 - `@ivkit/core`: `timeout` and `default` on questions. When nobody answers in time, the engine emits a new `timeout` event and answers with `default`, or else lets the question's `branches`, `goto` and `seek` decide.
 - `@ivkit/player`: a countdown bar for questions with `timeout`, exposed as `::part(timer)`, and an `iv-timeout` event. The player now ignores events from an engine it has replaced.
+- `@ivkit/core`: `cue` events in the story format, which mark a span of a scene for plugins and apps, picked by `kind`. The engine emits a new `cues` event with the active ones and exposes them as `StoryEngine.activeCues`.
+- `@ivkit/core`: `data` on the story, scenes, events and options, free-form JSON that IVKit carries but never reads. `validateStory` checks that it's a JSON object.
+- `@ivkit/core`: `validateStory(story, { cues })` runs a plugin's checks on cues of its kind, reporting with the new `invalid_cue` code.
+- `@ivkit/player`: plugins through `player.use(plugin)`. A plugin runs for each story with the engine, the media controller, its own layer over the video and an `on()` that unsubscribes by itself, and may return a cleanup. The player also dispatches `iv-cues`.
 - `@ivkit/core`: a `time` event on `MediaController`, with each playback time it reports to the engine. `<ivkit-player>` now moves animated hotspots on it instead of keeping its own frame callbacks.
 
 ### Changed

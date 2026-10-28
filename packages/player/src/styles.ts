@@ -61,6 +61,18 @@ video.front {
   z-index: 2;
 }
 
+/* Above hotspots, below questions and controls; plugin content opts into clicks. */
+.plugins,
+.plugins > * {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.plugins {
+  z-index: 2;
+}
+
 /*
  * The button only positions the hotspot and holds focus; clicks land on the
  * SVG shape (or the label), so they follow the exact shape.

@@ -74,6 +74,7 @@ ivkit-player::part(option) {
 | `hotspots` | Layer holding the hotspots. |
 | `hotspot`, `hotspot-<variant>` | Each hotspot button. |
 | `hotspot-shape`, `hotspot-label` | The SVG shape and the label inside each hotspot. |
+| `plugins`, `plugin` | Layer holding the [plugins'](/reference/player#plugins) layers, and each of them. Elements inside take the parts their plugin gives them. |
 
 ## Hotspots
 

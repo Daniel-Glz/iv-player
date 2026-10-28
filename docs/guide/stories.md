@@ -196,6 +196,19 @@ const story: Story = {
 
 Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen.
 
+## Cues and data for plugins
+
+A cue marks a span of a scene for something outside IVKit, such as a chapter list, subtitles or analytics. It doesn't pause the video and the player draws nothing for it: the engine reports the active cues in its `cues` event, and a [plugin](/reference/player#plugins) or your app does the rest. `kind` says which plugin it's for, and `data` holds whatever that plugin needs:
+
+```ts
+events: [
+  { type: "cue", id: "intro", kind: "chapter", from: 0, to: 12, data: { title: "Introduction" } },
+  { type: "cue", id: "engines", kind: "chapter", from: 12, data: { title: "The engines" } },
+]
+```
+
+Like hotspots, cues are active while `from <= currentTime < to` and take an `if`. The story, scenes, questions, options and hotspots take `data` too, for anything else your app or plugins need to keep in the story.
+
 ## Jumping from code
 
 `goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button.

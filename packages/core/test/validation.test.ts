@@ -451,3 +451,89 @@ describe("validateStory timeouts", () => {
     ]);
   });
 });
+
+describe("validateStory cues and data", () => {
+  const cue = { type: "cue", id: "c", kind: "chapter", from: 0 };
+
+  it("accepts cues, and JSON data on the story, scenes, events and options", () => {
+    const story = storyWith(
+      { ...cue, to: 4, if: { var: "n", gte: 1 }, data: { title: "Intro", tags: ["a"] } },
+      { ...hotspot, data: { color: null } },
+      { ...question, options: [{ id: "yes", label: "Yes", data: { score: 1.5 } }], data: {} },
+    );
+    const result = validateStory({
+      ...story,
+      vars: { n: 0 },
+      data: { nested: { list: [true, { deep: "ok" }] } },
+      scenes: { intro: { ...story.scenes.intro, data: { order: 1 } } },
+    });
+    expect(result.errors).toEqual([]);
+  });
+
+  it("checks cues like hotspots, plus their kind", () => {
+    const errors = errorsOf(
+      storyWith(
+        { ...cue, kind: "", from: -1 },
+        { ...cue, id: "c2", from: 3, to: 3, if: { var: "missing", eq: 1 } },
+        { ...cue, id: "c", type: "chapter" },
+      ),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/kind", "invalid_value"],
+      ["/scenes/intro/events/0/from", "invalid_value"],
+      ["/scenes/intro/events/1/to", "invalid_value"],
+      ["/scenes/intro/events/1/if/var", "missing_variable"],
+      ["/scenes/intro/events/2/id", "duplicate_id"],
+      ["/scenes/intro/events/2/type", "invalid_value"],
+    ]);
+  });
+
+  it("only takes JSON objects as data", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic["self"] = cyclic;
+    const story = storyWith(
+      { ...cue, data: [1] },
+      { ...hotspot, data: { when: new Date(0), list: [1, Number.NaN], f: () => 1 } },
+      { ...question, options: [{ id: "yes", label: "Yes", data: cyclic }] },
+    );
+    const errors = errorsOf({ ...story, data: "x" });
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/data", "invalid_type"],
+      ["/scenes/intro/events/0/data", "invalid_type"],
+      ["/scenes/intro/events/1/data/list/1", "invalid_value"],
+      ["/scenes/intro/events/1/data/f", "invalid_value"],
+      ["/scenes/intro/events/2/options/0/data/self", "invalid_value"],
+    ]);
+  });
+
+  it("runs the plugins' checks on cues of their kind", () => {
+    const seen: unknown[] = [];
+    const result = validateStory(
+      storyWith(
+        { ...cue, data: { title: "" } },
+        { ...cue, id: "c2", kind: "note" },
+        { ...cue, id: "c4", kind: "__proto__" },
+        { ...cue, id: "c3", data: { title: "Ok" } },
+      ),
+      {
+        cues: {
+          chapter: (c, report) => {
+            seen.push(c["id"]);
+            const data = c["data"] as { title?: unknown } | undefined;
+            if (typeof data?.title !== "string" || data.title === "") {
+              report("/data/title", "A chapter needs a title.");
+            }
+          },
+        },
+      },
+    );
+    expect(seen).toEqual(["c", "c3"]);
+    expect(result.errors).toEqual([
+      {
+        path: "/scenes/intro/events/0/data/title",
+        code: "invalid_cue",
+        message: "A chapter needs a title.",
+      },
+    ]);
+  });
+});

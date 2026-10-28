@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Story } from "@ivkit/core";
-import type { IvkitPlayer } from "@ivkit/player";
+import type { IvkitPlayer, PlayerPlugin } from "@ivkit/player";
 import { onMounted, ref } from "vue";
 
 const props = withDefaults(
@@ -8,6 +8,7 @@ const props = withDefaults(
     story: Story;
     controls?: boolean;
     renderHotspot?: IvkitPlayer["renderHotspot"];
+    plugins?: PlayerPlugin[];
     /** Shows the player's events under it. */
     log?: boolean;
   }>(),
@@ -25,6 +26,7 @@ const describe: Record<string, (detail: any) => string> = {
     `answer ${d.choices.map((c: { id: string }) => `"${c.id}"`).join(", ")}` +
     `${d.correct === undefined ? "" : d.correct ? " ✓" : " ✗"}${d.goto ? ` → ${d.goto}` : ""}`,
   "iv-hotspot": (d) => `hotspot "${d.hotspot.id}"${d.goto ? ` → ${d.goto}` : ""}`,
+  "iv-cues": (d) => `cues: ${d.cues.map((c: { id: string }) => c.id).join(", ") || "none"}`,
   "iv-end": (d) => `end on ${d.sceneId}`,
 };
 
@@ -43,6 +45,7 @@ onMounted(async () => {
     }
   }
   element.renderHotspot = props.renderHotspot ?? null;
+  for (const plugin of props.plugins ?? []) element.use(plugin);
   element.story = props.story;
 });
 </script>
