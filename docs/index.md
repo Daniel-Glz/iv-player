@@ -1,5 +1,7 @@
 ---
 layout: home
+title: "IVKit: interactive video player for the web"
+titleTemplate: false
 
 hero:
   name: IVKit
@@ -15,14 +17,11 @@ hero:
     - theme: alt
       text: Live examples
       link: /examples/
-    - theme: alt
-      text: GitHub
-      link: https://github.com/Daniel-Glz/ivkit
 
 features:
   - title: Drop-in Web Component
     details: "<ivkit-player> works in plain HTML or alongside any framework. Give it a story and it handles playback, questions, hotspots and controls."
-  - title: Seamless branching
+  - title: No black frames between scenes
     details: Two stacked videos preload the next scene and swap only once its first frame can be drawn, so you never see a black frame between scenes.
   - title: Animated hotspots
     details: Rectangles, ellipses and polygons that can move and morph through keyframes, kept in step with the video frame by frame.

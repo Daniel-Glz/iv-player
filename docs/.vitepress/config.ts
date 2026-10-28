@@ -43,9 +43,15 @@ export default defineConfig({
   ],
   // Per-page title, description and address for link previews and search engines.
   transformHead({ pageData, siteData }) {
+    if (pageData.isNotFound) return [["meta", { name: "robots", content: "noindex" }]];
     const path = pageData.relativePath.replace(/(^|\/)index\.md$/, "$1").replace(/\.md$/, "");
     const url = `${site}${path}`;
-    const title = pageData.title ? `${pageData.title} | ${siteData.title}` : siteData.title;
+    // Pages with `titleTemplate: false` (the home page) use their title as is.
+    const title = !pageData.title
+      ? siteData.title
+      : pageData.frontmatter["titleTemplate"] === false
+        ? pageData.title
+        : `${pageData.title} | ${siteData.title}`;
     const description = pageData.description || siteData.description;
     return [
       ["link", { rel: "canonical", href: url }],
