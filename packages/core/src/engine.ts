@@ -27,10 +27,20 @@ export interface EngineEvents {
   /** Pause the video and show `question` with `options`, the ones whose `if` holds. */
   interaction: { sceneId: SceneId; question: Question; options: readonly Choice[] };
   /**
-   * The viewer picked `choice`, which branches to `goto`, if defined. Followed by
-   * `scene`, `resume` or `end`.
+   * The viewer picked `choices`, in option order (only one unless the question is
+   * `multiple`), and the answer branches to `goto`, if defined. `choice` is the first
+   * of them. `correct` says whether exactly the options marked `correct` were picked;
+   * it's `undefined` if no offered option has `correct`. Followed by `scene`,
+   * `resume` or `end`.
    */
-  answer: { sceneId: SceneId; question: Question; choice: Choice; goto: SceneId | undefined };
+  answer: {
+    sceneId: SceneId;
+    question: Question;
+    choice: Choice;
+    choices: readonly Choice[];
+    correct: boolean | undefined;
+    goto: SceneId | undefined;
+  };
   /** The answer or hotspot didn't branch: resume the current video from `time`. */
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
@@ -176,23 +186,41 @@ export class StoryEngine extends Emitter<EngineEvents> {
   }
 
   /**
-   * Answers the active question with the option `choiceId`.
-   * Returns `false` (and does nothing) if no question is active or the option doesn't exist.
+   * Answers the active question with the option `choiceIds`, or a list of them for a
+   * `multiple` question, within its `min` and `max` (`min` is capped to the options
+   * offered). Returns `false` (and does nothing) if no question is active, an option
+   * isn't offered or repeats, or the count is out of bounds.
    */
-  answer(choiceId: string): boolean {
-    const { question, sceneId } = this;
+  answer(choiceIds: string | readonly string[]): boolean {
+    const { question, sceneId, options } = this;
     if (this._state !== "interacting" || question === null || sceneId === null) return false;
-    const choice = this.options.find((option) => option.id === choiceId);
-    if (!choice) return false;
+    const ids = [choiceIds].flat();
+    const choices = options.filter((option) => ids.includes(option.id));
+    const [min, max] = question.multiple
+      ? [Math.min(question.min ?? 1, options.length), question.max ?? options.length]
+      : [1, 1];
+    const [choice] = choices;
+    if (!choice || choices.length !== ids.length || ids.length < min || ids.length > max)
+      return false;
 
     this.question = null;
     this._state = "playing";
-    this.change(choice.set);
-    const goto = this.branch(choice.branches, choice.goto);
-    this.emit("answer", { sceneId, question, choice, goto });
+    for (const { set } of choices) this.change(set);
+    // The option decides first; the question only if the option neither branches nor seeks.
+    let goto = this.branch(choice.branches, choice.goto);
+    let seek = choice.seek;
+    if (goto === undefined && seek === undefined) {
+      goto = this.branch(question.branches, question.goto);
+      seek = question.seek;
+    }
+    // Right when every offered option is picked if and only if it's correct.
+    const correct = options.some((option) => option.correct !== undefined)
+      ? options.every((option) => !option.correct === !choices.includes(option))
+      : undefined;
+    this.emit("answer", { sceneId, question, choice, choices, correct, goto });
 
     if (goto !== undefined) this.enter(goto);
-    else if (choice.seek !== undefined) this.seek(choice.seek);
+    else if (seek !== undefined) this.seek(seek);
     else if (this.hasMediaEnded) this.leaveScene();
     else this.emit("resume", { sceneId, time: question.at });
     return true;

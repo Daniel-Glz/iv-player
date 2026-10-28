@@ -17,11 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: `correct` on choices, reported in the `answer` event to score quizzes.
 - `@ivkit/core`: `seek` on choices and hotspots, which resumes the current scene from another second when they don't branch, asking the questions from there on again. `MediaController` now seeks on `resume` when its `time` isn't the current one.
 - `@ivkit/player`: `href` on hotspots, which opens `http:` and `https:` links in a new tab when activated.
+- `@ivkit/core`: multiple-answer questions. `multiple: true` takes several options, bounded by `min` and `max`, and applies each one's `set`. Questions also take `goto`, `branches` and `seek`, which decide for `multiple` questions and act as a fallback for single ones. `StoryEngine.answer()` takes a list of ids, and the `answer` event adds `choices` and `correct`, true when exactly the options marked `correct` were picked.
+- `@ivkit/player`: `multiple` questions show toggle options and a Confirm button, exposed as `::part(submit)`.
 - `@ivkit/core`: a `time` event on `MediaController`, with each playback time it reports to the engine. `<ivkit-player>` now moves animated hotspots on it instead of keeping its own frame callbacks.
 
 ### Changed
 
-- Size budgets: the standalone player now stays under 8.5 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 5 KiB (was 4 KiB), to fit variables and conditions.
+- Size budgets: the standalone player now stays under 9 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 5.5 KiB (was 4 KiB), to fit variables, conditions and multiple-answer questions.
 
 ## [0.1.1] - 2026-10-27
 

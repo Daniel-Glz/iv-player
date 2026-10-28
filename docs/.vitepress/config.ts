@@ -12,7 +12,7 @@ const { version } = JSON.parse(readFileSync(source("player/package.json"), "utf8
 export default defineConfig({
   title: "IVKit",
   description:
-    "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 8.5 KiB gzip.",
+    "A lightweight TypeScript library for interactive videos: branching stories, questions and animated hotspots, in a Web Component under 9 KiB gzip.",
   // Served from https://daniel-glz.github.io/ivkit/
   base: "/ivkit/",
   cleanUrls: true,

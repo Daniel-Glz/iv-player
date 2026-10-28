@@ -6,7 +6,7 @@ titleTemplate: false
 hero:
   name: IVKit
   text: Interactive videos for the web
-  tagline: Branching stories, questions and animated hotspots. Use the ready-made Web Component, under 8.5 KiB gzip, or build your own player on the same engine.
+  tagline: Branching stories, questions and animated hotspots. Use the ready-made Web Component, under 9 KiB gzip, or build your own player on the same engine.
   actions:
     - theme: brand
       text: Get started
@@ -32,5 +32,5 @@ features:
   - title: Validation built in
     details: validateStory checks stories from JSON or a CMS and reports each problem with a JSON Pointer to the field that caused it.
   - title: Tiny, no dependencies
-    details: No third-party runtime dependencies. The standalone player, including the engine, styles and icons, stays under 8.5 KiB gzip.
+    details: No third-party runtime dependencies. The standalone player, including the engine, styles and icons, stays under 9 KiB gzip.
 ---

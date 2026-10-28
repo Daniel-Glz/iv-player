@@ -423,3 +423,35 @@ describe.each([
     expect(swaps).toEqual([]);
   });
 });
+
+describe("MediaController with question targets", () => {
+  it("preloads the goto of a question whose options don't branch", () => {
+    const engine = new StoryEngine({
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              multiple: true,
+              options: [{ id: "a", label: "A" }],
+              goto: "t",
+            },
+          ],
+        },
+        t: { src: "t.mp4" },
+      },
+    });
+    const a = new FakeMedia("a");
+    const b = new FakeMedia("b");
+    new MediaController(engine, [a, b]);
+    engine.start();
+    b.finishLoading();
+    expect(a.src).toBe("t.mp4");
+  });
+});

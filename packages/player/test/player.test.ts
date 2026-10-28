@@ -153,6 +153,59 @@ describe("<ivkit-player>", () => {
     expect($$("[part=option]").map((b) => b.textContent)).toEqual(["A"]);
   });
 
+  it("answers a multiple question with the pressed options, within its range", () => {
+    const { player, $, $$ } = mount();
+    const answers: string[][] = [];
+    player.addEventListener("iv-answer", (e) => answers.push(e.detail.choices.map((c) => c.id)));
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              multiple: true,
+              max: 2,
+              options: ["a", "b", "c"].map((id) => ({ id, label: id.toUpperCase() })),
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+    const submit = $<HTMLButtonElement>("[part=submit]");
+    const [a, b, c] = $$("[part=option]");
+
+    expect(submit.hidden).toBe(false);
+    expect(submit.disabled).toBe(true);
+    a!.click();
+    expect(a!.getAttribute("aria-pressed")).toBe("true");
+    expect(a!.getAttribute("part")).toBe("option option-picked");
+    expect(submit.disabled).toBe(false);
+    b!.click();
+    c!.click();
+    expect(submit.disabled).toBe(true);
+    a!.click();
+    expect(answers).toEqual([]);
+
+    submit.click();
+    expect(answers).toEqual([["b", "c"]]);
+    expect($("[part=question]").hidden).toBe(true);
+  });
+
+  it("hides the submit button for single questions", () => {
+    const { player, $, $$ } = playing();
+    player.engine!.update(5);
+    expect($("[part=submit]").hidden).toBe(true);
+    expect($$("[part=option]")[0]!.hasAttribute("aria-pressed")).toBe(false);
+  });
+
   it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
     const opened: string[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (

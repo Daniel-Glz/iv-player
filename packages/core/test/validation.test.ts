@@ -344,3 +344,71 @@ describe("validateStory correct, seek and href", () => {
     ]);
   });
 });
+
+describe("validateStory multiple questions", () => {
+  const options = [
+    { id: "a", label: "A", correct: true },
+    { id: "b", label: "B" },
+    { id: "c", label: "C" },
+  ];
+
+  it("accepts multiple, min, max and the question's goto, branches and seek", () => {
+    const result = validateStory({
+      ...storyWith({
+        ...question,
+        options,
+        multiple: true,
+        min: 1,
+        max: 3,
+        branches: [{ if: { var: "n", gte: 1 }, goto: "intro" }],
+        goto: "intro",
+        seek: 0,
+      }),
+      vars: { n: 0 },
+    });
+    expect(result.errors).toEqual([]);
+  });
+
+  it("checks the counts against the options", () => {
+    const errors = errorsOf(
+      storyWith(
+        { ...question, options, multiple: "yes", min: 2 },
+        { ...question, id: "q2", options, multiple: true, min: 0, max: 4 },
+        { ...question, id: "q3", options, multiple: true, min: 3, max: 2 },
+        { ...question, id: "q4", options, multiple: true, min: 1.5 },
+      ),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/multiple", "invalid_type"],
+      ["/scenes/intro/events/0/min", "invalid_value"],
+      ["/scenes/intro/events/1/min", "invalid_value"],
+      ["/scenes/intro/events/1/max", "invalid_value"],
+      ["/scenes/intro/events/2/max", "invalid_value"],
+      ["/scenes/intro/events/3/min", "invalid_value"],
+    ]);
+  });
+
+  it("checks the question's goto, branches and seek", () => {
+    const errors = errorsOf(storyWith({ ...question, goto: "nowhere", branches: {}, seek: -1 }));
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/goto", "missing_scene"],
+      ["/scenes/intro/events/0/seek", "invalid_value"],
+      ["/scenes/intro/events/0/branches", "invalid_type"],
+    ]);
+  });
+
+  it("doesn't let options of a multiple question branch or seek", () => {
+    const errors = errorsOf(
+      storyWith({
+        ...question,
+        multiple: true,
+        options: [{ id: "a", label: "A", goto: "intro", branches: [], seek: 1 }],
+      }),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/options/0/goto", "invalid_value"],
+      ["/scenes/intro/events/0/options/0/branches", "invalid_value"],
+      ["/scenes/intro/events/0/options/0/seek", "invalid_value"],
+    ]);
+  });
+});

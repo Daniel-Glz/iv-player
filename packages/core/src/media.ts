@@ -112,7 +112,7 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       engine.on("scene", ({ scene }) => this.enter(scene)),
       engine.on("interaction", ({ question, options }) => {
         this.pauseAt(question.at);
-        const goto = firstTarget(options);
+        const goto = firstTarget([...options, question]);
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("resume", ({ time }) => {
@@ -273,9 +273,11 @@ function firstTarget(targets: readonly Target[]): SceneId | undefined {
   return undefined;
 }
 
-/** First scene any question option or hotspot of `scene` can branch to. */
+/** First scene any question, option or hotspot of `scene` can branch to. */
 function firstGoto(scene: Scene): SceneId | undefined {
   return firstTarget(
-    (scene.events ?? []).flatMap((event) => (event.type === "question" ? event.options : event)),
+    (scene.events ?? []).flatMap((event) =>
+      event.type === "question" ? [...event.options, event] : event,
+    ),
   );
 }

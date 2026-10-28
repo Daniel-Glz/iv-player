@@ -32,6 +32,7 @@ const template = /* html */ `
   <div class="overlay question" part="question" hidden>
     <p class="question-text" part="question-text" id="question-text"></p>
     <div class="options" part="options" role="group" aria-labelledby="question-text"></div>
+    <button class="submit" part="submit" type="button" hidden>Confirm</button>
   </div>
   <div class="overlay start" part="start" hidden>
     <button class="start-button" part="start-button" type="button">
@@ -87,6 +88,7 @@ export class IvkitPlayer extends Base {
   readonly #question: HTMLElement;
   readonly #questionText: HTMLElement;
   readonly #options: HTMLElement;
+  readonly #submit: HTMLButtonElement;
   readonly #start: HTMLElement;
   readonly #end: HTMLElement;
   readonly #controls: Controls;
@@ -97,6 +99,8 @@ export class IvkitPlayer extends Base {
   #story: Story | null = null;
   #engine: StoryEngine | null = null;
   #controller: MediaController<HTMLVideoElement> | null = null;
+  /** How many options a `multiple` answer takes, from the question on screen. */
+  #range: [min: number, max: number] = [1, 1];
 
   constructor() {
     super();
@@ -114,6 +118,7 @@ export class IvkitPlayer extends Base {
     this.#question = find(".question");
     this.#questionText = find(".question-text");
     this.#options = find(".options");
+    this.#submit = find(".submit");
     this.#start = find(".start");
     this.#end = find(".end");
     const activeVideo = () => this.#activeVideo();
@@ -137,11 +142,20 @@ export class IvkitPlayer extends Base {
     find(".start-button").addEventListener("click", () => this.play());
     find(".replay-button").addEventListener("click", () => this.restart());
     this.#options.addEventListener("click", (event) => {
-      const id = buttonId(event);
-      if (id !== undefined) this.#engine?.answer(id);
+      const button = buttonOf(event);
+      if (!button) return;
+      if (button.hasAttribute("aria-pressed")) {
+        const pressed = button.getAttribute("aria-pressed") === "true";
+        button.setAttribute("aria-pressed", String(!pressed));
+        button.setAttribute("part", pressed ? "option" : "option option-picked");
+        this.#updateSubmit();
+      } else {
+        this.#engine?.answer(button.dataset["id"] ?? "");
+      }
     });
+    this.#submit.addEventListener("click", () => this.#engine?.answer(this.#picked()));
     hotspots.addEventListener("click", (event) => {
-      const id = buttonId(event);
+      const id = buttonOf(event)?.dataset["id"];
       if (id !== undefined) this.#engine?.activate(id);
     });
 
@@ -393,7 +407,12 @@ export class IvkitPlayer extends Base {
       !this.#start.hidden;
   }
 
+  /**
+   * Shows `question` with a button per option. For a `multiple` question they toggle,
+   * and the submit button answers with the pressed ones.
+   */
   #showQuestion(question: Question, options: readonly Choice[]): void {
+    const multiple = question.multiple === true;
     this.#questionText.textContent = question.text;
     this.#options.replaceChildren(
       ...options.map((option) => {
@@ -402,11 +421,28 @@ export class IvkitPlayer extends Base {
         button.setAttribute("part", "option");
         button.dataset["id"] = option.id;
         button.textContent = option.label;
+        if (multiple) button.setAttribute("aria-pressed", "false");
         return button;
       }),
     );
+    this.#range = [Math.min(question.min ?? 1, options.length), question.max ?? options.length];
+    this.#submit.hidden = !multiple;
+    this.#updateSubmit();
     this.#question.hidden = false;
     this.#options.querySelector("button")?.focus({ preventScroll: true });
+  }
+
+  /** IDs of the pressed options of a `multiple` question. */
+  #picked(): string[] {
+    return [...this.#options.querySelectorAll<HTMLElement>("[aria-pressed=true]")].map(
+      (button) => button.dataset["id"] ?? "",
+    );
+  }
+
+  /** Enables the submit button only while the pressed options are within the range. */
+  #updateSubmit(): void {
+    const count = this.#picked().length;
+    this.#submit.disabled = count < this.#range[0] || count > this.#range[1];
   }
 
   #emit<K extends keyof IvkitPlayerEventMap>(
@@ -417,9 +453,8 @@ export class IvkitPlayer extends Base {
   }
 }
 
-/** `data-id` of the button an event happened in, if any. */
-function buttonId(event: Event): string | undefined {
+/** Button with a `data-id` an event happened in, if any. */
+function buttonOf(event: Event): HTMLElement | null {
   const target = event.target;
-  if (!(target instanceof Element)) return undefined;
-  return target.closest<HTMLElement>("button[data-id]")?.dataset["id"];
+  return target instanceof Element ? target.closest<HTMLElement>("button[data-id]") : null;
 }

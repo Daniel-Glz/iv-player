@@ -62,7 +62,7 @@ A question pauses the video at `at` and shows its options. The video stays pause
 
 ### Correct answers and replays
 
-Mark the right option of a quiz with `correct`. The engine only reports it, in the `answer` event (`iv-answer` in the player), so combine it with [`set`](#variables-and-conditions) to keep a score.
+Mark the right options of a quiz with `correct`. The `answer` event (`iv-answer` in the player) reports `correct: true` when exactly those options were picked, so combine it with [`set`](#variables-and-conditions) to keep a score.
 
 `seek` sends the viewer back, or forward, within the same scene when the option doesn't branch. The questions from there on are asked again, so a wrong answer can replay the explanation:
 
@@ -72,6 +72,29 @@ options: [
   { id: "five", label: "5", seek: 12 }, // replays from 0:12, then asks again
 ]
 ```
+
+### Several answers
+
+With `multiple: true` the viewer picks several options and confirms. `min` and `max` bound how many. Every picked option's `set` applies, in option order, and then the question decides where to go with its own `branches`, `goto` and `seek`, because options pointing to different scenes would clash. That's why the options of a `multiple` question can't have them.
+
+```ts
+{
+  type: "question",
+  id: "primes",
+  at: 20,
+  text: "Which are prime?",
+  multiple: true,
+  options: [
+    { id: "two", label: "2", correct: true, set: { score: { add: 1 } } },
+    { id: "four", label: "4", set: { score: { add: -1 } } },
+    { id: "five", label: "5", correct: true, set: { score: { add: 1 } } },
+  ],
+  branches: [{ if: { var: "score", gte: 2 }, goto: "well-done" }],
+  seek: 8, // otherwise, replay the explanation
+}
+```
+
+Single questions can use the question's `goto`, `branches` and `seek` too, as a fallback for the options that neither branch nor seek.
 
 ## Branching and loops
 

@@ -37,7 +37,7 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 
 ## `Question`
 
-Pauses the video at `at` and asks the viewer to pick one of `options`.
+Pauses the video at `at` and asks the viewer to pick one of `options`, or several with `multiple`.
 
 | Field | Type | Description |
 | --- | --- | --- |
@@ -46,6 +46,12 @@ Pauses the video at `at` and asks the viewer to pick one of `options`.
 | `at` | `number` | Second at which the video pauses and the question shows. |
 | `text` | `string` | Prompt shown to the viewer. |
 | `options` | `Choice[]` | At least one. |
+| `multiple?` | `boolean` | Lets the viewer pick several options and confirm. Its options can't have `goto`, `branches` or `seek`: the question's decide. Default `false`. |
+| `min?` | `number` | Fewest options a `multiple` answer takes, a whole number from 1 to the number of options. Default 1. If fewer options are offered because of their `if`, all of them are enough. |
+| `max?` | `number` | Most options a `multiple` answer takes, from `min` to the number of options. Default: all of them. |
+| `goto?` | `SceneId` | Scene to branch to when the picked option doesn't branch or seek. |
+| `branches?` | `Branch[]` | Checked before `goto`, after the options' `set`. The first that holds is branched to instead. |
+| `seek?` | `number` | Second of the current scene to resume from when nothing branches. |
 
 ### `Choice`
 
@@ -53,11 +59,11 @@ Pauses the video at `at` and asks the viewer to pick one of `options`.
 | --- | --- | --- |
 | `id` | `string` | Unique within its question. |
 | `label` | `string` | Text shown to the viewer. |
-| `goto?` | `SceneId` | Scene to branch to. Without it, the current scene resumes. |
+| `goto?` | `SceneId` | Scene to branch to. Without it, the question's `goto` applies, if any, or else the current scene resumes. |
 | `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
-| `set?` | `VarChanges` | Changes variables when the option is picked. |
+| `set?` | `VarChanges` | Changes variables when the option is picked. In a `multiple` answer, each picked option's `set` applies in option order. |
 | `if?` | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
-| `correct?` | `boolean` | Marks the right answer of a quiz. Only reported, in the `answer` event: score it with `set`. |
+| `correct?` | `boolean` | Marks a right answer of a quiz. The `answer` event reports whether exactly the right options were picked: score it with `set`. |
 | `seek?` | `number` | Second of the current scene to resume from when the option doesn't branch. Questions from there on are asked again. |
 
 ## `Hotspot`

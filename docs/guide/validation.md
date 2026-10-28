@@ -49,6 +49,7 @@ All errors are reported at once, not just the first one.
 - Times, including every `seek`, are finite and non-negative, and a hotspot's `to` comes after its `from`.
 - Question and hotspot ids are unique across the story, and option ids within their question.
 - Every question has at least one option.
+- `multiple` is a boolean. `min` and `max` only appear on `multiple` questions, as whole numbers from 1 to the number of options, with `max` not below `min`. Options of a `multiple` question have no `goto`, `branches` or `seek`.
 - `area` values are fractions from 0 to 1, with positive width and height, inside the frame.
 - Polygons have at least three points inside the frame.
 - Every keyframe has a unique `at` and a valid `easing`, and resolves to a usable geometry.
@@ -56,7 +57,7 @@ All errors are reported at once, not just the first one.
 
 ## In the editor and in CI
 
-`validateStory` is small (about 2.1 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
+`validateStory` is small (about 2.3 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
 
 ```ts
 // scripts/check-stories.ts

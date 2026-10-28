@@ -13,7 +13,7 @@
 
 # IVKit
 
-**Turn any video into an interactive one.** Viewers answer questions, choose where the story goes and click animated hotspots, all with a single `<ivkit-player>` tag. No dependencies, under 8.5 KiB gzip.
+**Turn any video into an interactive one.** Viewers answer questions, choose where the story goes and click animated hotspots, all with a single `<ivkit-player>` tag. No dependencies, under 9 KiB gzip.
 
 ## Two ways to use it
 
