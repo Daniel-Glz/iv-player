@@ -77,7 +77,10 @@ export interface Scene {
  */
 export type SceneEvent = Question | Hotspot;
 
-/** Pauses the video at `at` and asks the viewer to pick one of `options`. */
+/**
+ * Pauses the video at `at` and asks the viewer to pick one of `options`, or
+ * several with `multiple`.
+ */
 export interface Question {
   type: "question";
   /** Unique within the story; used to report answers. */
@@ -87,6 +90,21 @@ export interface Question {
   /** Prompt shown to the viewer. */
   text: string;
   options: readonly Choice[];
+  /**
+   * Lets the viewer pick several options and confirm. Its options can't branch or
+   * seek: the question's `goto`, `branches` and `seek` decide. Default `false`.
+   */
+  multiple?: boolean;
+  /** Fewest options a `multiple` answer takes, at least 1. Default 1. */
+  min?: number;
+  /** Most options a `multiple` answer takes. Default: all of them. */
+  max?: number;
+  /** Scene to branch to when the picked option doesn't branch or seek. */
+  goto?: SceneId;
+  /** Checked before `goto`, after the options' `set`; the first that holds is branched to instead. */
+  branches?: readonly Branch[];
+  /** Second of the current scene to resume from when nothing branches. */
+  seek?: number;
 }
 
 /** One answer of a question. */
@@ -95,15 +113,18 @@ export interface Choice {
   id: string;
   /** Text shown to the viewer. */
   label: string;
-  /** Scene to branch to. Without it, the current scene resumes. */
+  /** Scene to branch to. Without it, the question's `goto` applies, if any, or else the scene resumes. */
   goto?: SceneId;
   /** Checked before `goto`, after `set`; the first that holds is branched to instead. */
   branches?: readonly Branch[];
-  /** Changes variables when the option is picked. */
+  /** Changes variables when the option is picked, in option order for `multiple` answers. */
   set?: VarChanges;
   /** Offers the option only while this holds. A question with no options left is skipped. */
   if?: Conditions;
-  /** Marks the right answer of a quiz. Only reported: score it with `set`. */
+  /**
+   * Marks a right answer of a quiz. The `answer` event reports whether exactly the
+   * right options were picked; score it with `set`.
+   */
   correct?: boolean;
   /**
    * Second of the current scene to resume from when the option doesn't branch, e.g.

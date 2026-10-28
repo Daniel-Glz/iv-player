@@ -95,6 +95,13 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
   if (options.length === 0) {
     addError(ctx, optionsPath, "invalid_value", "A question needs at least one option.");
   }
+  if (question["goto"] !== undefined) checkReference(ctx, question["goto"], pointer(path, "goto"));
+  if (question["seek"] !== undefined) isTime(ctx, question["seek"], pointer(path, "seek"));
+  checkBranches(ctx, question["branches"], pointer(path, "branches"));
+  const multiple = question["multiple"];
+  if (multiple !== undefined) isBoolean(ctx, multiple, pointer(path, "multiple"));
+  checkCounts(ctx, question, path, options.length);
+
   // Choice IDs only need to be unique within their question.
   const choiceIds = new Set<string>();
   options.forEach((choice, i) => {
@@ -108,7 +115,40 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
     if (choice["goto"] !== undefined)
       checkReference(ctx, choice["goto"], pointer(choicePath, "goto"));
     checkLogic(ctx, choice, choicePath);
+    if (multiple !== true) return;
+    for (const key of ["goto", "branches", "seek"]) {
+      if (choice[key] !== undefined) {
+        addError(
+          ctx,
+          pointer(choicePath, key),
+          "invalid_value",
+          `Options of a multiple question can't use ${key}; set it on the question.`,
+        );
+      }
+    }
   });
+}
+
+/** Checks the `min` and `max` of a question with `count` options. */
+function checkCounts(ctx: Context, question: RecordValue, path: string, count: number): void {
+  const { min, max } = question;
+  for (const key of ["min", "max"]) {
+    const value = question[key] as number | undefined;
+    if (
+      value !== undefined &&
+      (question["multiple"] !== true || !Number.isInteger(value) || value < 1 || value > count)
+    ) {
+      addError(
+        ctx,
+        pointer(path, key),
+        "invalid_value",
+        `Expected a whole number from 1 to ${count}, on a multiple question.`,
+      );
+    }
+  }
+  if ((max as number) < (min as number)) {
+    addError(ctx, pointer(path, "max"), "invalid_value", "max must not be less than min.");
+  }
 }
 
 function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
@@ -248,16 +288,8 @@ function checkResolvedGeometry(
 
 /** Checks the `branches`, `set` and `if` of a scene, choice or hotspot. */
 function checkLogic(ctx: Context, value: RecordValue, path: string): void {
-  const { branches, set } = value;
-  const branchesPath = pointer(path, "branches");
-  if (branches !== undefined && isArray(ctx, branches, branchesPath)) {
-    branches.forEach((branch, i) => {
-      const branchPath = pointer(branchesPath, i);
-      if (!isObject(ctx, branch, branchPath)) return;
-      checkConditions(ctx, branch["if"], pointer(branchPath, "if"));
-      checkReference(ctx, branch["goto"], pointer(branchPath, "goto"));
-    });
-  }
+  const { set } = value;
+  checkBranches(ctx, value["branches"], pointer(path, "branches"));
   const setPath = pointer(path, "set");
   if (set !== undefined && isObject(ctx, set, setPath)) {
     for (const [name, change] of Object.entries(set)) {
@@ -278,6 +310,17 @@ function checkLogic(ctx: Context, value: RecordValue, path: string): void {
     }
   }
   if (value["if"] !== undefined) checkConditions(ctx, value["if"], pointer(path, "if"));
+}
+
+/** Checks `branches`, if defined. */
+function checkBranches(ctx: Context, branches: unknown, path: string): void {
+  if (branches === undefined || !isArray(ctx, branches, path)) return;
+  branches.forEach((branch, i) => {
+    const branchPath = pointer(path, i);
+    if (!isObject(ctx, branch, branchPath)) return;
+    checkConditions(ctx, branch["if"], pointer(branchPath, "if"));
+    checkReference(ctx, branch["goto"], pointer(branchPath, "goto"));
+  });
 }
 
 /** Checks a condition, or a non-empty list of them. */

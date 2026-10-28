@@ -83,7 +83,7 @@ All events are `CustomEvent`s that bubble and cross the shadow boundary (`compos
 | --- | --- | --- |
 | `iv-scene` | `{ sceneId, scene }` | A scene starts. |
 | `iv-interaction` | `{ sceneId, question, options }` | A question shows and the video pauses. `options` are the ones whose `if` holds. |
-| `iv-answer` | `{ sceneId, question, choice, goto }` | The viewer picked an option, which branches to `goto`, if defined. |
+| `iv-answer` | `{ sceneId, question, choice, choices, correct, goto }` | The viewer answered with `choices` (`choice` is the first), which branches to `goto`, if defined. `correct` says whether exactly the right options were picked. |
 | `iv-hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated a hotspot, which branches to `goto`, if defined. |
 | `iv-end` | `{ sceneId }` | The story finished. |
 

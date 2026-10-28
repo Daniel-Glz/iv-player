@@ -64,9 +64,9 @@ Reports the playback time, in seconds, of the active scene's video. Call it on e
 
 Reports that the active scene's video reached its end. Asks any questions still pending, then moves to the first of the scene's `branches` that holds, or to `next`, or ends the story.
 
-### `answer(choiceId: string): boolean`
+### `answer(choiceIds: string | string[]): boolean`
 
-Answers the active question, applying the option's `set`, then branching or resuming from its `seek` or where the question paused. Returns `false`, and does nothing, if no question is active or the option doesn't exist or isn't offered because its `if` doesn't hold.
+Answers the active question, applying each picked option's `set` in option order. Then it branches or seeks as the option says, or else as the question says, or else resumes where the question paused. A `multiple` question takes a list of ids, within its `min` and `max`; any other question takes one id, alone or in a list. Returns `false`, and does nothing, if no question is active, an option doesn't exist, repeats or isn't offered because its `if` doesn't hold, or the number of options is out of bounds.
 
 ### `activate(hotspotId: string): boolean`
 
@@ -83,7 +83,7 @@ Removes a listener added with `on`.
 ## Events
 
 ```ts
-const off = engine.on("answer", ({ question, choice }) => { /* ... */ });
+const off = engine.on("answer", ({ question, choices, correct }) => { /* ... */ });
 off();
 ```
 
@@ -91,8 +91,8 @@ off();
 | --- | --- | --- |
 | `scene` | `{ sceneId, scene }` | Load and play `scene.src` from the beginning. |
 | `interaction` | `{ sceneId, question, options }` | Pause the video and show `question` with `options`, the ones whose `if` holds. |
-| `answer` | `{ sceneId, question, choice, goto }` | Hide the question. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
-| `resume` | `{ sceneId, time }` | The answer or hotspot didn't branch: resume the current video from `time`. That's the question's `at`, or the `seek` of the option or hotspot. |
+| `answer` | `{ sceneId, question, choice, choices, correct, goto }` | Hide the question. `choices` are the picked options in option order, and `choice` is the first of them. `correct` is whether exactly the options marked `correct` were picked, or `undefined` if no offered option has `correct`. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
+| `resume` | `{ sceneId, time }` | The answer or hotspot didn't branch: resume the current video from `time`. That's the question's `at`, or the `seek` of the option, question or hotspot. |
 | `hotspots` | `{ sceneId, hotspots }` | Render exactly `hotspots`, possibly none. Only fires when the set changes. |
 | `pause` | `{ sceneId, hotspot }` | A hotspot with `pause` appeared: pause the video at `hotspot.from`. |
 | `hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated `hotspot`. `goto` is the scene it branches to, if any. Followed by `scene` if it branches, or `resume` if it has a `seek`. If neither, resume playback if it has `pause`. |

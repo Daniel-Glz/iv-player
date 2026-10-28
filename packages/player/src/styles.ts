@@ -177,6 +177,18 @@ video.front {
   filter: brightness(0.9);
 }
 
+/* Unpressed options of a multiple question. */
+.options [aria-pressed="false"] {
+  background: transparent;
+  color: var(--iv-accent, #fff);
+  box-shadow: inset 0 0 0 2px currentColor;
+}
+
+.overlay button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 button:focus-visible,
 input:focus-visible {
   outline: 3px solid var(--iv-focus-ring, #4c9ffe);
