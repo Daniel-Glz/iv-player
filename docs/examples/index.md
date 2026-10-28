@@ -29,4 +29,4 @@ Complete interactive videos built on real footage, the way you'd use IVKit in a 
 
 ## About the videos
 
-The videos of the examples above are generated placeholders, so that hotspots line up exactly with what they point at. You can recreate them with [the script in the repository](https://github.com/Daniel-Glz/ivkit/blob/main/docs/scripts/generate-example-videos.mjs). The showcases use public-domain and CC0 footage, cut with [another script](https://github.com/Daniel-Glz/ivkit/blob/main/docs/scripts/generate-showcase-videos.mjs).
+The videos of the examples above are generated placeholders, so that hotspots line up exactly with what they point at. The showcases use public-domain and CC0 footage.
