@@ -13,6 +13,10 @@ import type {
   Vars,
 } from "./types.js";
 
+// Core has no DOM or Node types, but every JavaScript runtime has these timers.
+declare function setTimeout(callback: () => void, ms: number): unknown;
+declare function clearTimeout(handle: unknown): void;
+
 /**
  * - `idle`: created, `start()` not called yet.
  * - `playing`: a scene is active and its video should be playing.
@@ -41,6 +45,11 @@ export interface EngineEvents {
     correct: boolean | undefined;
     goto: SceneId | undefined;
   };
+  /**
+   * Nobody answered `question` within its `timeout`. Followed by `answer` with its
+   * `default`, if offered, or else by `scene`, `resume` or `end` as the question decides.
+   */
+  timeout: { sceneId: SceneId; question: Question };
   /** The answer or hotspot didn't branch: resume the current video from `time`. */
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
@@ -101,6 +110,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
   /** Hotspots with `pause` that already paused during this visit. */
   private readonly paused = new Set<Hotspot>();
   private hasMediaEnded = false;
+  /** Pending `timeout` of the question on screen. */
+  private timer: unknown;
   private readonly timelines = new Map<SceneId, Timeline>();
 
   constructor(readonly story: Story) {
@@ -203,8 +214,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (!choice || choices.length !== ids.length || ids.length < min || ids.length > max)
       return false;
 
-    this.question = null;
-    this._state = "playing";
+    this.dismiss();
     for (const { set } of choices) this.change(set);
     // The option decides first; the question only if the option neither branches nor seeks.
     let goto = this.branch(choice.branches, choice.goto);
@@ -218,11 +228,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
       ? options.every((option) => !option.correct === !choices.includes(option))
       : undefined;
     this.emit("answer", { sceneId, question, choice, choices, correct, goto });
-
-    if (goto !== undefined) this.enter(goto);
-    else if (seek !== undefined) this.seek(seek);
-    else if (this.hasMediaEnded) this.leaveScene();
-    else this.emit("resume", { sceneId, time: question.at });
+    this.go(sceneId, question, goto, seek);
     return true;
   }
 
@@ -252,9 +258,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.timeline = this.timelineOf(sceneId, scene);
     this.pending = [...this.timeline.questions];
     this.paused.clear();
-    this.question = null;
+    this.dismiss();
     this.hasMediaEnded = false;
-    this._state = "playing";
     this.change(scene.set);
     this.emit("scene", { sceneId, scene });
   }
@@ -280,7 +285,40 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.question = question;
     this.options = options;
     this._state = "interacting";
+    if (question.timeout !== undefined) {
+      this.timer = setTimeout(() => this.expire(), question.timeout * 1000);
+    }
     this.emit("interaction", { sceneId: this.sceneId, question, options });
+  }
+
+  /** Answers the question on screen with its `default`, or else lets the question decide. */
+  private expire(): void {
+    const { question, sceneId } = this;
+    if (question === null || sceneId === null) return;
+    this.emit("timeout", { sceneId, question });
+    if (question.default !== undefined && this.answer(question.default)) return;
+    this.dismiss();
+    this.go(sceneId, question, this.branch(question.branches, question.goto), question.seek);
+  }
+
+  /** Clears the question on screen, if any, and its timer. */
+  private dismiss(): void {
+    clearTimeout(this.timer);
+    this.question = null;
+    this._state = "playing";
+  }
+
+  /** Moves on after `question`: to `goto`, to `seek`, or past it. */
+  private go(
+    sceneId: SceneId,
+    question: Question,
+    goto: SceneId | undefined,
+    seek: number | undefined,
+  ): void {
+    if (goto !== undefined) this.enter(goto);
+    else if (seek !== undefined) this.seek(seek);
+    else if (this.hasMediaEnded) this.leaveScene();
+    else this.emit("resume", { sceneId, time: question.at });
   }
 
   /** Called once the video has ended: asks any questions still pending, then moves on. */

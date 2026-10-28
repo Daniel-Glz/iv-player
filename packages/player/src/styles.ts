@@ -184,6 +184,28 @@ video.front {
   box-shadow: inset 0 0 0 2px currentColor;
 }
 
+.timer {
+  width: min(20em, 80%);
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.25);
+  overflow: hidden;
+}
+
+/* Shrinks over the question's timeout. */
+.timer > div {
+  height: 100%;
+  background: var(--iv-accent, #fff);
+  transform-origin: left;
+  animation: iv-timer linear forwards;
+}
+
+@keyframes iv-timer {
+  to {
+    transform: scaleX(0);
+  }
+}
+
 .overlay button:disabled {
   opacity: 0.5;
   cursor: default;

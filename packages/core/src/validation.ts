@@ -127,6 +127,51 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
       }
     }
   });
+  const timeout = question["timeout"];
+  if (timeout !== undefined && !(isFiniteNumber(timeout) && timeout > 0)) {
+    addError(
+      ctx,
+      pointer(path, "timeout"),
+      "invalid_value",
+      "Expected a positive number of seconds.",
+    );
+  }
+  checkDefault(ctx, question, path, choiceIds);
+}
+
+/** Checks that a question's `default` picks its own options, as many as it takes. */
+function checkDefault(
+  ctx: Context,
+  question: RecordValue,
+  path: string,
+  choiceIds: Set<string>,
+): void {
+  const value = question["default"];
+  const defaultPath = pointer(path, "default");
+  if (value === undefined) return;
+  if (question["timeout"] === undefined) {
+    addError(ctx, defaultPath, "invalid_value", "Only questions with a timeout take a default.");
+    return;
+  }
+  const ids = [value].flat();
+  for (const id of ids) {
+    if (isString(ctx, id, defaultPath) && !choiceIds.has(id)) {
+      addError(ctx, defaultPath, "invalid_value", `"${id}" isn't an option of this question.`);
+    }
+  }
+  const { min, max } = question;
+  const [fewest, most] =
+    question["multiple"] === true
+      ? [isFiniteNumber(min) ? min : 1, isFiniteNumber(max) ? max : choiceIds.size]
+      : [1, 1];
+  if (new Set(ids).size !== ids.length || ids.length < fewest || ids.length > most) {
+    addError(
+      ctx,
+      defaultPath,
+      "invalid_value",
+      "Expected distinct options, as many as an answer takes.",
+    );
+  }
 }
 
 /** Checks the `min` and `max` of a question with `count` options. */

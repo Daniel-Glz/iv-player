@@ -412,3 +412,42 @@ describe("validateStory multiple questions", () => {
     ]);
   });
 });
+
+describe("validateStory timeouts", () => {
+  const options = [
+    { id: "a", label: "A" },
+    { id: "b", label: "B" },
+  ];
+
+  it("accepts a timeout with a default, or a list for multiple questions", () => {
+    const result = validateStory(
+      storyWith(
+        { ...question, options, timeout: 5, default: "a" },
+        { ...question, id: "q2", options, timeout: 0.5 },
+        { ...question, id: "q3", options, multiple: true, timeout: 5, default: ["a", "b"] },
+      ),
+    );
+    expect(result.errors).toEqual([]);
+  });
+
+  it("checks the timeout and that the default picks the question's options", () => {
+    const errors = errorsOf(
+      storyWith(
+        { ...question, options, timeout: 0, default: "c" },
+        { ...question, id: "q2", options, default: "a" },
+        { ...question, id: "q3", options, timeout: 5, default: ["a", "b"] },
+        { ...question, id: "q4", options, multiple: true, max: 1, timeout: 5, default: ["a", "b"] },
+        { ...question, id: "q5", options, multiple: true, timeout: 5, default: ["a", "z", "a"] },
+      ),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/timeout", "invalid_value"],
+      ["/scenes/intro/events/0/default", "invalid_value"],
+      ["/scenes/intro/events/1/default", "invalid_value"],
+      ["/scenes/intro/events/2/default", "invalid_value"],
+      ["/scenes/intro/events/3/default", "invalid_value"],
+      ["/scenes/intro/events/4/default", "invalid_value"],
+      ["/scenes/intro/events/4/default", "invalid_value"],
+    ]);
+  });
+});
