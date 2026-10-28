@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://daniel-glz.github.io/ivkit/">
-    <img src="docs/public/og-image.png" alt="IVKit: interactive videos for the web. Branching stories, questions and animated hotspots." width="720">
+    <img src=".github/assets/readme-card.png" alt="IVKit: interactive videos for the web" width="720">
   </a>
 </p>
 
