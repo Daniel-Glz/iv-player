@@ -33,7 +33,6 @@ export default defineConfig({
   head: [
     ["link", { rel: "icon", href: "/ivkit/favicon.svg", type: "image/svg+xml" }],
     ["meta", { name: "theme-color", content: "#5b5bd6" }],
-    ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:site_name", content: "IVKit" }],
     ["meta", { property: "og:image", content: `${site}og-image.png` }],
     ["meta", { property: "og:image:width", content: "1200" }],
@@ -55,6 +54,7 @@ export default defineConfig({
     const description = pageData.description || siteData.description;
     return [
       ["link", { rel: "canonical", href: url }],
+      ["meta", { property: "og:type", content: path === "" ? "website" : "article" }],
       ["meta", { property: "og:url", content: url }],
       ["meta", { property: "og:title", content: title }],
       ["meta", { property: "og:description", content: description }],
