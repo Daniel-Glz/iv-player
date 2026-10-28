@@ -17,4 +17,16 @@ Every example on these pages is a live player running the current version of the
 | [Player built with core](./core-player) | Your own interface on top of `StoryEngine` and `MediaController`, without `<ivkit-player>`. |
 | [Validation playground](./validation) | Edit a story and see what `validateStory` reports, as you type. |
 
-The videos are generated placeholders, so that hotspots line up exactly with what they point at. You can recreate them with [the script in the repository](https://github.com/Daniel-Glz/ivkit/blob/main/docs/scripts/generate-example-videos.mjs).
+## Showcase
+
+Complete interactive videos built on real footage, the way you'd use IVKit in a product.
+
+| Showcase | What it shows |
+| --- | --- |
+| [Lesson: a rocket launch](./rocket-launch) | An educational video of the Artemis I launch, with parts to explore, a hotspot that follows the rocket, a scored quiz and feedback scenes. |
+| [Following traffic](./traffic) | Drone footage of a roundabout, with a rectangular hotspot following each of six cars through the curves, and a question about where one of them went. |
+| [Stories player](./stories-player) | A vertical player in the style of social media stories, built on `@ivkit/core`, with progress bars, tap navigation and hold to pause, on Yellowstone footage. |
+
+## About the videos
+
+The videos of the examples above are generated placeholders, so that hotspots line up exactly with what they point at. The showcases use public-domain and CC0 footage.

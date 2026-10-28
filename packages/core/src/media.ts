@@ -1,6 +1,6 @@
 import { Emitter } from "./emitter.js";
 import type { StoryEngine } from "./engine.js";
-import type { Scene, SceneId } from "./types.js";
+import type { Scene, SceneEvent, SceneId } from "./types.js";
 
 /** `HTMLMediaElement.HAVE_CURRENT_DATA`: the frame at `currentTime` can be drawn. */
 const HAVE_CURRENT_DATA = 2;
@@ -35,6 +35,12 @@ export interface MediaControllerEvents<M extends MediaElement> {
   swap: { active: M; inactive: M };
   /** `play()` was rejected, typically by the autoplay policy: ask for a user gesture, then call `play()`. */
   blocked: { media: M; error: unknown };
+  /**
+   * The active element reached `time`, just reported to the engine: once per presented
+   * frame, or on `timeupdate` while frames don't arrive. Use it to sync anything drawn
+   * over the video, like animated hotspots.
+   */
+  time: { media: M; time: number };
 }
 
 /**
@@ -75,6 +81,12 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
     for (const element of media) {
       // Only the front element drives the story; the back one is just buffering.
       const isDriving = () => element === this.front && !this.swapping;
+      const drive = (time: number) => {
+        if (!isDriving()) return;
+        engine.update(time);
+        // The update may have changed scenes, handing the story to the other element.
+        if (isDriving()) this.emit("time", { media: element, time });
+      };
       // Frames give exact times but stop in background tabs, where `timeupdate` keeps
       // firing (throttled). So `timeupdate` only drives the engine when no frame arrived
       // since the previous one; mixing both would let the time jitter back and forth,
@@ -82,14 +94,14 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       let sawFrame = false;
       this.trackFrames(element, (mediaTime) => {
         sawFrame = true;
-        if (isDriving()) engine.update(mediaTime);
+        drive(mediaTime);
       });
       this.listen(element, "timeupdate", () => {
         if (sawFrame) {
           sawFrame = false;
           return;
         }
-        if (isDriving()) engine.update(element.currentTime);
+        drive(element.currentTime);
       });
       this.listen(element, "ended", () => {
         if (isDriving()) engine.mediaEnded();
@@ -100,7 +112,7 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       engine.on("scene", ({ scene }) => this.enter(scene)),
       engine.on("interaction", ({ question }) => {
         this.pauseAt(question.at);
-        const goto = question.options.find((option) => option.goto !== undefined)?.goto;
+        const goto = gotoOf(question);
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("resume", () => this.play()),
@@ -229,13 +241,17 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
   }
 }
 
+/** First scene a question's options or a hotspot can branch to. */
+function gotoOf(event: SceneEvent): SceneId | undefined {
+  return event.type === "question"
+    ? event.options.find((option) => option.goto !== undefined)?.goto
+    : event.goto;
+}
+
 /** First scene any question option or hotspot of `scene` can branch to. */
 function firstGoto(scene: Scene): SceneId | undefined {
   for (const event of scene.events ?? []) {
-    const goto =
-      event.type === "question"
-        ? event.options.find((option) => option.goto !== undefined)?.goto
-        : event.goto;
+    const goto = gotoOf(event);
     if (goto !== undefined) return goto;
   }
   return undefined;

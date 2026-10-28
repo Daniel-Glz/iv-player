@@ -44,8 +44,8 @@ interface Timeline {
  * follow after it's answered. Re-entering a scene re-arms its questions.
  *
  * Hotspots are visible while `from <= currentTime < to`, recomputed on every
- * update, so seeking in either direction just works. They're hidden while a
- * question is showing and when leaving the scene.
+ * update, so they stay correct after seeking in either direction. They're
+ * hidden while a question is showing and when leaving the scene.
  *
  * The story is trusted as-is: a reference to a missing scene throws when reached.
  */

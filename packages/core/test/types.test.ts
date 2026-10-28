@@ -18,7 +18,7 @@ describe("story format types", () => {
 
   it("allows scenes and choices without branching", () => {
     expectTypeOf({ src: "end.mp4" }).toExtend<Scene>();
-    expectTypeOf({ id: "a", label: "Seguir" }).toExtend<Choice>();
+    expectTypeOf({ id: "a", label: "Continue" }).toExtend<Choice>();
   });
 
   it("rejects malformed definitions", () => {

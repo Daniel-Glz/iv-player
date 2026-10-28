@@ -72,11 +72,7 @@ It also checks that validation isn't bundled into the player, and that neither p
 
 The documentation is in `docs`, as Markdown. Pages are written in English, with short sentences and a code example for each feature.
 
-The live examples use placeholder clips generated with ffmpeg, so that hotspots line up exactly with what's drawn in the video. To change them, edit the clips in `docs/scripts/generate-example-videos.mjs`, keep the hotspots in `docs/examples/stories` in sync, and regenerate:
-
-```sh
-node docs/scripts/generate-example-videos.mjs --force
-```
+The live examples use placeholder clips, so that hotspots line up exactly with what's drawn in the video. If you replace a clip, keep the hotspots in `docs/examples/stories` in sync.
 
 ## Pull requests
 

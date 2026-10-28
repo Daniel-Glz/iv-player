@@ -5,7 +5,15 @@
 [![CI](https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-A lightweight TypeScript library for interactive videos: branching stories, questions, and animated hotspots.
+**Turn any video into an interactive one.** Viewers answer questions, choose where the story goes and click animated hotspots, all with a single `<ivkit-player>` tag. No dependencies, under 8 KiB gzip.
+
+<p align="center">
+  <a href="https://daniel-glz.github.io/ivkit/examples/">
+    <img src=".github/assets/demo.gif" alt="An IVKit video pauses to ask 'What is 7 × 6?', the viewer picks 42, and the story branches to a 'Correct!' scene" width="720">
+  </a>
+  <br>
+  <a href="https://daniel-glz.github.io/ivkit/examples/"><b>Try the live examples →</b></a>
+</p>
 
 ## Two ways to use it
 
@@ -73,7 +81,7 @@ video.addEventListener("ended", () => engine.mediaEnded());
 engine.start();
 ```
 
-Add `MediaController` for seamless scene changes with preloading. See [Custom players with core](https://daniel-glz.github.io/ivkit/guide/core) and a [player built in Vue](https://daniel-glz.github.io/ivkit/examples/core-player).
+Add `MediaController` to preload the next scene and change scenes without a black frame. See [Custom players with core](https://daniel-glz.github.io/ivkit/guide/core) and a [player built in Vue](https://daniel-glz.github.io/ivkit/examples/core-player).
 
 ## Documentation
 
@@ -90,18 +98,7 @@ Add `MediaController` for seamless scene changes with preloading. See [Custom pl
 
 ## Development
 
-Use Node.js 24 and the pnpm version pinned in `package.json`.
-
-```sh
-pnpm install --frozen-lockfile
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm check:size
-pnpm docs:dev   # documentation at http://localhost:5173/ivkit/
-```
-
-No third-party runtime dependencies. The standalone player has an 8 KiB gzip budget, including its core engine, styles, and icons.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, commands and size budgets.
 
 ## License
 

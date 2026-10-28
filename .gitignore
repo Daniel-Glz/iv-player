@@ -17,20 +17,12 @@ coverage/
 npm-debug.log*
 pnpm-debug.log*
 
-# Env
-.env
-.env.*
-!.env.example
-
 # OS / editors
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 
-.pnpm-store
 # Docs
 docs/.vitepress/cache/
 docs/.vitepress/dist/

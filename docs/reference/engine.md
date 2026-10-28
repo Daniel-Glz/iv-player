@@ -98,5 +98,5 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 
 - Each question fires once per visit to its scene, as soon as playback reaches its `at`. Re-entering a scene re-arms its questions.
 - Seeking past several questions fires only the earliest. The rest follow after it's answered.
-- Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so seeking in either direction just works.
+- Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.

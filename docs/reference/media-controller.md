@@ -1,5 +1,5 @@
 ---
-description: "Reference for MediaController: seamless scene swaps, preloading, frame-accurate timing and the MediaElement interface."
+description: "Reference for MediaController: scene swaps without a black frame, preloading, frame-accurate timing and the MediaElement interface."
 ---
 
 # `MediaController`
@@ -8,7 +8,7 @@ description: "Reference for MediaController: seamless scene swaps, preloading, f
 import { MediaController } from "@ivkit/core";
 ```
 
-Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, with preloading and seamless scene changes.
+Plays a [`StoryEngine`](/reference/engine) on two stacked media elements, preloading the next scene and swapping without a black frame.
 
 - The visible ("front") element plays the current scene, while the hidden ("back") one preloads the most likely next scene: the scene's `next`, or else the first `goto` of its questions and hotspots. While a question shows, it preloads the first option that branches.
 - On a scene change, the front element pauses on its last frame and stays visible until the back one can draw its first frame. Only then are they swapped.
@@ -40,6 +40,7 @@ Create it **before** calling `engine.start()`, so it sees the first `scene` even
 | --- | --- | --- |
 | `swap` | `{ active, inactive }` | Put `active` on top and hide `inactive`. The first swap reveals the first scene. |
 | `blocked` | `{ media, error }` | `play()` was rejected, typically by the autoplay policy. Ask for a user gesture, then call `play()`. |
+| `time` | `{ media, time }` | The active element reached `time`, just reported to the engine: once per presented frame, or on `timeupdate` while frames don't arrive. Use it to sync anything drawn over the video, like animated hotspots. |
 
 Showing and hiding the elements is left to you, so core stays free of the DOM. Hide the inactive element with `opacity: 0` rather than `display: none`, so it keeps decoding its first frame.
 

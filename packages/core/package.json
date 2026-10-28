@@ -1,7 +1,7 @@
 {
   "name": "@ivkit/core",
   "version": "0.1.1",
-  "description": "Framework-agnostic engine for interactive videos: story format, validation, engine and media controller",
+  "description": "Framework-agnostic engine for interactive and branching video players: story format, validation and media controller.",
   "license": "MIT",
   "author": "Alexis Gonzalez",
   "homepage": "https://daniel-glz.github.io/ivkit/",
@@ -15,10 +15,16 @@
   },
   "keywords": [
     "interactive-video",
-    "branching-video",
+    "interactive",
     "video",
+    "video-player",
+    "branching-video",
+    "branching",
+    "hotspot",
     "hotspots",
-    "story",
+    "quiz",
+    "elearning",
+    "framework-agnostic",
     "typescript"
   ],
   "type": "module",

@@ -98,6 +98,34 @@ describe("MediaController timing source", () => {
     expect(engine.state).toBe("interacting");
   });
 
+  it("reports every time it gives the engine as a time event, from the front element only", () => {
+    const { controller, a, b } = started({ frameCallbacks: true });
+    const times: [string, number][] = [];
+    controller.on("time", ({ media, time }) => times.push([media.name, time]));
+
+    b.presentFrame(1);
+    b.timeUpdate(1.1);
+    b.timeUpdate(1.25);
+    a.presentFrame(0);
+
+    expect(times).toEqual([
+      ["b", 1],
+      ["b", 1.25],
+    ]);
+  });
+
+  it("emits no time event when the update itself leaves the scene", () => {
+    const { controller, engine, b } = started({ frameCallbacks: true });
+    const times: number[] = [];
+    controller.on("time", ({ time }) => times.push(time));
+    // Answering right away branches to "left" within the same update.
+    engine.on("interaction", () => engine.answer("a"));
+
+    b.presentFrame(5);
+    expect(engine.currentSceneId).toBe("left");
+    expect(times).toEqual([]);
+  });
+
   it("cancels pending frame callbacks on destroy", () => {
     const { controller, engine, a, b } = started({ frameCallbacks: true });
     controller.destroy();
