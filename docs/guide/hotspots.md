@@ -40,9 +40,24 @@ With `pause: true`, the video pauses on the hotspot's `from` frame when it appea
 }
 ```
 
-- Activating it branches to its `goto`, or resumes playback without one.
+- Activating it branches to its `goto`, jumps to its `seek`, or resumes playback without either.
 - The viewer can still resume with the play button, skipping it. The hotspot stays clickable until `to`.
 - It pauses once per visit to the scene, and not when a seek skips past it entirely.
+
+## Links and jumps
+
+A hotspot can open a link or jump to another moment of the scene, besides branching:
+
+```ts
+// Opens the product page in a new tab. The video keeps playing.
+{ type: "hotspot", id: "shoes", from: 2, to: 6, label: "Buy these shoes", href: "https://example.com/shoes", area }
+
+// Skips the intro.
+{ type: "hotspot", id: "skip", from: 0, to: 10, label: "Skip intro", seek: 10, variant: "label", area }
+```
+
+- The player opens `href` in a new tab, and only for `http:` and `https:` URLs. With `@ivkit/core`, read `hotspot.href` in the `hotspot` event and open it yourself.
+- `seek` is a second of the current scene, and applies only when the hotspot doesn't branch. Questions from there on are asked again.
 
 ## Coordinates
 

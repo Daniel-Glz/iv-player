@@ -102,6 +102,9 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
     if (!isObject(ctx, choice, choicePath)) return;
     checkUnique(ctx, choice["id"], pointer(choicePath, "id"), choiceIds);
     isString(ctx, choice["label"], pointer(choicePath, "label"));
+    if (choice["correct"] !== undefined)
+      isBoolean(ctx, choice["correct"], pointer(choicePath, "correct"));
+    if (choice["seek"] !== undefined) isTime(ctx, choice["seek"], pointer(choicePath, "seek"));
     if (choice["goto"] !== undefined)
       checkReference(ctx, choice["goto"], pointer(choicePath, "goto"));
     checkLogic(ctx, choice, choicePath);
@@ -123,6 +126,8 @@ function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
   isString(ctx, hotspot["label"], pointer(path, "label"));
   if (hotspot["goto"] !== undefined) checkReference(ctx, hotspot["goto"], pointer(path, "goto"));
   if (hotspot["pause"] !== undefined) isBoolean(ctx, hotspot["pause"], pointer(path, "pause"));
+  if (hotspot["seek"] !== undefined) isTime(ctx, hotspot["seek"], pointer(path, "seek"));
+  if (hotspot["href"] !== undefined) isString(ctx, hotspot["href"], pointer(path, "href"));
   checkLogic(ctx, hotspot, path);
   if (hotspot["variant"] !== undefined) isString(ctx, hotspot["variant"], pointer(path, "variant"));
   checkGeometryFields(ctx, hotspot, path);

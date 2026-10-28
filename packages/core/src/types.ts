@@ -103,6 +103,13 @@ export interface Choice {
   set?: VarChanges;
   /** Offers the option only while this holds. A question with no options left is skipped. */
   if?: Conditions;
+  /** Marks the right answer of a quiz. Only reported: score it with `set`. */
+  correct?: boolean;
+  /**
+   * Second of the current scene to resume from when the option doesn't branch, e.g.
+   * to replay a part before asking again. Re-arms the questions from there on.
+   */
+  seek?: number;
 }
 
 /**
@@ -130,6 +137,16 @@ export interface Hotspot {
   set?: VarChanges;
   /** Shows the hotspot only while this holds. */
   if?: Conditions;
+  /**
+   * Second of the current scene to jump to when the hotspot doesn't branch.
+   * Re-arms the questions from there on.
+   */
+  seek?: number;
+  /**
+   * Link the player opens in a new tab when the hotspot is activated. Only `http:`
+   * and `https:` URLs open. Core only reports it.
+   */
+  href?: string;
   /**
    * Pause the video at `from`, once per visit, until the hotspot is activated
    * (which resumes playback without a `goto`) or the viewer resumes it. Default `false`.

@@ -229,6 +229,51 @@ describe.each([
     expect(b.playing).toBe(true);
   });
 
+  it("seeks the active element when resuming from another time", () => {
+    const engine = new StoryEngine({
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            { type: "hotspot", id: "h", from: 1, area, label: "H", pause: true, seek: 4 },
+            {
+              type: "question",
+              id: "q",
+              at: 6,
+              text: "?",
+              options: [
+                { id: "same", label: "Same" },
+                { id: "back", label: "Back", seek: 2 },
+              ],
+            },
+          ],
+        },
+      },
+    });
+    const a = new FakeMedia("a", options);
+    const b = new FakeMedia("b", options);
+    new MediaController(engine, [a, b]);
+    engine.start();
+    b.finishLoading();
+    b.advanceTo(1.2);
+    engine.activate("h");
+    expect(b.currentTime).toBe(4);
+    expect(b.playing).toBe(true);
+
+    b.advanceTo(6);
+    engine.answer("back");
+    expect(b.currentTime).toBe(2);
+    expect(b.playing).toBe(true);
+
+    // The seek re-armed the question; without a seek, it resumes where it paused.
+    b.advanceTo(6);
+    engine.answer("same");
+    expect(b.currentTime).toBe(6);
+    expect(b.playing).toBe(true);
+  });
+
   it("resumes a pausing hotspot only when none of its branches holds", () => {
     const engine = new StoryEngine({
       version: "0.1",

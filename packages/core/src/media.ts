@@ -115,14 +115,19 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
         const goto = firstTarget(options);
         if (goto !== undefined) this.preload(goto);
       }),
-      engine.on("resume", () => this.play()),
+      engine.on("resume", ({ time }) => {
+        // Answers resume where they paused; `seek` jumps elsewhere.
+        if (this.front.currentTime !== time) this.front.currentTime = time;
+        this.play();
+      }),
       engine.on("pause", ({ hotspot }) => {
         this.pauseAt(hotspot.from);
         const goto = targetOf(hotspot);
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("hotspot", ({ hotspot, goto }) => {
-        if (hotspot.pause === true && goto === undefined) this.play();
+        // A `seek` resumes through `resume` instead.
+        if (hotspot.pause === true && goto === undefined && hotspot.seek === undefined) this.play();
       }),
     );
   }

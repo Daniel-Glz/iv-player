@@ -153,6 +153,40 @@ describe("<ivkit-player>", () => {
     expect($$("[part=option]").map((b) => b.textContent)).toEqual(["A"]);
   });
 
+  it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
+    const opened: string[] = [];
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      opened.push(`${this.href} ${this.target} ${this.rel}`);
+    });
+    const { player, $$ } = mount();
+    const link = (id: string, href: string) => ({
+      type: "hotspot" as const,
+      id,
+      from: 0,
+      area,
+      label: id,
+      href,
+    });
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [link("web", "https://example.com/"), link("js", "javascript:alert(1)")],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(0);
+    for (const hotspot of $$("[part~=hotspot]")) hotspot.click();
+
+    expect(opened).toEqual(["https://example.com/ _blank noopener"]);
+    click.mockRestore();
+  });
+
   it("answers on click, hides the question and dispatches iv-answer", () => {
     const { player, $, $$ } = playing();
     const onAnswer = vi.fn();
