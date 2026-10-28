@@ -40,6 +40,7 @@ All errors are reported at once, not just the first one.
 | `duplicate_id` | An id is used twice. | Two hotspots with the id `"map"`. |
 | `missing_scene` | `start`, `next` or `goto` names a scene that doesn't exist. | `goto: "forst"` |
 | `missing_geometry` | A hotspot has no geometry for its shape. | A `polygon` without `points`. |
+| `missing_variable` | A condition or `set` uses a variable not declared in `vars`. | `{ var: "scroe", gte: 1 }` |
 
 ## What gets checked
 
@@ -51,10 +52,11 @@ All errors are reported at once, not just the first one.
 - `area` values are fractions from 0 to 1, with positive width and height, inside the frame.
 - Polygons have at least three points inside the frame.
 - Every keyframe has a unique `at` and a valid `easing`, and resolves to a usable geometry.
+- `vars` values are strings, booleans or finite numbers. Conditions and `set` only use declared variables, every condition has an operator, and `{ add }` only applies to numbers.
 
 ## In the editor and in CI
 
-`validateStory` is small (about 1.6 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
+`validateStory` is small (about 2.1 KiB gzip) and has no dependencies, so it can run in a story editor on every change, or in a script that checks the story files in your repository:
 
 ```ts
 // scripts/check-stories.ts

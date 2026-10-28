@@ -61,12 +61,12 @@ try {
     [
       "Standalone player (includes core + CSS)",
       join(root, "packages/player/dist/ivkit-player.min.js"),
-      24 * 1024,
-      8 * 1024,
+      25 * 1024,
+      8.5 * 1024,
     ],
-    ["Full core (all exports)", join(root, "packages/core/dist/index.js"), 11 * 1024, 4 * 1024],
+    ["Full core (all exports)", join(root, "packages/core/dist/index.js"), 14 * 1024, 5 * 1024],
     ["StoryEngine only", join(temporary, "dist/engine.js"), 4 * 1024, 1.5 * 1024],
-    ["validateStory only", join(temporary, "dist/validation.js"), 5 * 1024, 2 * 1024],
+    ["validateStory only", join(temporary, "dist/validation.js"), 6 * 1024, 2.25 * 1024],
   ];
   let failed = false;
   for (const [label, path, rawLimit, gzipLimit] of checks) {

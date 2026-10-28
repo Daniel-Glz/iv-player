@@ -1,6 +1,7 @@
 import {
   MediaController,
   StoryEngine,
+  type Choice,
   type EngineEvents,
   type Question,
   type SceneId,
@@ -246,7 +247,7 @@ export class IvkitPlayer extends Base {
       this.#emit("iv-scene", detail);
     });
     engine.on("interaction", (detail) => {
-      this.#showQuestion(detail.question);
+      this.#showQuestion(detail.question, detail.options);
       this.#updateControlsVisibility();
       this.#emit("iv-interaction", detail);
     });
@@ -381,10 +382,10 @@ export class IvkitPlayer extends Base {
       !this.#start.hidden;
   }
 
-  #showQuestion(question: Question): void {
+  #showQuestion(question: Question, options: readonly Choice[]): void {
     this.#questionText.textContent = question.text;
     this.#options.replaceChildren(
-      ...question.options.map((option) => {
+      ...options.map((option) => {
         const button = document.createElement("button");
         button.type = "button";
         button.setAttribute("part", "option");

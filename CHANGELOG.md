@@ -11,7 +11,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: `StoryEngine.goTo(sceneId)`, which enters any scene from any state, dismissing the question on screen. It works before `start()`, e.g. to resume a saved story.
 - `@ivkit/player`: `goTo(sceneId)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
 - `@ivkit/core`: `pause` on hotspots, which pauses the video when the hotspot appears until it's activated. The engine emits a new `pause` event, and `MediaController` pauses on the hotspot's first frame and resumes when it's activated without a `goto`.
+- `@ivkit/core`: variables and conditions in the story format. `Story.vars` declares variables, `set` changes them on choices, hotspots and scenes, `branches` pick a scene by condition before falling back to `goto` or `next`, and `if` offers a choice or shows a hotspot only while it holds. `validateStory` reports undeclared variables with the new `missing_variable` code.
+- `@ivkit/core`: `StoryEngine.vars`, `StoryEngine.setVar()` and a `vars` event. The `interaction` event now includes the `options` offered, and `answer` and `hotspot` include the scene they branch to as `goto`.
+- `@ivkit/player`: questions show only the options whose `if` holds, and `iv-interaction`, `iv-answer` and `iv-hotspot` carry the same new fields as the engine's events.
 - `@ivkit/core`: a `time` event on `MediaController`, with each playback time it reports to the engine. `<ivkit-player>` now moves animated hotspots on it instead of keeping its own frame callbacks.
+
+### Changed
+
+- Size budgets: the standalone player now stays under 8.5 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 5 KiB (was 4 KiB), to fit variables and conditions.
 
 ## [0.1.1] - 2026-10-27
 

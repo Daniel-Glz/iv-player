@@ -15,6 +15,43 @@ export interface Story {
   start: SceneId;
   /** Every scene of the story, keyed by its id. */
   scenes: Readonly<Record<SceneId, Scene>>;
+  /** Variables and their initial values. Conditions and `set` can only use these. */
+  vars?: Readonly<Vars>;
+}
+
+/** Value of a story variable. */
+export type VarValue = number | string | boolean;
+
+/** Story variables, keyed by name. */
+export type Vars = Record<string, VarValue>;
+
+/**
+ * Changes to variables, keyed by name: a new value, or `{ add }` to add to a number
+ * (negative to subtract).
+ */
+export type VarChanges = Readonly<Record<string, VarValue | { add: number }>>;
+
+/**
+ * Test on the variable `var`. Every operator given must hold, so `{ gte: 1, lt: 5 }`
+ * is a range. `gt`, `gte`, `lt` and `lte` compare numbers.
+ */
+export interface Condition {
+  var: string;
+  eq?: VarValue;
+  ne?: VarValue;
+  gt?: number;
+  gte?: number;
+  lt?: number;
+  lte?: number;
+}
+
+/** One condition, or several that must all hold. */
+export type Conditions = Condition | readonly Condition[];
+
+/** Branch taken when `if` holds. In a list, the first one that holds wins. */
+export interface Branch {
+  if: Conditions;
+  goto: SceneId;
 }
 
 /**
@@ -29,6 +66,10 @@ export interface Scene {
   events?: readonly SceneEvent[];
   /** Scene to play when this one finishes without branching. */
   next?: SceneId;
+  /** Checked before `next` when the video ends; the first that holds is played instead. */
+  branches?: readonly Branch[];
+  /** Changes variables each time the scene is entered, e.g. to count visits. */
+  set?: VarChanges;
 }
 
 /**
@@ -56,6 +97,12 @@ export interface Choice {
   label: string;
   /** Scene to branch to. Without it, the current scene resumes. */
   goto?: SceneId;
+  /** Checked before `goto`, after `set`; the first that holds is branched to instead. */
+  branches?: readonly Branch[];
+  /** Changes variables when the option is picked. */
+  set?: VarChanges;
+  /** Offers the option only while this holds. A question with no options left is skipped. */
+  if?: Conditions;
 }
 
 /**
@@ -77,6 +124,12 @@ export interface Hotspot {
   label: string;
   /** Scene to branch to when activated. Without it, activation is only reported. */
   goto?: SceneId;
+  /** Checked before `goto`, after `set`; the first that holds is branched to instead. */
+  branches?: readonly Branch[];
+  /** Changes variables when the hotspot is activated. */
+  set?: VarChanges;
+  /** Shows the hotspot only while this holds. */
+  if?: Conditions;
   /**
    * Pause the video at `from`, once per visit, until the hotspot is activated
    * (which resumes playback without a `goto`) or the viewer resumes it. Default `false`.

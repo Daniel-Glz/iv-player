@@ -1,9 +1,15 @@
-import { EASINGS, HOTSPOT_SHAPES, type Story } from "./types.js";
+import { EASINGS, HOTSPOT_SHAPES, type Story, type VarValue } from "./types.js";
 
 export interface StoryValidationError {
   /** JSON Pointer to the invalid field (an empty string means the root). */
   path: string;
-  code: "invalid_type" | "invalid_value" | "duplicate_id" | "missing_scene" | "missing_geometry";
+  code:
+    | "invalid_type"
+    | "invalid_value"
+    | "duplicate_id"
+    | "missing_scene"
+    | "missing_geometry"
+    | "missing_variable";
   message: string;
 }
 
@@ -20,6 +26,8 @@ interface Context {
   scenes: RecordValue | null;
   /** IDs of the questions and hotspots seen so far: they're unique across the story. */
   eventIds: Set<string>;
+  /** The story's variables, so conditions and changes can be checked against them. */
+  vars: RecordValue;
 }
 
 /**
@@ -28,7 +36,7 @@ interface Context {
  * before constructing an engine or assigning the player's story property.
  */
 export function validateStory(input: unknown): StoryValidationResult {
-  const ctx: Context = { errors: [], scenes: null, eventIds: new Set() };
+  const ctx: Context = { errors: [], scenes: null, eventIds: new Set(), vars: {} };
   if (isObject(ctx, input, "")) checkStory(ctx, input);
   return ctx.errors.length === 0
     ? { valid: true, story: input as Story, errors: [] }
@@ -40,6 +48,12 @@ function checkStory(ctx: Context, story: RecordValue): void {
   const scenes = story["scenes"];
   if (isObject(ctx, scenes, "/scenes")) ctx.scenes = scenes;
   checkReference(ctx, story["start"], "/start");
+  const vars = story["vars"];
+  if (vars !== undefined && isObject(ctx, vars, "/vars")) {
+    ctx.vars = vars;
+    for (const [name, value] of Object.entries(vars))
+      isVarValue(ctx, value, pointer("/vars", name));
+  }
   if (!ctx.scenes) return;
 
   const entries = Object.entries(ctx.scenes);
@@ -55,6 +69,7 @@ function checkStory(ctx: Context, story: RecordValue): void {
 function checkScene(ctx: Context, scene: RecordValue, path: string): void {
   isString(ctx, scene["src"], pointer(path, "src"));
   if (scene["next"] !== undefined) checkReference(ctx, scene["next"], pointer(path, "next"));
+  checkLogic(ctx, scene, path);
   const events = scene["events"];
   const eventsPath = pointer(path, "events");
   if (events === undefined || !isArray(ctx, events, eventsPath)) return;
@@ -89,6 +104,7 @@ function checkQuestion(ctx: Context, question: RecordValue, path: string): void 
     isString(ctx, choice["label"], pointer(choicePath, "label"));
     if (choice["goto"] !== undefined)
       checkReference(ctx, choice["goto"], pointer(choicePath, "goto"));
+    checkLogic(ctx, choice, choicePath);
   });
 }
 
@@ -107,6 +123,7 @@ function checkHotspot(ctx: Context, hotspot: RecordValue, path: string): void {
   isString(ctx, hotspot["label"], pointer(path, "label"));
   if (hotspot["goto"] !== undefined) checkReference(ctx, hotspot["goto"], pointer(path, "goto"));
   if (hotspot["pause"] !== undefined) isBoolean(ctx, hotspot["pause"], pointer(path, "pause"));
+  checkLogic(ctx, hotspot, path);
   if (hotspot["variant"] !== undefined) isString(ctx, hotspot["variant"], pointer(path, "variant"));
   checkGeometryFields(ctx, hotspot, path);
 
@@ -224,6 +241,77 @@ function checkResolvedGeometry(
   }
 }
 
+/** Checks the `branches`, `set` and `if` of a scene, choice or hotspot. */
+function checkLogic(ctx: Context, value: RecordValue, path: string): void {
+  const { branches, set } = value;
+  const branchesPath = pointer(path, "branches");
+  if (branches !== undefined && isArray(ctx, branches, branchesPath)) {
+    branches.forEach((branch, i) => {
+      const branchPath = pointer(branchesPath, i);
+      if (!isObject(ctx, branch, branchPath)) return;
+      checkConditions(ctx, branch["if"], pointer(branchPath, "if"));
+      checkReference(ctx, branch["goto"], pointer(branchPath, "goto"));
+    });
+  }
+  const setPath = pointer(path, "set");
+  if (set !== undefined && isObject(ctx, set, setPath)) {
+    for (const [name, change] of Object.entries(set)) {
+      const changePath = pointer(setPath, name);
+      if (!isVar(ctx, name, changePath)) continue;
+      if (typeof change !== "object" || change === null) {
+        isVarValue(ctx, change, changePath);
+      } else if (typeof ctx.vars[name] !== "number") {
+        addError(
+          ctx,
+          changePath,
+          "invalid_value",
+          `Only numbers can be added to; "${name}" isn't one.`,
+        );
+      } else if (isObject(ctx, change, changePath)) {
+        isNumber(ctx, change["add"], pointer(changePath, "add"));
+      }
+    }
+  }
+  if (value["if"] !== undefined) checkConditions(ctx, value["if"], pointer(path, "if"));
+}
+
+/** Checks a condition, or a non-empty list of them. */
+function checkConditions(ctx: Context, value: unknown, path: string): void {
+  if (Array.isArray(value)) {
+    if (value.length === 0)
+      addError(ctx, path, "invalid_value", "Expected at least one condition.");
+    value.forEach((condition, i) => {
+      checkCondition(ctx, condition, pointer(path, i));
+    });
+  } else {
+    checkCondition(ctx, value, path);
+  }
+}
+
+const OPERATORS = ["eq", "ne", "gt", "gte", "lt", "lte"] as const;
+
+function checkCondition(ctx: Context, condition: unknown, path: string): void {
+  if (!isObject(ctx, condition, path)) return;
+  isVar(ctx, condition["var"], pointer(path, "var"));
+  const operators = OPERATORS.filter((op) => condition[op] !== undefined);
+  if (operators.length === 0) {
+    addError(ctx, path, "invalid_value", `Expected an operator: ${OPERATORS.join(", ")}.`);
+  }
+  for (const op of operators) {
+    const operandPath = pointer(path, op);
+    if (op === "eq" || op === "ne") isVarValue(ctx, condition[op], operandPath);
+    else isNumber(ctx, condition[op], operandPath);
+  }
+}
+
+/** Checks that `value` names a variable of the story. */
+function isVar(ctx: Context, value: unknown, path: string): value is string {
+  if (!isString(ctx, value, path)) return false;
+  if (Object.hasOwn(ctx.vars, value)) return true;
+  addError(ctx, path, "missing_variable", `Variable "${value}" isn't declared in vars.`);
+  return false;
+}
+
 /** Checks that `value` names a scene of the story. */
 function checkReference(ctx: Context, value: unknown, path: string): void {
   if (isString(ctx, value, path) && ctx.scenes && !Object.hasOwn(ctx.scenes, value)) {
@@ -261,6 +349,18 @@ function isString(ctx: Context, value: unknown, path: string): value is string {
 function isBoolean(ctx: Context, value: unknown, path: string): value is boolean {
   if (typeof value === "boolean") return true;
   addError(ctx, path, "invalid_type", "Expected a boolean.");
+  return false;
+}
+
+function isNumber(ctx: Context, value: unknown, path: string): value is number {
+  if (isFiniteNumber(value)) return true;
+  addError(ctx, path, "invalid_type", "Expected a finite number.");
+  return false;
+}
+
+function isVarValue(ctx: Context, value: unknown, path: string): value is VarValue {
+  if (typeof value === "string" || typeof value === "boolean" || isFiniteNumber(value)) return true;
+  addError(ctx, path, "invalid_type", "Expected a string, boolean or finite number.");
   return false;
 }
 

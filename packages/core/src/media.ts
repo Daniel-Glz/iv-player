@@ -1,6 +1,6 @@
 import { Emitter } from "./emitter.js";
 import type { StoryEngine } from "./engine.js";
-import type { Scene, SceneEvent, SceneId } from "./types.js";
+import type { Branch, Scene, SceneId } from "./types.js";
 
 /** `HTMLMediaElement.HAVE_CURRENT_DATA`: the frame at `currentTime` can be drawn. */
 const HAVE_CURRENT_DATA = 2;
@@ -110,18 +110,19 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
 
     this.cleanups.push(
       engine.on("scene", ({ scene }) => this.enter(scene)),
-      engine.on("interaction", ({ question }) => {
+      engine.on("interaction", ({ question, options }) => {
         this.pauseAt(question.at);
-        const goto = gotoOf(question);
+        const goto = firstTarget(options);
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("resume", () => this.play()),
       engine.on("pause", ({ hotspot }) => {
         this.pauseAt(hotspot.from);
-        if (hotspot.goto !== undefined) this.preload(hotspot.goto);
+        const goto = targetOf(hotspot);
+        if (goto !== undefined) this.preload(goto);
       }),
-      engine.on("hotspot", ({ hotspot }) => {
-        if (hotspot.pause === true && hotspot.goto === undefined) this.play();
+      engine.on("hotspot", ({ hotspot, goto }) => {
+        if (hotspot.pause === true && goto === undefined) this.play();
       }),
     );
   }
@@ -174,7 +175,7 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       }
       this.swapping = false;
       this.play();
-      const next = scene.next ?? firstGoto(scene);
+      const next = scene.branches?.[0]?.goto ?? scene.next ?? firstGoto(scene);
       if (next !== undefined) this.preload(next);
     });
   }
@@ -248,18 +249,28 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
   }
 }
 
-/** First scene a question's options or a hotspot can branch to. */
-function gotoOf(event: SceneEvent): SceneId | undefined {
-  return event.type === "question"
-    ? event.options.find((option) => option.goto !== undefined)?.goto
-    : event.goto;
+interface Target {
+  goto?: SceneId | undefined;
+  branches?: readonly Branch[];
+}
+
+/** Scene `target` likely branches to: its first branch, or else its `goto`. */
+function targetOf(target: Target): SceneId | undefined {
+  return target.branches?.[0]?.goto ?? target.goto;
+}
+
+/** First scene any of `targets` can branch to. */
+function firstTarget(targets: readonly Target[]): SceneId | undefined {
+  for (const target of targets) {
+    const goto = targetOf(target);
+    if (goto !== undefined) return goto;
+  }
+  return undefined;
 }
 
 /** First scene any question option or hotspot of `scene` can branch to. */
 function firstGoto(scene: Scene): SceneId | undefined {
-  for (const event of scene.events ?? []) {
-    const goto = gotoOf(event);
-    if (goto !== undefined) return goto;
-  }
-  return undefined;
+  return firstTarget(
+    (scene.events ?? []).flatMap((event) => (event.type === "question" ? event.options : event)),
+  );
 }

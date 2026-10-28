@@ -1,7 +1,7 @@
 {
   "name": "@ivkit/player",
   "version": "0.1.1",
-  "description": "Interactive video player Web Component: branching stories, questions and clickable animated hotspots. Under 8 KiB gzip, no third-party dependencies.",
+  "description": "Interactive video player Web Component: branching stories, questions and clickable animated hotspots. Under 8.5 KiB gzip, no third-party dependencies.",
   "license": "MIT",
   "author": "Alexis Gonzalez",
   "homepage": "https://daniel-glz.github.io/ivkit/",

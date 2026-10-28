@@ -110,6 +110,6 @@ Core is marked side-effect free, so bundlers only include what you import. Appro
 
 | Import | Size |
 | --- | --- |
-| `StoryEngine` only | ~1 KiB |
-| `validateStory` only | ~1.6 KiB |
-| Everything in core | ~3.8 KiB |
+| `StoryEngine` only | ~1.4 KiB |
+| `validateStory` only | ~2.1 KiB |
+| Everything in core | ~4.7 KiB |
