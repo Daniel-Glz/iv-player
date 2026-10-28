@@ -19,6 +19,7 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | `version` | `string` | Format version, e.g. `"0.1"`. |
 | `start` | `SceneId` | Scene the story starts at. Must be a key of `scenes`. |
 | `scenes` | `Record<SceneId, Scene>` | Every scene, keyed by id. |
+| `vars?` | `Record<string, VarValue>` | [Variables](#variables) and their initial values. Conditions and `set` can only use these. |
 
 `SceneId` is a `string`.
 
@@ -29,6 +30,8 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | `src` | `string` | URL of the scene's video. |
 | `events?` | `SceneEvent[]` | Questions and hotspots, in any order. |
 | `next?` | `SceneId` | Scene to play when the video ends without branching. Without it, the story ends. |
+| `branches?` | `Branch[]` | Checked before `next` when the video ends. The first that holds is played instead. |
+| `set?` | `VarChanges` | Changes variables each time the scene is entered. |
 
 `SceneEvent` is `Question | Hotspot`, discriminated by `type`.
 
@@ -51,6 +54,9 @@ Pauses the video at `at` and asks the viewer to pick one of `options`.
 | `id` | `string` | Unique within its question. |
 | `label` | `string` | Text shown to the viewer. |
 | `goto?` | `SceneId` | Scene to branch to. Without it, the current scene resumes. |
+| `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
+| `set?` | `VarChanges` | Changes variables when the option is picked. |
+| `if?` | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
 
 ## `Hotspot`
 
@@ -64,6 +70,9 @@ A clickable area shown between `from` and `to`. It doesn't pause playback unless
 | `to?` | `number` | Second at which it disappears. Without it, it lasts until the scene ends. |
 | `label` | `string` | Accessible name of the area. |
 | `goto?` | `SceneId` | Scene to branch to when activated. Without it, activation is only reported. |
+| `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
+| `set?` | `VarChanges` | Changes variables when the hotspot is activated. |
+| `if?` | `Conditions` | Shows the hotspot only while this holds. |
 | `pause?` | `boolean` | Pauses the video at `from`, once per visit, until the hotspot is activated or the viewer resumes. Default `false`. |
 | `shape?` | `HotspotShape` | `"rect"` (default), `"ellipse"` or `"polygon"`. |
 | `area?` | `Area` | Bounds of a static `rect` or `ellipse`. |
@@ -99,6 +108,45 @@ A rectangle from its top-left corner, relative to the picture, not the `<video>`
 ```ts
 type Point = readonly [x: number, y: number];
 ```
+
+## Variables
+
+```ts
+type VarValue = number | string | boolean;
+```
+
+Variables are declared in `Story.vars` with their initial value, and reset when the story starts again.
+
+### `VarChanges`
+
+```ts
+type VarChanges = Record<string, VarValue | { add: number }>;
+```
+
+A new value for each variable, or `{ add }` to add to a number. Use a negative `add` to subtract. Only numeric variables can be added to.
+
+### `Condition`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `var` | `string` | Variable to test. |
+| `eq?` | `VarValue` | Equal to. |
+| `ne?` | `VarValue` | Not equal to. |
+| `gt?`, `gte?` | `number` | Greater than, greater than or equal to. |
+| `lt?`, `lte?` | `number` | Less than, less than or equal to. |
+
+Every operator given must hold, so `{ "var": "score", "gte": 1, "lt": 3 }` is a range. A condition needs at least one operator.
+
+`Conditions` is a `Condition` or a list of them, which must all hold.
+
+### `Branch`
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `if` | `Conditions` | When to take the branch. |
+| `goto` | `SceneId` | Scene to branch to. |
+
+In a list of branches, the first that holds wins. For "or", add one branch for each case.
 
 ## JSON example
 

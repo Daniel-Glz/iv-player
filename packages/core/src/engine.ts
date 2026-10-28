@@ -1,5 +1,17 @@
 import { Emitter } from "./emitter.js";
-import type { Choice, Hotspot, Question, Scene, SceneId, Story } from "./types.js";
+import type {
+  Branch,
+  Choice,
+  Conditions,
+  Hotspot,
+  Question,
+  Scene,
+  SceneId,
+  Story,
+  VarChanges,
+  VarValue,
+  Vars,
+} from "./types.js";
 
 /**
  * - `idle`: created, `start()` not called yet.
@@ -12,10 +24,13 @@ export type EngineState = "idle" | "playing" | "interacting" | "ended";
 export interface EngineEvents {
   /** A scene became active: load and play `scene.src` from the beginning. */
   scene: { sceneId: SceneId; scene: Scene };
-  /** Pause the video and show `question`. */
-  interaction: { sceneId: SceneId; question: Question };
-  /** The viewer picked `choice`. Followed by `scene`, `resume` or `end`. */
-  answer: { sceneId: SceneId; question: Question; choice: Choice };
+  /** Pause the video and show `question` with `options`, the ones whose `if` holds. */
+  interaction: { sceneId: SceneId; question: Question; options: readonly Choice[] };
+  /**
+   * The viewer picked `choice`, which branches to `goto`, if defined. Followed by
+   * `scene`, `resume` or `end`.
+   */
+  answer: { sceneId: SceneId; question: Question; choice: Choice; goto: SceneId | undefined };
   /** The answer didn't branch: resume the current video from `time`. */
   resume: { sceneId: SceneId; time: number };
   /** The set of visible hotspots changed: render exactly `hotspots` (possibly none). */
@@ -23,10 +38,12 @@ export interface EngineEvents {
   /** A hotspot with `pause` appeared: pause the video at `hotspot.from`. */
   pause: { sceneId: SceneId; hotspot: Hotspot };
   /**
-   * The viewer activated `hotspot`. Followed by `scene` if it has a `goto`; without
-   * one, a hotspot with `pause` resumes playback.
+   * The viewer activated `hotspot`, which branches to `goto`, if defined. Followed by
+   * `scene` if it branches; if not, a hotspot with `pause` resumes playback.
    */
-  hotspot: { sceneId: SceneId; hotspot: Hotspot };
+  hotspot: { sceneId: SceneId; hotspot: Hotspot; goto: SceneId | undefined };
+  /** Variables changed, through `set` or `setVar()`. */
+  vars: { vars: Readonly<Vars> };
   /** The story finished on `sceneId`. */
   end: { sceneId: SceneId };
 }
@@ -54,6 +71,10 @@ interface Timeline {
  * `pause` emits `pause` the first time it shows in each visit; the engine stays
  * `playing` meanwhile, so it can be activated.
  *
+ * Variables start from `story.vars` and reset on `start()`. A `set` applies before
+ * its `branches` are checked, so they see the new values. Conditions are checked
+ * when needed: hotspots on every update, options when their question shows.
+ *
  * The story is trusted as-is: a reference to a missing scene throws when reached.
  */
 export class StoryEngine extends Emitter<EngineEvents> {
@@ -63,6 +84,9 @@ export class StoryEngine extends Emitter<EngineEvents> {
   /** Questions of the current scene that haven't fired yet, sorted by `at`. */
   private pending: Question[] = [];
   private question: Question | null = null;
+  /** Options of `question` offered to the viewer. */
+  private options: readonly Choice[] = [];
+  private values: Vars;
   private visible: readonly Hotspot[] = [];
   /** Hotspots with `pause` that already paused during this visit. */
   private readonly paused = new Set<Hotspot>();
@@ -74,6 +98,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (!story.scenes[story.start]) {
       throw new Error(`Start scene "${story.start}" does not exist`);
     }
+    this.values = { ...story.vars };
   }
 
   get state(): EngineState {
@@ -94,9 +119,23 @@ export class StoryEngine extends Emitter<EngineEvents> {
     return this.visible;
   }
 
-  /** Enters the start scene. Calling it again restarts the story. */
+  /** Current values of the story's variables. */
+  get vars(): Readonly<Vars> {
+    return this.values;
+  }
+
+  /** Enters the start scene with the initial variables. Calling it again restarts the story. */
   start(): void {
+    this.values = { ...this.story.vars };
     this.enter(this.story.start);
+  }
+
+  /**
+   * Sets the variable `name`, e.g. to restore a saved story before `goTo()`.
+   * Conditions see the new value from then on.
+   */
+  setVar(name: string, value: VarValue): void {
+    this.change({ [name]: value });
   }
 
   /**
@@ -118,7 +157,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
     }
     this.show(
       this.timeline.hotspots.filter(
-        (h) => currentTime >= h.from && (h.to === undefined || currentTime < h.to),
+        (h) =>
+          currentTime >= h.from && (h.to === undefined || currentTime < h.to) && this.test(h.if),
       ),
     );
     const hold = this.visible.find((h) => h.pause === true && !this.paused.has(h));
@@ -142,14 +182,16 @@ export class StoryEngine extends Emitter<EngineEvents> {
   answer(choiceId: string): boolean {
     const { question, sceneId } = this;
     if (this._state !== "interacting" || question === null || sceneId === null) return false;
-    const choice = question.options.find((option) => option.id === choiceId);
+    const choice = this.options.find((option) => option.id === choiceId);
     if (!choice) return false;
 
     this.question = null;
     this._state = "playing";
-    this.emit("answer", { sceneId, question, choice });
+    this.change(choice.set);
+    const goto = this.branch(choice.branches, choice.goto);
+    this.emit("answer", { sceneId, question, choice, goto });
 
-    if (choice.goto !== undefined) this.enter(choice.goto);
+    if (goto !== undefined) this.enter(goto);
     else if (this.hasMediaEnded) this.leaveScene();
     else this.emit("resume", { sceneId, time: question.at });
     return true;
@@ -165,8 +207,10 @@ export class StoryEngine extends Emitter<EngineEvents> {
     const hotspot = this.visible.find((h) => h.id === hotspotId);
     if (!hotspot) return false;
 
-    this.emit("hotspot", { sceneId, hotspot });
-    if (hotspot.goto !== undefined) this.enter(hotspot.goto);
+    this.change(hotspot.set);
+    const goto = this.branch(hotspot.branches, hotspot.goto);
+    this.emit("hotspot", { sceneId, hotspot, goto });
+    if (goto !== undefined) this.enter(goto);
     return true;
   }
 
@@ -181,16 +225,23 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.question = null;
     this.hasMediaEnded = false;
     this._state = "playing";
+    this.change(scene.set);
     this.emit("scene", { sceneId, scene });
   }
 
   private ask(): void {
     const question = this.pending.shift();
     if (question === undefined || this.sceneId === null) return;
+    const options = question.options.filter((option) => this.test(option.if));
+    if (options.length === 0) {
+      if (this.hasMediaEnded) this.leaveScene();
+      return;
+    }
     this.show([]);
     this.question = question;
+    this.options = options;
     this._state = "interacting";
-    this.emit("interaction", { sceneId: this.sceneId, question });
+    this.emit("interaction", { sceneId: this.sceneId, question, options });
   }
 
   /** Called once the video has ended: asks any questions still pending, then moves on. */
@@ -202,7 +253,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
     }
     const sceneId = this.sceneId;
     if (sceneId === null) return;
-    const next = this.story.scenes[sceneId]?.next;
+    const scene = this.story.scenes[sceneId];
+    const next = scene && this.branch(scene.branches, scene.next);
     if (next !== undefined) {
       this.enter(next);
     } else {
@@ -210,6 +262,40 @@ export class StoryEngine extends Emitter<EngineEvents> {
       this._state = "ended";
       this.emit("end", { sceneId });
     }
+  }
+
+  /** The first of `branches` that holds, or else `fallback`. */
+  private branch(
+    branches: readonly Branch[] | undefined,
+    fallback: SceneId | undefined,
+  ): SceneId | undefined {
+    return branches?.find((branch) => this.test(branch.if))?.goto ?? fallback;
+  }
+
+  /** Applies `changes`, emitting `vars` if there are any. */
+  private change(changes: VarChanges | undefined): void {
+    if (changes === undefined) return;
+    for (const [name, value] of Object.entries(changes)) {
+      this.values[name] =
+        typeof value === "object" ? ((this.values[name] as number) ?? 0) + value.add : value;
+    }
+    this.emit("vars", { vars: this.values });
+  }
+
+  /** Whether every condition holds; `undefined` always does. */
+  private test(conditions: Conditions | undefined): boolean {
+    return [conditions ?? []].flat().every((c) => {
+      // Ordering works as in JS, so a missing variable is neither greater nor less than a number.
+      const value = this.values[c.var] as number;
+      return (
+        (c.eq === undefined || value === c.eq) &&
+        (c.ne === undefined || value !== c.ne) &&
+        (c.gt === undefined || value > c.gt) &&
+        (c.gte === undefined || value >= c.gte) &&
+        (c.lt === undefined || value < c.lt) &&
+        (c.lte === undefined || value <= c.lte)
+      );
+    });
   }
 
   /** Sets the visible hotspots, emitting `hotspots` only if the set changed. */

@@ -123,6 +123,36 @@ describe("<ivkit-player>", () => {
     expect(root.activeElement).toBe(options[0]);
   });
 
+  it("shows only the options whose if holds", () => {
+    const { player, $$ } = mount();
+    player.story = {
+      version: "0.1",
+      start: "s",
+      vars: { key: false },
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              options: [
+                { id: "a", label: "A" },
+                { id: "b", label: "B", if: { var: "key", eq: true } },
+              ],
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+
+    expect($$("[part=option]").map((b) => b.textContent)).toEqual(["A"]);
+  });
+
   it("answers on click, hides the question and dispatches iv-answer", () => {
     const { player, $, $$ } = playing();
     const onAnswer = vi.fn();

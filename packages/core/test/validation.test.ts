@@ -208,3 +208,112 @@ describe("validateStory", () => {
     errorsOf(input);
   });
 });
+
+describe("validateStory variables", () => {
+  const withLogic = (logic: Record<string, unknown>, vars: unknown = { score: 0, name: "" }) => ({
+    version: "0.1",
+    start: "intro",
+    vars,
+    scenes: { intro: { src: "intro.mp4", ...logic }, end: { src: "end.mp4" } },
+  });
+
+  it("accepts vars, set, if and branches everywhere they're allowed", () => {
+    const result = validateStory({
+      version: "0.1",
+      start: "intro",
+      vars: { score: 0, key: false, name: "Ana" },
+      scenes: {
+        intro: {
+          src: "intro.mp4",
+          set: { score: 0 },
+          branches: [{ if: [{ var: "score", gte: 1, lt: 3 }], goto: "end" }],
+          events: [
+            {
+              ...question,
+              options: [
+                {
+                  id: "a",
+                  label: "A",
+                  if: { var: "key", ne: true },
+                  set: { score: { add: -1 }, name: "Bea" },
+                  branches: [{ if: { var: "name", eq: "Bea" }, goto: "end" }],
+                },
+              ],
+            },
+            { ...hotspot, if: { var: "score", gt: 0 }, set: { key: true } },
+          ],
+        },
+        end: { src: "end.mp4" },
+      },
+    });
+    expect(result.errors).toEqual([]);
+  });
+
+  it.each([null, [], { n: null }, { n: Number.NaN }, { n: {} }])(
+    "rejects malformed vars %j",
+    (vars) => {
+      expect(errorsOf(withLogic({}, vars)).map((e) => e.path)[0]).toMatch(/^\/vars/);
+    },
+  );
+
+  it("reports undeclared variables in conditions and changes", () => {
+    const errors = errorsOf(
+      withLogic({
+        set: { typo: 1 },
+        branches: [{ if: { var: "scroe", gte: 1 }, goto: "end" }],
+      }),
+    );
+    expect(errors).toEqual([
+      expect.objectContaining({
+        path: "/scenes/intro/branches/0/if/var",
+        code: "missing_variable",
+      }),
+      expect.objectContaining({ path: "/scenes/intro/set/typo", code: "missing_variable" }),
+    ]);
+  });
+
+  it("checks branches, operators and operands", () => {
+    const errors = errorsOf(
+      withLogic({
+        branches: [
+          { if: { var: "score" }, goto: "end" },
+          { if: [], goto: "nowhere" },
+          { if: { var: "score", gt: "1", eq: [] } },
+          "end",
+        ],
+      }),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/branches/0/if", "invalid_value"],
+      ["/scenes/intro/branches/1/if", "invalid_value"],
+      ["/scenes/intro/branches/1/goto", "missing_scene"],
+      ["/scenes/intro/branches/2/if/eq", "invalid_type"],
+      ["/scenes/intro/branches/2/if/gt", "invalid_type"],
+      ["/scenes/intro/branches/2/goto", "invalid_value"],
+      ["/scenes/intro/branches/3", "invalid_type"],
+    ]);
+  });
+
+  it("only adds to numeric variables, and only numbers", () => {
+    const errors = errorsOf(
+      withLogic({ set: { name: { add: 1 }, score: { add: "1" } }, if: { var: "score", eq: 1 } }),
+    );
+    expect(errors.map((e) => e.path)).toEqual([
+      "/scenes/intro/set/name",
+      "/scenes/intro/set/score/add",
+    ]);
+  });
+
+  it("checks set and if on choices and hotspots", () => {
+    const errors = errorsOf(
+      storyWith(
+        { ...question, options: [{ id: "a", label: "A", set: [] }] },
+        { ...hotspot, if: { var: "x", eq: 1 } },
+      ),
+    );
+    expect(errors.map((e) => [e.path, e.code])).toEqual([
+      ["/scenes/intro/events/0/options/0/set", "invalid_type"],
+      ["/scenes/intro/events/1/if/var", "missing_variable"],
+    ]);
+  });
+});

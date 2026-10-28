@@ -54,10 +54,12 @@ The library is meant to stay small, so `pnpm check:size` fails when a build grow
 
 | Build | Gzip budget |
 | --- | --- |
-| Standalone player, including core and CSS | 8 KiB |
-| All of core | 4 KiB |
+| Standalone player, including core and CSS | 8.5 KiB |
+| All of core | 5 KiB |
 | `StoryEngine` only | 1.5 KiB |
-| `validateStory` only | 2 KiB |
+| `validateStory` only | 2.25 KiB |
+
+The player, core and validation budgets grew by 0.5, 1 and 0.25 KiB for variables and conditions, which are part of the story format and so belong in core rather than in a plugin.
 
 It also checks that validation isn't bundled into the player, and that neither package gains a runtime dependency. If a change needs a bigger budget, explain why in the pull request.
 

@@ -86,9 +86,62 @@ scenes: {
 }
 ```
 
+## Variables and conditions
+
+Declare variables with their initial values in `vars`. Choices, hotspots and scenes change them with `set`, and pick where to go with `branches`: the first branch whose `if` holds wins, and without one the story falls back to `goto` or `next`.
+
+This quiz keeps a score and sends the viewer to a different ending depending on it:
+
+```ts
+const story: Story = {
+  version: "0.1",
+  start: "q1",
+  vars: { score: 0 },
+  scenes: {
+    q1: {
+      src: "/videos/q1.mp4",
+      next: "q2",
+      events: [
+        {
+          type: "question",
+          id: "q1",
+          at: 8,
+          text: "What is 2 + 2?",
+          options: [
+            { id: "four", label: "4", set: { score: { add: 1 } } },
+            { id: "five", label: "5" },
+          ],
+        },
+      ],
+    },
+    q2: {
+      src: "/videos/q2.mp4",
+      branches: [{ if: { var: "score", gte: 1 }, goto: "passed" }],
+      next: "failed",
+      // ...
+    },
+    passed: { src: "/videos/passed.mp4" },
+    failed: { src: "/videos/failed.mp4" },
+  },
+};
+```
+
+- `set` gives a variable a new value, or adds to a number with `{ add: n }`. Use a negative `n` to subtract.
+- A condition tests one variable with `eq`, `ne`, `gt`, `gte`, `lt` or `lte`. Every operator in it must hold, so `{ var: "score", gte: 1, lt: 3 }` is a range. `if` also takes a list of conditions that must all hold. For "or", add one branch for each case.
+- A choice's `set` applies before its `branches` are checked, so they see the new score.
+- A scene's `set` applies each time the scene is entered. Use it to count visits or mark a path as seen: `set: { "saw-forest": true }`.
+
+`if` on a choice offers it only while it holds, and on a hotspot shows it only while it holds. If none of a question's options hold, the question is skipped:
+
+```ts
+{ id: "unlock", label: "Use the key", if: { var: "key", eq: true }, goto: "vault" }
+```
+
+Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen.
+
 ## Jumping from code
 
-`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: branching on a score, resuming where the viewer left off, chapter menus or a "back" button.
+`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button.
 
 ```ts
 const player = document.querySelector("ivkit-player")!;
@@ -101,15 +154,9 @@ player.addEventListener("iv-scene", (event) => {
 });
 if (saved && saved in story.scenes) player.goTo(saved);
 
-// Branch on the score once the quiz is over.
-let score = 0;
-player.addEventListener("iv-answer", (event) => {
-  if (event.detail.choice.id === "four") score++;
-});
-player.addEventListener("iv-end", () => {
-  player.goTo(score >= 3 ? "passed" : "failed");
-});
 ```
+
+To resume with the variables too, save `player.engine.vars` and restore each one with `engine.setVar(name, value)` before calling `goTo()`.
 
 Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-void) instead.
 

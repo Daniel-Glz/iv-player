@@ -229,6 +229,49 @@ describe.each([
     expect(b.playing).toBe(true);
   });
 
+  it("resumes a pausing hotspot only when none of its branches holds", () => {
+    const engine = new StoryEngine({
+      version: "0.1",
+      start: "s",
+      vars: { open: false },
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "hotspot",
+              id: "h",
+              from: 1,
+              area,
+              label: "H",
+              pause: true,
+              branches: [{ if: { var: "open", eq: true }, goto: "t" }],
+            },
+          ],
+        },
+        t: { src: "t.mp4" },
+      },
+    });
+    const a = new FakeMedia("a", options);
+    const b = new FakeMedia("b", options);
+    new MediaController(engine, [a, b]);
+    engine.start();
+    b.finishLoading();
+    b.advanceTo(1.2);
+    // The first branch is preloaded as the likely one.
+    expect(a.src).toBe("t.mp4");
+
+    engine.activate("h");
+    expect(b.playing).toBe(true);
+
+    engine.goTo("s");
+    b.advanceTo(1.2);
+    engine.setVar("open", true);
+    engine.activate("h");
+    expect(engine.currentSceneId).toBe("t");
+    expect(b.playing).toBe(false);
+  });
+
   it("swaps instantly to a preloaded branch", () => {
     const { engine, a, b, swaps } = started(options);
     a.finishLoading();

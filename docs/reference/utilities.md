@@ -17,7 +17,13 @@ type StoryValidationResult =
 
 interface StoryValidationError {
   path: string; // JSON Pointer, "" for the root
-  code: "invalid_type" | "invalid_value" | "duplicate_id" | "missing_scene" | "missing_geometry";
+  code:
+    | "invalid_type"
+    | "invalid_value"
+    | "duplicate_id"
+    | "missing_scene"
+    | "missing_geometry"
+    | "missing_variable";
   message: string;
 }
 ```

@@ -40,16 +40,21 @@ type EngineState = "idle" | "playing" | "interacting" | "ended";
 | `currentSceneId` | `SceneId \| null` | Read-only. `null` before `start()`. |
 | `activeQuestion` | `Question \| null` | Read-only. The question waiting for an answer. |
 | `visibleHotspots` | `readonly Hotspot[]` | Read-only. Hotspots currently on screen. |
+| `vars` | `Readonly<Vars>` | Read-only. Current values of the story's [variables](/reference/story-format#variables). |
 
 ## Methods
 
 ### `start(): void`
 
-Enters the start scene. Calling it again restarts the story.
+Enters the start scene with the initial variables. Calling it again restarts the story.
 
 ### `goTo(sceneId: SceneId): void`
 
 Enters `sceneId` from any state, dismissing the question on screen, if any. Works before `start()` too, e.g. to resume a saved story. Throws if the scene doesn't exist.
+
+### `setVar(name: string, value: VarValue): void`
+
+Sets the variable `name` and emits `vars`. Conditions see the new value from then on. Use it to restore a saved story before `goTo()`.
 
 ### `update(currentTime: number): void`
 
@@ -57,15 +62,15 @@ Reports the playback time, in seconds, of the active scene's video. Call it on e
 
 ### `mediaEnded(): void`
 
-Reports that the active scene's video reached its end. Asks any questions still pending, then moves to `next` or ends the story.
+Reports that the active scene's video reached its end. Asks any questions still pending, then moves to the first of the scene's `branches` that holds, or to `next`, or ends the story.
 
 ### `answer(choiceId: string): boolean`
 
-Answers the active question. Returns `false`, and does nothing, if no question is active or the option doesn't exist.
+Answers the active question. Returns `false`, and does nothing, if no question is active or the option doesn't exist or isn't offered because its `if` doesn't hold.
 
 ### `activate(hotspotId: string): boolean`
 
-Activates a visible hotspot, branching if it has a `goto`. Returns `false`, and does nothing, if no such hotspot is on screen.
+Activates a visible hotspot, applying its `set` and branching to the first of its `branches` that holds, or to its `goto`. Returns `false`, and does nothing, if no such hotspot is on screen.
 
 ### `on(event, listener): () => void`
 
@@ -85,12 +90,13 @@ off();
 | Event | Payload | What to do |
 | --- | --- | --- |
 | `scene` | `{ sceneId, scene }` | Load and play `scene.src` from the beginning. |
-| `interaction` | `{ sceneId, question }` | Pause the video and show `question`. |
-| `answer` | `{ sceneId, question, choice }` | Hide the question. Followed by `scene`, `resume` or `end`. |
+| `interaction` | `{ sceneId, question, options }` | Pause the video and show `question` with `options`, the ones whose `if` holds. |
+| `answer` | `{ sceneId, question, choice, goto }` | Hide the question. `goto` is the scene it branches to, if any. Followed by `scene`, `resume` or `end`. |
 | `resume` | `{ sceneId, time }` | The answer didn't branch: resume the current video from `time`. |
 | `hotspots` | `{ sceneId, hotspots }` | Render exactly `hotspots`, possibly none. Only fires when the set changes. |
 | `pause` | `{ sceneId, hotspot }` | A hotspot with `pause` appeared: pause the video at `hotspot.from`. |
-| `hotspot` | `{ sceneId, hotspot }` | The viewer activated `hotspot`. Followed by `scene` if it has a `goto`. Without one, resume playback if it has `pause`. |
+| `hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated `hotspot`. `goto` is the scene it branches to, if any. Followed by `scene` if it branches. If not, resume playback if it has `pause`. |
+| `vars` | `{ vars }` | Variables changed, through `set` or `setVar()`. Emitted before the `answer`, `hotspot` or `scene` event that caused it. |
 | `end` | `{ sceneId }` | The story finished on `sceneId`. |
 
 The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answer"]`, and so on.
@@ -102,3 +108,4 @@ The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answe
 - Hotspots are visible while `from <= currentTime < to`, recomputed on every update, so they stay correct after seeking in either direction.
 - Hotspots hide while a question is showing and when leaving the scene.
 - A hotspot with `pause` emits `pause` the first time it shows in each visit, not when a seek skips it entirely. The engine stays `playing`, so the hotspot can be activated.
+- A hotspot's `if` is checked on every update, so it appears or hides as soon as variables change. An option's `if` is checked when its question shows, and a question with no options left is skipped.
