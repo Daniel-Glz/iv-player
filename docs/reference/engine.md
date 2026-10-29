@@ -120,6 +120,8 @@ off();
 
 The payload types are available as `EngineEvents["scene"]`, `EngineEvents["answer"]`, and so on.
 
+Listeners may call the engine back. If one moves the story, with `goTo()`, `start()` or `seek()`, that wins: the engine doesn't go on with what it was doing. For example, an `answer` listener that calls `goTo("menu")` goes to `menu` instead of the option's `goto` or the `resume` after the question. A listener that throws doesn't stop the other listeners or the engine. Its error is still reported, like an error in a DOM event listener.
+
 ## Timing rules
 
 - Each question fires once per visit to its scene, as soon as playback reaches its `at`. Re-entering a scene re-arms its questions; `goTo()` with a time re-arms only those at or after it.

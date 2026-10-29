@@ -113,7 +113,8 @@ interface Timeline {
  */
 export class StoryEngine extends Emitter<EngineEvents> {
   #state: EngineState = "idle";
-  #sceneId: SceneId | null = null;
+  /** Scene entered last; empty until the first one, while `idle`. */
+  #sceneId: SceneId = "";
   #timeline: Timeline = { questions: [], hotspots: [], cues: [] };
   /** Questions of the current scene that haven't fired yet, sorted by `at`. */
   #pending: Question[] = [];
@@ -131,6 +132,11 @@ export class StoryEngine extends Emitter<EngineEvents> {
   #deadline = 0;
   /** Milliseconds the timeout had left when paused with `pauseTimeout()`, or `null`. */
   #left: number | null = null;
+  /**
+   * Counts the times the story moved: scenes entered and seeks. Code that emits and then
+   * goes on checks it, so if a listener moved the story, e.g. with `goTo()`, that wins.
+   */
+  #moves = 0;
   readonly #timelines = new Map<SceneId, Timeline>();
 
   constructor(readonly story: Story) {
@@ -146,7 +152,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
   }
 
   get currentSceneId(): SceneId | null {
-    return this.#sceneId;
+    return this.#state === "idle" ? null : this.#sceneId;
   }
 
   /** Question waiting for an answer, if any. */
@@ -199,7 +205,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
    */
   seek(time: number): boolean {
     const sceneId = this.#sceneId;
-    if (this.#state !== "playing" || sceneId === null) return false;
+    if (this.#state !== "playing") return false;
+    this.#moves++;
     this.#pending = this.#timeline.questions.filter((question) => question.at >= time);
     for (const hotspot of this.#paused) if (hotspot.from >= time) this.#paused.delete(hotspot);
     this.#hasMediaEnded = false;
@@ -214,7 +221,8 @@ export class StoryEngine extends Emitter<EngineEvents> {
   pauseTimeout(): void {
     if (this.#question?.timeout === undefined || this.#left !== null) return;
     clearTimeout(this.#timer);
-    this.#left = Math.max(this.#deadline - Date.now(), 0);
+    // Possibly negative if it was about to run out; `setTimeout` takes that as 0.
+    this.#left = this.#deadline - Date.now();
   }
 
   /** Goes on counting a timeout stopped with `pauseTimeout()`. */
@@ -234,20 +242,23 @@ export class StoryEngine extends Emitter<EngineEvents> {
   /** Reports the current playback time (seconds) of the active scene's video. */
   update(currentTime: number): void {
     if (this.#state !== "playing") return;
+    const moves = this.#moves;
     const within = <T extends Hotspot | Cue>(events: readonly T[]) =>
       events.filter(
         (e) =>
           currentTime >= e.from && (e.to === undefined || currentTime < e.to) && this.#test(e.if),
       );
     this.#show("cues", within(this.#timeline.cues));
+    if (moves !== this.#moves) return;
     const next = this.#pending[0];
     if (next !== undefined && currentTime >= next.at) {
       this.#ask();
       return;
     }
     this.#show("hotspots", within(this.#timeline.hotspots));
+    if (moves !== this.#moves) return;
     const hold = this.#shown.hotspots.find((h) => h.pause === true && !this.#paused.has(h));
-    if (hold !== undefined && this.#sceneId !== null) {
+    if (hold !== undefined) {
       this.#paused.add(hold);
       this.emit("pause", { sceneId: this.#sceneId, hotspot: hold });
     }
@@ -270,7 +281,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     const question = this.#question;
     const sceneId = this.#sceneId;
     const options = this.#options;
-    if (this.#state !== "interacting" || question === null || sceneId === null) return false;
+    if (this.#state !== "interacting" || question === null) return false;
     const ids = [choiceIds].flat();
     const choices = options.filter((option) => ids.includes(option.id));
     const [min, max] = answerRange(question, options.length);
@@ -278,8 +289,10 @@ export class StoryEngine extends Emitter<EngineEvents> {
     if (!choice || choices.length !== ids.length || ids.length < min || ids.length > max)
       return false;
 
+    const moves = this.#moves;
     this.#dismiss();
     for (const { set } of choices) this.#change(set);
+    if (moves !== this.#moves) return true;
     // The option decides first; the question only if the option neither branches nor seeks.
     let goto = this.#branch(choice.branches, choice.goto);
     let seek = choice.seek;
@@ -292,7 +305,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
       ? options.every((option) => !option.correct === !choices.includes(option))
       : undefined;
     this.emit("answer", { sceneId, question, choice, choices, correct, goto });
-    this.#go(sceneId, question, goto, seek);
+    if (moves === this.#moves) this.#go(sceneId, question.at, goto, seek);
     return true;
   }
 
@@ -302,13 +315,16 @@ export class StoryEngine extends Emitter<EngineEvents> {
    */
   activate(hotspotId: string): boolean {
     const sceneId = this.#sceneId;
-    if (this.#state !== "playing" || sceneId === null) return false;
+    if (this.#state !== "playing") return false;
     const hotspot = this.#shown.hotspots.find((h) => h.id === hotspotId);
     if (!hotspot) return false;
 
+    const moves = this.#moves;
     this.#change(hotspot.set);
+    if (moves !== this.#moves) return true;
     const goto = this.#branch(hotspot.branches, hotspot.goto);
     this.emit("hotspot", { sceneId, hotspot, goto });
+    if (moves !== this.#moves) return true;
     if (goto !== undefined) this.#enter(goto);
     else if (hotspot.seek !== undefined) this.seek(hotspot.seek);
     return true;
@@ -317,8 +333,10 @@ export class StoryEngine extends Emitter<EngineEvents> {
   #enter(sceneId: SceneId, time = 0): void {
     const scene = this.story.scenes[sceneId];
     if (!scene) throw new Error(`Scene "${sceneId}" does not exist`);
+    const moves = ++this.#moves;
     this.#show("hotspots", []);
     this.#show("cues", []);
+    if (moves !== this.#moves) return;
     this.#sceneId = sceneId;
     this.#timeline = this.#timelineOf(sceneId, scene);
     this.#pending = this.#timeline.questions.filter((question) => question.at >= time);
@@ -326,18 +344,20 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.#dismiss();
     this.#hasMediaEnded = false;
     this.#change(scene.set);
-    this.emit("scene", { sceneId, scene, time });
+    if (moves === this.#moves) this.emit("scene", { sceneId, scene, time });
   }
 
   #ask(): void {
     const question = this.#pending.shift();
-    if (question === undefined || this.#sceneId === null) return;
+    if (question === undefined) return;
     const options = question.options.filter((option) => this.#test(option.if));
     if (options.length === 0) {
       if (this.#hasMediaEnded) this.#leaveScene();
       return;
     }
+    const moves = this.#moves;
     this.#show("hotspots", []);
+    if (moves !== this.#moves) return;
     this.#question = question;
     this.#options = options;
     this.#state = "interacting";
@@ -345,15 +365,19 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.emit("interaction", { sceneId: this.#sceneId, question, options });
   }
 
-  /** Answers the question on screen with its `default`, or else lets the question decide. */
+  /**
+   * Answers the question on screen with its `default`, or else lets the question decide.
+   * Only its timer calls it, which is cleared whenever the question goes.
+   */
   #expire(): void {
-    const question = this.#question;
+    const question = this.#question!;
     const sceneId = this.#sceneId;
-    if (question === null || sceneId === null) return;
+    const moves = this.#moves;
     this.emit("timeout", { sceneId, question });
+    if (moves !== this.#moves) return;
     if (question.default !== undefined && this.answer(question.default)) return;
     this.#dismiss();
-    this.#go(sceneId, question, this.#branch(question.branches, question.goto), question.seek);
+    this.#go(sceneId, question.at, this.#branch(question.branches, question.goto), question.seek);
   }
 
   /** Answers the question on screen once `ms` milliseconds have passed. */
@@ -370,17 +394,12 @@ export class StoryEngine extends Emitter<EngineEvents> {
     this.#state = "playing";
   }
 
-  /** Moves on after `question`: to `goto`, to `seek`, or past it. */
-  #go(
-    sceneId: SceneId,
-    question: Question,
-    goto: SceneId | undefined,
-    seek: number | undefined,
-  ): void {
+  /** Moves on after the question at `at`: to `goto`, to `seek`, or past it. */
+  #go(sceneId: SceneId, at: number, goto: SceneId | undefined, seek: number | undefined): void {
     if (goto !== undefined) this.#enter(goto);
     else if (seek !== undefined) this.seek(seek);
     else if (this.#hasMediaEnded) this.#leaveScene();
-    else this.emit("resume", { sceneId, time: question.at });
+    else this.emit("resume", { sceneId, time: at });
   }
 
   /** Called once the video has ended: asks any questions still pending, then moves on. */
@@ -391,14 +410,15 @@ export class StoryEngine extends Emitter<EngineEvents> {
       return;
     }
     const sceneId = this.#sceneId;
-    if (sceneId === null) return;
-    const scene = this.story.scenes[sceneId];
-    const next = scene && this.#branch(scene.branches, scene.next);
+    const scene = this.story.scenes[sceneId]!;
+    const next = this.#branch(scene.branches, scene.next);
     if (next !== undefined) {
       this.#enter(next);
     } else {
+      const moves = this.#moves;
       this.#show("hotspots", []);
       this.#show("cues", []);
+      if (moves !== this.#moves) return;
       this.#state = "ended";
       this.emit("end", { sceneId });
     }
@@ -443,7 +463,7 @@ export class StoryEngine extends Emitter<EngineEvents> {
     const current: readonly unknown[] = this.#shown[type];
     const unchanged =
       items.length === current.length && items.every((item, i) => item === current[i]);
-    if (unchanged || this.#sceneId === null) return;
+    if (unchanged) return;
     this.#shown[type] = items;
     this.emit(type, { sceneId: this.#sceneId, [type]: items } as unknown as EngineEvents[K]);
   }

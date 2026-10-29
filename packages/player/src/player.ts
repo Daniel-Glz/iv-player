@@ -477,7 +477,10 @@ export class IvkitPlayer extends Base {
     this.#updateControlsVisibility();
   }
 
-  /** Runs `plugin` for the current story, if any, in a new layer. */
+  /**
+   * Runs `plugin` for the current story, if any, in a new layer. A plugin that throws,
+   * running or cleaning up, has its error reported without stopping the player.
+   */
   #run(plugin: PlayerPlugin): void {
     const engine = this.#engine;
     const media = this.#controller;
@@ -486,18 +489,27 @@ export class IvkitPlayer extends Base {
     layer.setAttribute("part", "plugin");
     this.#layers.append(layer);
     const offs: (() => void)[] = [];
-    const cleanup = plugin({
-      player: this,
-      engine,
-      media,
-      layer,
-      on: (type, listener) => {
-        offs.push(engine.on(type, listener));
-      },
-    });
+    let cleanup: ReturnType<PlayerPlugin>;
+    try {
+      cleanup = plugin({
+        player: this,
+        engine,
+        media,
+        layer,
+        on: (type, listener) => {
+          offs.push(engine.on(type, listener));
+        },
+      });
+    } catch (error) {
+      report(error);
+    }
     this.#plugins.set(plugin, () => {
       for (const off of offs) off();
-      cleanup?.();
+      try {
+        cleanup?.();
+      } catch (error) {
+        report(error);
+      }
       layer.remove();
     });
   }
@@ -594,4 +606,11 @@ export class IvkitPlayer extends Base {
 function buttonOf(event: Event): HTMLElement | null {
   const target = event.target;
   return target instanceof Element ? target.closest<HTMLElement>("button[data-id]") : null;
+}
+
+/** Reports `error` without stopping the caller, like an error in an event listener. */
+function report(error: unknown): void {
+  queueMicrotask(() => {
+    throw error;
+  });
 }

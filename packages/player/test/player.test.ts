@@ -635,6 +635,42 @@ describe("<ivkit-player> plugins", () => {
     expect(plugin).toHaveBeenCalledTimes(1);
   });
 
+  it("reports a plugin that throws, and still runs the story and the plugins after it", () => {
+    const reported: unknown[] = [];
+    vi.stubGlobal("queueMicrotask", (callback: () => void) => {
+      try {
+        callback();
+      } catch (error) {
+        reported.push(error);
+      }
+    });
+    const { player, root, $ } = mount();
+    const broken = new Error("broken");
+    const after = vi.fn();
+    player.use(({ on }) => {
+      on("scene", after);
+      throw broken;
+    });
+    player.use(() => () => {
+      throw broken;
+    });
+    player.use(after);
+    player.story = story;
+
+    expect(reported).toEqual([broken]);
+    expect(after).toHaveBeenCalledTimes(1);
+    expect($("[part=start]").hidden).toBe(false);
+
+    player.story = null;
+    expect(reported).toEqual([broken, broken]);
+    expect(root.querySelectorAll("[part=plugin]")).toHaveLength(0);
+    // What the broken plugin set up before throwing keeps working.
+    player.story = story;
+    player.play();
+    expect(after).toHaveBeenCalledTimes(3);
+    vi.unstubAllGlobals();
+  });
+
   it("runs plugins in order, after the player handles each event", () => {
     const { player, $ } = mount();
     const order: string[] = [];

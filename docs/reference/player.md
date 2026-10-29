@@ -130,6 +130,7 @@ Rules:
 - The cleanup runs, and the layer goes away, when another story is set (also `null`) or the plugin is removed.
 - `use()` runs the plugin at once if a story is already set. It may have missed events by then, so read the engine's state, such as `activeCues` or `currentSceneId`.
 - Adding the same plugin twice does nothing.
+- A plugin that throws, when it runs, in a listener or in its cleanup, doesn't stop the player or the other plugins. Its error is still reported, like an error in a DOM event listener.
 
 ```ts
 import type { PlayerPlugin } from "@ivkit/player";

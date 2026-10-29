@@ -41,6 +41,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: `MediaController` emits `blocked` only when the autoplay policy rejects `play()` (a `NotAllowedError`). A `play()` interrupted by a pause or a new source no longer shows the player's Play button over a scene that's playing.
 - `@ivkit/core`: `MediaController.play()` does nothing while the next scene loads, so the previous scene can't play, heard but hidden, behind it.
 - `@ivkit/player`: setting `story` to one whose `start` isn't a scene throws without resetting the player, instead of leaving it half reset.
+- `@ivkit/core`: a listener that moves the story, with `goTo()`, `start()` or `seek()`, wins over what the engine was doing. Before, a `goTo()` from an `answer`, `hotspot` or `timeout` listener was overridden by the answer's own branch or followed by a stale `resume`.
+- `@ivkit/core`: a listener that throws no longer stops the other listeners or leaves the engine halfway through a transition. Its error is still reported.
+- `@ivkit/player`: a plugin that throws, when it runs or cleans up, no longer stops the player or the plugins after it.
 
 ## [0.1.1] - 2026-10-27
 
