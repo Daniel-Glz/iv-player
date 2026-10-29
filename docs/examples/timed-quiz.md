@@ -6,7 +6,7 @@ description: "Live example: a timed video quiz with a score kept in story variab
 import { timedQuiz } from "./stories/timed-quiz";
 </script>
 
-# Timed quiz with a score <Unreleased />
+# Timed quiz with a score
 
 Two questions on the Artemis I launch, each with a countdown. The score lives in the story's variables, and the story uses it to decide whether to start over:
 

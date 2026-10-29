@@ -83,8 +83,6 @@ engine.on("scene", hideQuestion);
 engine.start();
 ```
 
-<Unreleased /> The `timeout` event and `goTo()` are new since 0.1.1. With 0.1.1, leave out the `timeout` listener.
-
 Keep both videos rendered, stacked on top of each other, and switch them with `opacity` rather than `display: none`: browsers don't decode the first frame of a video that isn't rendered, which brings back the black frame.
 
 ## Drawing hotspots

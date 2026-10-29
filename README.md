@@ -33,7 +33,7 @@ IVKit works with its ready-made player or without it. Both read the same [story 
 This page plays a video that stops at second 4 and asks where to go, using the example videos of the documentation. It loads the player from a CDN, so it needs no build step:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.2/dist/ivkit-player.min.js"></script>
 
 <ivkit-player id="player" controls></ivkit-player>
 

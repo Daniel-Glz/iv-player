@@ -63,19 +63,19 @@ ivkit-player::part(option) {
 | --- | --- |
 | `stage` | Wrapper of everything inside the player. |
 | `video` | Both stacked `<video>` elements. |
-| `question`, `question-text`, `options`, `option` | Question overlay, its text, the options group and each option button. In a `multiple` question <Unreleased />, options are toggle buttons, and the picked ones are also `option-picked`. |
-| `timer` <Unreleased /> | Countdown bar of a question with `timeout`. The bar inside shrinks with a CSS animation. |
-| `submit` <Unreleased /> | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
+| `question`, `question-text`, `options`, `option` | Question overlay, its text, the options group and each option button. In a `multiple` question, options are toggle buttons, and the picked ones are also `option-picked`. |
+| `timer` | Countdown bar of a question with `timeout`. The bar inside shrinks with a CSS animation. |
+| `submit` | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
 | `start`, `start-button` | Start screen and its Play button. |
 | `end`, `replay-button` | End screen and its default Replay button. |
-| `error`, `error-text`, `retry-button` <Unreleased /> | Error screen, shown when a scene's video fails, with its default message and "Try again" button. |
+| `error`, `error-text`, `retry-button` | Error screen, shown when a scene's video fails, with its default message and "Try again" button. |
 | `controls` | The control bar. |
 | `control` | Every control button. Also `play-button`, `mute-button` and `fullscreen-button`. |
 | `progress`, `time`, `volume` | Seek slider, time display and volume slider. |
 | `hotspots` | Layer holding the hotspots. |
 | `hotspot`, `hotspot-<variant>` | Each hotspot button. |
 | `hotspot-shape`, `hotspot-label` | The SVG shape and the label inside each hotspot. |
-| `plugins`, `plugin` <Unreleased /> | Layer holding the [plugins'](/reference/player#plugins) layers, and each of them. Elements inside take the parts their plugin gives them. |
+| `plugins`, `plugin` | Layer holding the [plugins'](/reference/player#plugins) layers, and each of them. Elements inside take the parts their plugin gives them. |
 
 ## Hotspots
 
@@ -111,7 +111,7 @@ Replace the content of the start, end and error screens with slots:
 
 The `start` slot goes inside the Play button, so it replaces only its label: keep links and other buttons out of it. The `end` slot replaces the default Replay button. Call `player.restart()` from your own button to play again.
 
-<Unreleased /> The `error` slot replaces the default content of the error screen, shown when a scene's video fails. Call `player.retry()` from your own button to load it again.
+The `error` slot replaces the default content of the error screen, shown when a scene's video fails. Call `player.retry()` from your own button to load it again.
 
 ## Fullscreen
 

@@ -41,9 +41,7 @@ interface StoryValidationError {
 
 Checks parsed story data without modifying it or loading media, and reports every problem at once. `options.cues` adds a plugin's checks for cues of its `kind`, reported as `invalid_cue`. See [Validating stories](/guide/validation) for what each code means and [Plugins' cues](/guide/validation#plugins-cues) for `CueCheck`.
 
-<Unreleased /> New since 0.1.1: `options`, and the codes `missing_variable` and `invalid_cue`.
-
-## `answerRange` <Unreleased />
+## `answerRange`
 
 ```ts
 function answerRange(
@@ -95,7 +93,7 @@ The installed version of `@ivkit/core`, the same as in its `package.json`. Usefu
 ```ts
 import { VERSION } from "@ivkit/core";
 
-console.log(VERSION); // "0.1.1"
+console.log(VERSION); // "0.2.0"
 ```
 
 `@ivkit/core` 0.1.0 reports `"0.0.0"` here by mistake. That's fixed in 0.1.1.

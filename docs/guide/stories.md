@@ -60,7 +60,7 @@ A question pauses the video at `at` and shows its options. The video stays pause
 - A question near the end of the video is still asked, even if playback ended between two time updates.
 - The player pauses on the question's exact frame, not wherever playback was when it noticed.
 
-### Correct answers and replays <Unreleased />
+### Correct answers and replays
 
 Mark the right options of a quiz with `correct`. The `answer` event (`iv-answer` in the player) reports `correct: true` when exactly those options were picked, so combine it with [`set`](#variables-and-conditions) to keep a score.
 
@@ -73,7 +73,7 @@ options: [
 ]
 ```
 
-### Several answers <Unreleased />
+### Several answers
 
 With `multiple: true` the viewer picks several options and confirms. `min` and `max` bound how many. Every picked option's `set` applies, in option order, and then the question decides where to go with its own `branches`, `goto` and `seek`, because options pointing to different scenes would clash. That's why the options of a `multiple` question can't have them.
 
@@ -96,7 +96,7 @@ With `multiple: true` the viewer picks several options and confirms. `min` and `
 
 Single questions can use the question's `goto`, `branches` and `seek` too, as a fallback for the options that neither branch nor seek.
 
-### Time limits <Unreleased />
+### Time limits
 
 `timeout` gives the viewer that many seconds to answer. When they run out, the question answers with `default`, as if the viewer had picked it. Without `default`, the question's own `branches`, `goto` and `seek` decide, and without those the video simply resumes. The player shows a countdown bar.
 
@@ -143,7 +143,7 @@ scenes: {
 }
 ```
 
-## Variables and conditions <Unreleased />
+## Variables and conditions
 
 Declare variables with their initial values in `vars`. Options, hotspots and scenes change them with `set`, and pick where to go with `branches`: the first branch whose `if` holds wins, and without one the story falls back to `goto` or `next`.
 
@@ -196,7 +196,7 @@ const story: Story = {
 
 Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen. A restart resets them without a `vars` event, so read `engine.vars` again on each `scene` event too. `engine.vars` is the engine's live object: copy it (`{ ...engine.vars }`) to keep a snapshot.
 
-## Cues and data for plugins <Unreleased />
+## Cues and data for plugins
 
 A cue marks a span of a scene for something outside IVKit, such as a chapter list, subtitles or analytics. It doesn't pause the video and the player draws nothing for it: the engine reports the active cues in its `cues` event, and a [plugin](/reference/player#plugins) or your app does the rest. `kind` says which plugin it's for, and `data` holds whatever that plugin needs:
 
@@ -209,7 +209,7 @@ events: [
 
 Like hotspots, cues are active while `from <= currentTime < to` and take an `if`. The story, scenes, questions, options and hotspots take `data` too, for anything else your app or plugins need to keep in the story.
 
-## Jumping from code <Unreleased />
+## Jumping from code
 
 `goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button. It also takes the second to start from, `goTo(sceneId, time)`, and only asks the scene's questions from there on.
 

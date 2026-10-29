@@ -40,8 +40,8 @@ All errors are reported at once, not just the first one.
 | `duplicate_id` | An id is used twice. | Two hotspots with the id `"map"`. |
 | `missing_scene` | `start`, `next` or `goto` names a scene that doesn't exist. | `goto: "forst"` |
 | `missing_geometry` | A hotspot has no geometry for its shape. | A `polygon` without `points`. |
-| `missing_variable` <Unreleased /> | A condition or `set` uses a variable not declared in `vars`. | `{ var: "scroe", gte: 1 }` |
-| `invalid_cue` <Unreleased /> | A plugin's check rejected a cue. See [Plugins' cues](#plugins-cues). | A chapter cue without a title. |
+| `missing_variable` | A condition or `set` uses a variable not declared in `vars`. | `{ var: "scroe", gte: 1 }` |
+| `invalid_cue` | A plugin's check rejected a cue. See [Plugins' cues](#plugins-cues). | A chapter cue without a title. |
 
 ## What gets checked
 
@@ -59,7 +59,7 @@ All errors are reported at once, not just the first one.
 - `data`, wherever it appears, is a JSON object: no functions, `undefined`, `NaN`, `Infinity` or cycles inside.
 - `vars` values are strings, booleans or finite numbers. Conditions and `set` only use declared variables, every condition has an operator, and `{ add }` only applies to numbers.
 
-## Plugins' cues <Unreleased />
+## Plugins' cues
 
 IVKit only checks a cue's own fields. A plugin can check the rest, usually its `data`, by passing a check for its `kind`:
 

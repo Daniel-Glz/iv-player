@@ -10,7 +10,7 @@ import { chapters, checkChapter } from "./plugins/chapters";
 const result = validateStory(chaptered, { cues: { chapter: checkChapter } });
 </script>
 
-# Chapters plugin <Unreleased />
+# Chapters plugin
 
 The story marks four chapters of the Artemis I launch with `cue` events of kind `"chapter"`, each with its title in `data`. IVKit only reports which cues are active; a plugin does the rest:
 

@@ -19,8 +19,8 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | `version` | `string` | Format version, e.g. `"0.1"`. |
 | `start` | `SceneId` | Scene the story starts at. Must be a key of `scenes`. |
 | `scenes` | `Record<SceneId, Scene>` | Every scene, keyed by id. |
-| `vars?` <Unreleased /> | `Record<string, VarValue>` | [Variables](#variables) and their initial values. Conditions and `set` can only use these. |
-| `data?` <Unreleased /> | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+| `vars?` | `Record<string, VarValue>` | [Variables](#variables) and their initial values. Conditions and `set` can only use these. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 `SceneId` is a `string`.
 
@@ -31,9 +31,9 @@ All times are in seconds, relative to the start of the scene's video. All coordi
 | `src` | `string` | URL of the scene's video. |
 | `events?` | `SceneEvent[]` | Questions, hotspots and cues, in any order. |
 | `next?` | `SceneId` | Scene to play when the video ends without branching. Without it, the story ends. |
-| `branches?` <Unreleased /> | `Branch[]` | Checked before `next` when the video ends. The first that holds is played instead. |
-| `set?` <Unreleased /> | `VarChanges` | Changes variables each time the scene is entered. |
-| `data?` <Unreleased /> | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+| `branches?` | `Branch[]` | Checked before `next` when the video ends. The first that holds is played instead. |
+| `set?` | `VarChanges` | Changes variables each time the scene is entered. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 `SceneEvent` is `Question | Hotspot | Cue`, discriminated by `type`.
 
@@ -48,15 +48,15 @@ Pauses the video at `at` and asks the viewer to pick one of `options`, or severa
 | `at` | `number` | Second at which the video pauses and the question shows. |
 | `text` | `string` | Prompt shown to the viewer. |
 | `options` | `Choice[]` | At least one. |
-| `multiple?` <Unreleased /> | `boolean` | Lets the viewer pick several options and confirm. Its options can't have `goto`, `branches` or `seek`: the question's decide. Default `false`. |
-| `min?` <Unreleased /> | `number` | Fewest options a `multiple` answer takes, a whole number from 1 to the number of options. Default 1. If fewer options are offered because of their `if`, all of them are enough. |
-| `max?` <Unreleased /> | `number` | Most options a `multiple` answer takes, from `min` to the number of options. Default: all of them. |
-| `goto?` <Unreleased /> | `SceneId` | Scene to branch to when the picked option doesn't branch or seek. |
-| `branches?` <Unreleased /> | `Branch[]` | Checked before `goto`, after the options' `set`. The first that holds is branched to instead. |
-| `seek?` <Unreleased /> | `number` | Second of the current scene to resume from when nothing branches. |
-| `timeout?` <Unreleased /> | `number` | Seconds the question waits for an answer, greater than 0. They count in real time, since the video is paused. Then it answers with `default`, or else the question's `branches`, `goto` and `seek` decide, or else the scene resumes. |
-| `default?` <Unreleased /> | `string \| string[]` | Option picked when `timeout` runs out. A list for a `multiple` question, within its `min` and `max`. If it isn't offered because of its `if`, the question decides as if there were no `default`. |
-| `data?` <Unreleased /> | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+| `multiple?` | `boolean` | Lets the viewer pick several options and confirm. Its options can't have `goto`, `branches` or `seek`: the question's decide. Default `false`. |
+| `min?` | `number` | Fewest options a `multiple` answer takes, a whole number from 1 to the number of options. Default 1. If fewer options are offered because of their `if`, all of them are enough. |
+| `max?` | `number` | Most options a `multiple` answer takes, from `min` to the number of options. Default: all of them. |
+| `goto?` | `SceneId` | Scene to branch to when the picked option doesn't branch or seek. |
+| `branches?` | `Branch[]` | Checked before `goto`, after the options' `set`. The first that holds is branched to instead. |
+| `seek?` | `number` | Second of the current scene to resume from when nothing branches. |
+| `timeout?` | `number` | Seconds the question waits for an answer, greater than 0. They count in real time, since the video is paused. Then it answers with `default`, or else the question's `branches`, `goto` and `seek` decide, or else the scene resumes. |
+| `default?` | `string \| string[]` | Option picked when `timeout` runs out. A list for a `multiple` question, within its `min` and `max`. If it isn't offered because of its `if`, the question decides as if there were no `default`. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ### `Choice`
 
@@ -65,12 +65,12 @@ Pauses the video at `at` and asks the viewer to pick one of `options`, or severa
 | `id` | `string` | Unique within its question. |
 | `label` | `string` | Text shown to the viewer. |
 | `goto?` | `SceneId` | Scene to branch to. Without it, the question's `goto` applies, if any, or else the current scene resumes. |
-| `branches?` <Unreleased /> | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
-| `set?` <Unreleased /> | `VarChanges` | Changes variables when the option is picked. In a `multiple` answer, each picked option's `set` applies in option order. |
-| `if?` <Unreleased /> | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
-| `correct?` <Unreleased /> | `boolean` | Marks a right answer of a quiz. The `answer` event reports whether exactly the right options were picked: score it with `set`. |
-| `seek?` <Unreleased /> | `number` | Second of the current scene to resume from when the option doesn't branch. Questions from there on are asked again. |
-| `data?` <Unreleased /> | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+| `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
+| `set?` | `VarChanges` | Changes variables when the option is picked. In a `multiple` answer, each picked option's `set` applies in option order. |
+| `if?` | `Conditions` | Offers the option only while this holds. A question with no options left is skipped. |
+| `correct?` | `boolean` | Marks a right answer of a quiz. The `answer` event reports whether exactly the right options were picked: score it with `set`. |
+| `seek?` | `number` | Second of the current scene to resume from when the option doesn't branch. Questions from there on are asked again. |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ## `Hotspot`
 
@@ -84,18 +84,18 @@ A clickable area shown between `from` and `to`. It doesn't pause playback unless
 | `to?` | `number` | Second at which it disappears. Without it, it lasts until the scene ends. |
 | `label` | `string` | Accessible name of the area. |
 | `goto?` | `SceneId` | Scene to branch to when activated. Without it, activation is only reported. |
-| `branches?` <Unreleased /> | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
-| `set?` <Unreleased /> | `VarChanges` | Changes variables when the hotspot is activated. |
-| `if?` <Unreleased /> | `Conditions` | Shows the hotspot only while this holds. |
-| `seek?` <Unreleased /> | `number` | Second of the current scene to jump to when the hotspot doesn't branch. Questions from there on are asked again. |
-| `href?` <Unreleased /> | `string` | Link the player opens in a new tab when the hotspot is activated. Only `http:` and `https:` URLs open. |
-| `pause?` <Unreleased /> | `boolean` | Pauses the video at `from`, once per visit, until the hotspot is activated or the viewer resumes. Default `false`. |
+| `branches?` | `Branch[]` | Checked before `goto`, after `set`. The first that holds is branched to instead. |
+| `set?` | `VarChanges` | Changes variables when the hotspot is activated. |
+| `if?` | `Conditions` | Shows the hotspot only while this holds. |
+| `seek?` | `number` | Second of the current scene to jump to when the hotspot doesn't branch. Questions from there on are asked again. |
+| `href?` | `string` | Link the player opens in a new tab when the hotspot is activated. Only `http:` and `https:` URLs open. |
+| `pause?` | `boolean` | Pauses the video at `from`, once per visit, until the hotspot is activated or the viewer resumes. Default `false`. |
 | `shape?` | `HotspotShape` | `"rect"` (default), `"ellipse"` or `"polygon"`. |
 | `area?` | `Area` | Bounds of a static `rect` or `ellipse`. |
 | `points?` | `Point[]` | Vertices of a static `polygon`. |
 | `keyframes?` | `HotspotKeyframe[]` | Animated geometry. Takes precedence over `area` and `points`. |
 | `variant?` | `string` | How the player draws it: `"outline"` (default), `"pulse"`, `"label"`, `"hidden"`, or a custom name. |
-| `data?` <Unreleased /> | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
+| `data?` | `Data` | Free-form JSON for apps and plugins. See [Data](#data). |
 
 ### `HotspotKeyframe`
 
@@ -126,7 +126,7 @@ A rectangle from its top-left corner, relative to the picture, not the `<video>`
 type Point = readonly [x: number, y: number];
 ```
 
-## `Cue` <Unreleased />
+## `Cue`
 
 Marks a span of the scene for plugins and apps, such as a chapter, a subtitle or a moment to track. IVKit does nothing else with it: it doesn't pause, and the player draws nothing. The engine reports the active cues in its `cues` event, and plugins pick theirs by `kind`.
 
@@ -144,7 +144,7 @@ Marks a span of the scene for plugins and apps, such as a chapter, a subtitle or
 { "type": "cue", "id": "intro", "kind": "chapter", "from": 0, "to": 12, "data": { "title": "Introduction" } }
 ```
 
-## Data <Unreleased />
+## Data
 
 The story, scenes, questions, options, hotspots and cues take a `data` field: a JSON object for apps and plugins, such as a chapter title, tags or analytics names. Events carry it along with the object it's on, but IVKit never reads it, and `validateStory` only checks that it's JSON: `null`, booleans, strings, finite numbers, and arrays and objects of them.
 
@@ -154,7 +154,7 @@ type Data = Readonly<Record<string, unknown>>;
 
 Unknown fields are allowed too, but `data` is the place for them: future versions of the format won't add fields inside it.
 
-## Variables <Unreleased />
+## Variables
 
 ```ts
 type VarValue = number | string | boolean;

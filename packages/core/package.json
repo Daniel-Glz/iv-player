@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Framework-agnostic engine for interactive and branching video players: story format, validation and media controller.",
   "license": "Apache-2.0",
   "author": "Alexis Gonzalez",
