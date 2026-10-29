@@ -71,7 +71,7 @@ type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 | --- | --- |
 | `play()` | Starts the story, or resumes it after a pause or a blocked autoplay. |
 | `pause()` | Pauses the current video. |
-| `restart()` | Plays the story again from its start scene. |
+| `restart()` | Plays the story again from its start scene, with its variables back to their initial values, unlike `goTo(story.start)`, which keeps them. |
 | `goTo(sceneId, time?)` | Jumps to a scene and plays it from `time` seconds (default 0), dismissing the question on screen, if any. Throws if the scene doesn't exist. |
 | `retry()` | Loads the scene whose video failed (see `iv-error`) again, from the second it failed at. |
 | `use(plugin)` | Adds a [plugin](#plugins). Returns a function that removes it. |

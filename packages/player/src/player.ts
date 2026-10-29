@@ -373,7 +373,7 @@ export class IvkitPlayer extends Base {
    * content (an SVG shape and a hidden label) already inside. Use it to restyle,
    * add or replace content; the player keeps positioning and sizing the button.
    * Clicks are taken by the default shape, so if you remove it, give your content
-   * `pointer-events: auto`. Applies from the next time hotspots are drawn.
+   * `pointer-events: auto`. Applies to the hotspots that appear from then on.
    */
   get renderHotspot(): HotspotRenderer | null {
     return this.#hotspots.renderer;
@@ -419,9 +419,11 @@ export class IvkitPlayer extends Base {
     this.#controller?.pause();
   }
 
-  /** Plays the story again from its start scene. */
+  /** Plays the story again from its start scene, with its variables back to their initial values. */
   restart(): void {
-    if (this.#story) this.goTo(this.#story.start);
+    if (!this.#engine) return;
+    this.#start.hidden = true;
+    this.#engine.start();
   }
 
   /**

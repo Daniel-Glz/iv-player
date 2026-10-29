@@ -44,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: a listener that moves the story, with `goTo()`, `start()` or `seek()`, wins over what the engine was doing. Before, a `goTo()` from an `answer`, `hotspot` or `timeout` listener was overridden by the answer's own branch or followed by a stale `resume`.
 - `@ivkit/core`: a listener that throws no longer stops the other listeners or leaves the engine halfway through a transition. Its error is still reported.
 - `@ivkit/player`: a plugin that throws, when it runs or cleans up, no longer stops the player or the plugins after it.
+- `@ivkit/player`: `restart()`, and so the Replay button, sets the variables back to their initial values. Before, a replay kept the previous run's scores and counters.
+- `@ivkit/player`: hotspots that stay on screen keep their buttons when others appear or go, so keyboard focus, `renderHotspot` changes and animations aren't lost. `renderHotspot` runs once per hotspot while it stays on screen.
 
 ## [0.1.1] - 2026-10-27
 

@@ -335,6 +335,22 @@ describe("<ivkit-player>", () => {
     expect(pause).toHaveBeenCalled();
   });
 
+  it("resets the variables on restart, unlike goTo()", () => {
+    const { player } = mount();
+    player.story = {
+      version: "0.1",
+      start: "s",
+      vars: { visits: 0 },
+      scenes: { s: { src: "s.mp4", set: { visits: { add: 1 } } } },
+    };
+    player.play();
+    player.goTo("s");
+    expect(player.engine!.vars["visits"]).toBe(2);
+
+    player.restart();
+    expect(player.engine!.vars["visits"]).toBe(1);
+  });
+
   it("plays a scene from the time goTo() gives", () => {
     const { player, videos } = playing();
     const times: number[] = [];
