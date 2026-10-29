@@ -9,7 +9,17 @@ Everything on this page is exported from `@ivkit/core`.
 ## `validateStory`
 
 ```ts
-function validateStory(input: unknown): StoryValidationResult;
+function validateStory(input: unknown, options?: StoryValidationOptions): StoryValidationResult;
+
+interface StoryValidationOptions {
+  /** Checks for cues, keyed by their `kind`. */
+  cues?: Readonly<Record<string, CueCheck>>;
+}
+
+type CueCheck = (
+  cue: Readonly<Record<string, unknown>>,
+  report: (path: string, message: string) => void,
+) => void;
 
 type StoryValidationResult =
   | { valid: true; story: Story; errors: [] }
@@ -23,14 +33,17 @@ interface StoryValidationError {
     | "duplicate_id"
     | "missing_scene"
     | "missing_geometry"
-    | "missing_variable";
+    | "missing_variable"
+    | "invalid_cue";
   message: string;
 }
 ```
 
-Checks parsed story data without modifying it or loading media. See [Validating stories](/guide/validation).
+Checks parsed story data without modifying it or loading media, and reports every problem at once. `options.cues` adds a plugin's checks for cues of its `kind`, reported as `invalid_cue`. See [Validating stories](/guide/validation) for what each code means and [Plugins' cues](/guide/validation#plugins-cues) for `CueCheck`.
 
-## `answerRange`
+<Unreleased /> New since 0.1.1: `options`, and the codes `missing_variable` and `invalid_cue`.
+
+## `answerRange` <Unreleased />
 
 ```ts
 function answerRange(

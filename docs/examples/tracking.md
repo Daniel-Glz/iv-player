@@ -35,3 +35,5 @@ Pause the video with <kbd>Space</kbd> or seek with <kbd>←</kbd> <kbd>→</kbd>
 3. Add a keyframe for each time. Use `ease-in-out` for motion that speeds up and slows down, and `step` for jumps.
 
 Keyframes can also change the shape: a `rect` keyframe followed by an `ellipse` one morphs smoothly between them.
+
+Learn more: [Animation](/guide/hotspots#animation) · [Coordinates](/guide/hotspots#coordinates) · [`hotspotGeometryAt`](/reference/utilities#hotspotgeometryat)

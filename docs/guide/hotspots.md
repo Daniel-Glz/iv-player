@@ -25,7 +25,7 @@ A hotspot is a clickable area over the video. Unlike a question, it **doesn't pa
 
 Hotspots are rendered as real `<button>`s, so they can be reached with the keyboard.
 
-## Pausing
+## Pausing <Unreleased />
 
 With `pause: true`, the video pauses on the hotspot's `from` frame when it appears, and waits for the viewer:
 
@@ -44,7 +44,7 @@ With `pause: true`, the video pauses on the hotspot's `from` frame when it appea
 - The viewer can still resume with the play button, skipping it. The hotspot stays clickable until `to`.
 - It pauses once per visit to the scene, and not when a seek skips past it entirely.
 
-## Links and jumps
+## Links and jumps <Unreleased />
 
 A hotspot can open a link or jump to another moment of the scene, besides branching:
 

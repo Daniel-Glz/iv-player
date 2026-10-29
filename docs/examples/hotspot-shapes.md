@@ -33,3 +33,5 @@ player.addEventListener("iv-hotspot", (event) => {
   if (hotspot.id === "key") showToast("You found the hidden key!");
 });
 ```
+
+Learn more: [Shapes](/guide/hotspots#shapes) · [Variants](/guide/hotspots#variants) · [Player events](/reference/player#events)

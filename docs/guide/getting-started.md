@@ -1,32 +1,91 @@
 ---
-description: "Install ivkit-player, write your first interactive video story and use the <ivkit-player> Web Component from plain HTML, React, Vue or Svelte."
+description: "Build your first interactive video with the <ivkit-player> Web Component: one HTML file, then npm, React, Vue or Svelte."
 ---
+
+<script setup>
+import { adventure } from "../examples/stories/adventure";
+</script>
 
 # Getting started
 
-You can use IVKit with its ready-made player or without it. Each way has its own package:
+This page builds a video that stops and asks the viewer where to go, then plays the scene they picked:
 
-| Package | What it is | Use it when |
-| --- | --- | --- |
-| `@ivkit/player` | The `<ivkit-player>` Web Component: videos, questions, hotspots and controls. | You want a ready-made player. |
-| `@ivkit/core` | A DOM-free engine, media controller and validator. | You're building your own interface. |
-
-`@ivkit/player` depends on `@ivkit/core`, so you only install one of them. Both play the same [stories](/guide/stories), so you can start with the player and switch to core later without rewriting them.
+<PlayerDemo :story="adventure" />
 
 ::: tip Building your own player?
-This page sets up `<ivkit-player>`. To use IVKit without it, go to [Custom players with core](/guide/core), or see a [player built in Vue](/examples/core-player).
+This page uses `<ivkit-player>`, the ready-made player. To draw your own interface instead, go to [Custom players with core](/guide/core).
 :::
 
-## Install
+## Try it in one HTML file
+
+Save this as `index.html`. It loads the player from a CDN and uses the example videos of this site, so it works as is:
+
+```html
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
+  </head>
+  <body>
+    <ivkit-player id="player" controls></ivkit-player>
+
+    <script type="module">
+      const videos = "https://daniel-glz.github.io/ivkit/examples/videos";
+      const player = document.getElementById("player");
+
+      player.story = {
+        version: "0.1",
+        start: "intro",
+        scenes: {
+          intro: {
+            src: `${videos}/adventure-intro.mp4`,
+            events: [
+              {
+                type: "question",
+                id: "path",
+                at: 4,
+                text: "Where do you want to go?",
+                options: [
+                  { id: "forest", label: "Into the forest", goto: "forest" },
+                  { id: "city", label: "To the city", goto: "city" },
+                ],
+              },
+            ],
+          },
+          forest: { src: `${videos}/adventure-forest.mp4` },
+          city: { src: `${videos}/adventure-city.mp4` },
+        },
+      };
+    </script>
+  </body>
+</html>
+```
+
+Serve the folder with any local web server, for example `npx serve`, and open the page. You should see a **Play** button. At second 4 of `intro`, the video pauses and the question appears. Each option jumps to its own scene, and when that video ends, the story ends.
+
+### How the story works
+
+A story is a plain object:
+
+- `scenes` are the videos, keyed by id, and `start` names the first one.
+- A scene's `events` are what happens while it plays. Here, a `question` at second 4 (`at`).
+- Each option's `goto` names the scene it branches to.
+
+To use your own videos, replace each `src`. [Writing stories](/guide/stories) covers the rest: loops, scores, time limits and more.
+
+## Install from npm
+
+In a project with a bundler, such as Vite, install the package:
 
 ::: code-group
 
-```sh [pnpm]
-pnpm add @ivkit/player
-```
-
 ```sh [npm]
 npm install @ivkit/player
+```
+
+```sh [pnpm]
+pnpm add @ivkit/player
 ```
 
 ```sh [yarn]
@@ -35,63 +94,18 @@ yarn add @ivkit/player
 
 :::
 
-Until 1.0.0, minor versions may include breaking changes, so a `^0.1.1` range only accepts 0.1.x updates, which is what npm and pnpm save by default. The [changelog](/changelog) lists what changes in each version.
-
-Importing the package registers the `<ivkit-player>` element:
+Then import it once, for example in your entry file. Importing it registers the `<ivkit-player>` element:
 
 ```ts
 import "@ivkit/player";
+
+const player = document.querySelector("ivkit-player")!;
+player.story = story;
 ```
 
-### From a CDN
+`@ivkit/player` includes the engine from `@ivkit/core`. To import from `@ivkit/core` in your own code, such as the `Story` type or [`validateStory`](/guide/validation), add it too, at the same version.
 
-Without a bundler, load the standalone build. It's a single ES module that includes the core engine:
-
-```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
-```
-
-`@0.1` loads the latest 0.1.x release, so you get fixes without breaking changes. Use an exact version such as `@0.1.1` to never change, or the same path on [unpkg](https://unpkg.com/@ivkit/player@0.1/dist/ivkit-player.min.js).
-
-## Your first story
-
-A story is a set of scenes. Each scene is a video, plus the questions and hotspots that appear while it plays.
-
-```html
-<ivkit-player id="player" controls></ivkit-player>
-
-<script type="module">
-  import "@ivkit/player";
-
-  const player = document.getElementById("player");
-
-  player.story = {
-    version: "0.1",
-    start: "intro",
-    scenes: {
-      intro: {
-        src: "/videos/intro.mp4",
-        events: [
-          {
-            type: "question",
-            id: "path",
-            at: 4,
-            text: "Where should we go?",
-            options: [
-              { id: "forest", label: "Into the forest", goto: "forest" },
-              { id: "city", label: "Back to the city", goto: "city" },
-            ],
-          },
-        ],
-      },
-      forest: { src: "/videos/forest.mp4" },
-      city: { src: "/videos/city.mp4" },
-    },
-  };
-</script>
-```
-
-When the story is set, the player shows a **Play** button. When the viewer reaches second 4 of `intro`, the video pauses and the question appears. The answer branches to `forest` or `city`, and when that video ends, the story ends.
+Until 1.0.0, minor versions may include breaking changes. The `^0.1.1` range that npm saves only accepts 0.1.x updates, and the CDN address above uses `@0.1` for the same reason. The [changelog](/changelog) lists what changes in each version.
 
 ::: tip Autoplay
 Add the `autoplay` attribute to start as soon as a story is set. Browsers usually block autoplay with sound, so combine it with `muted`. If playback is blocked, the player shows the Play button again.
@@ -99,7 +113,7 @@ Add the `autoplay` attribute to start as soon as a story is set. Browsers usuall
 
 ## Listening to the viewer
 
-The player dispatches events that bubble and cross the shadow boundary:
+The player fires DOM events whose names start with `iv-`. Listen to them like any other event, for example to send analytics:
 
 ```ts
 player.addEventListener("iv-answer", (event) => {
@@ -151,13 +165,27 @@ import { story } from "./story";
 
 :::
 
-In Vue, tell the compiler that `ivkit-player` is a custom element with `compilerOptions.isCustomElement`.
+In Vue, tell the compiler that `ivkit-player` is a custom element, in `vite.config.ts`:
+
+```ts
+import vue from "@vitejs/plugin-vue";
+import { defineConfig } from "vite";
+
+export default defineConfig({
+  plugins: [
+    vue({
+      template: { compilerOptions: { isCustomElement: (tag) => tag === "ivkit-player" } },
+    }),
+  ],
+});
+```
 
 Importing the package is safe during server-side rendering. See [Server-side rendering](/guide/ssr) for Next.js, Nuxt, SvelteKit and Astro.
 
 ## Next steps
 
-- [Writing stories](/guide/stories): scenes, questions and branching.
+- [Writing stories](/guide/stories): scenes, questions, branching, scores and time limits.
 - [Hotspots](/guide/hotspots): clickable areas, shapes and animation.
 - [Styling the player](/guide/styling): colors, fonts and `::part()`.
-- [Custom players with core](/guide/core): the same stories, with your own interface.
+- [Examples](/examples/): live players with their stories and code.
+- [Troubleshooting](/guide/troubleshooting): when something doesn't play or look as expected.

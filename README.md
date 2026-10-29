@@ -24,34 +24,56 @@ IVKit works with its ready-made player or without it. Both read the same [story 
 | [`@ivkit/player`](packages/player) | The `<ivkit-player>` Web Component: videos, questions, hotspots, controls, fullscreen and theming. | You want a player that works out of the box, in plain HTML or any framework. |
 | [`@ivkit/core`](packages/core) | The DOM-free engine, media controller and validator the player is built on. | You want your own interface: React or Vue components, a canvas, a game engine. |
 
-`@ivkit/player` includes `@ivkit/core`, so install only one of them.
+`@ivkit/player` includes the engine from `@ivkit/core`, so you don't need both. To import story types or `validateStory` next to the player, add `@ivkit/core` at the same version.
 
 ## Getting started
 
 ### With the player
 
-```sh
-npm install @ivkit/player
-```
+This page plays a video that stops at second 4 and asks where to go, using the example videos of the documentation. It loads the player from a CDN, so it needs no build step:
 
 ```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
+
 <ivkit-player id="player" controls></ivkit-player>
 
 <script type="module">
-  import "@ivkit/player";
+  const videos = "https://daniel-glz.github.io/ivkit/examples/videos";
 
   document.getElementById("player").story = {
     version: "0.1",
     start: "intro",
-    scenes: { intro: { src: "/videos/intro.mp4" } },
+    scenes: {
+      intro: {
+        src: `${videos}/adventure-intro.mp4`,
+        events: [
+          {
+            type: "question",
+            id: "path",
+            at: 4,
+            text: "Where do you want to go?",
+            options: [
+              { id: "forest", label: "Into the forest", goto: "forest" },
+              { id: "city", label: "To the city", goto: "city" },
+            ],
+          },
+        ],
+      },
+      forest: { src: `${videos}/adventure-forest.mp4` },
+      city: { src: `${videos}/adventure-city.mp4` },
+    },
   };
 </script>
 ```
 
-Or load it from a CDN, with no build step:
+With a bundler, install the package and import it once instead of the CDN script:
 
-```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
+```sh
+npm install @ivkit/player
+```
+
+```ts
+import "@ivkit/player";
 ```
 
 ### Without the player
@@ -75,6 +97,10 @@ engine.on("scene", ({ scene, time }) => {
 engine.on("interaction", ({ question }) => {
   video.pause();
   showQuestion(question); // calls engine.answer(choice.id) on click
+});
+engine.on("resume", ({ time }) => {
+  video.currentTime = time;
+  video.play();
 });
 engine.on("hotspots", ({ hotspots }) => renderHotspots(hotspots));
 

@@ -30,7 +30,16 @@ engine.on("interaction", ({ question }) => {
   video.pause();
   showQuestion(question); // calls engine.answer(choice.id) on click
 });
+engine.on("resume", ({ time }) => {
+  video.currentTime = time;
+  video.play();
+});
 engine.on("hotspots", ({ hotspots }) => renderHotspots(hotspots));
+
+video.addEventListener("timeupdate", () => engine.update(video.currentTime));
+video.addEventListener("ended", () => engine.mediaEnded());
+
+engine.start();
 ```
 
 - `MediaController` plays a story on two stacked video elements, preloading the next scene so there's no black frame between scenes.

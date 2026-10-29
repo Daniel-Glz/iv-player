@@ -32,8 +32,8 @@ ivkit-player {
 | `--iv-accent-contrast` | `#111` | Text on accent-colored buttons. |
 | `--iv-button-radius` | `999px` | Corner radius of buttons. |
 | `--iv-focus-ring` | `#4c9ffe` | Keyboard focus outline. |
-| `--iv-overlay-background` | `rgb(0 0 0 / 0.55)` | Behind the question, start and end screens. |
-| `--iv-question-font-size` | `1.25em` | Question text. |
+| `--iv-overlay-background` | `rgb(0 0 0 / 0.55)` | Behind the question, start, end and error screens. |
+| `--iv-question-font-size` | `1.25em` | Question text and the error message. |
 | `--iv-controls-background` | `linear-gradient(transparent, rgb(0 0 0 / 0.7))` | Behind the control bar. |
 | `--iv-hotspot-fill` | `rgb(255 255 255 / 0.12)` | Hotspot fill. |
 | `--iv-hotspot-fill-hover` | `rgb(255 255 255 / 0.28)` | Hotspot fill on hover and focus. |
@@ -63,19 +63,19 @@ ivkit-player::part(option) {
 | --- | --- |
 | `stage` | Wrapper of everything inside the player. |
 | `video` | Both stacked `<video>` elements. |
-| `question`, `question-text`, `options`, `option` | Question overlay, its text, the options group and each option button. In a `multiple` question, options are toggle buttons, and the picked ones are also `option-picked`. |
-| `timer` | Countdown bar of a question with `timeout`. The bar inside shrinks with a CSS animation. |
-| `submit` | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
+| `question`, `question-text`, `options`, `option` | Question overlay, its text, the options group and each option button. In a `multiple` question <Unreleased />, options are toggle buttons, and the picked ones are also `option-picked`. |
+| `timer` <Unreleased /> | Countdown bar of a question with `timeout`. The bar inside shrinks with a CSS animation. |
+| `submit` <Unreleased /> | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
 | `start`, `start-button` | Start screen and its Play button. |
 | `end`, `replay-button` | End screen and its default Replay button. |
-| `error`, `error-text`, `retry-button` | Error screen, shown when a scene's video fails, with its default message and "Try again" button. |
+| `error`, `error-text`, `retry-button` <Unreleased /> | Error screen, shown when a scene's video fails, with its default message and "Try again" button. |
 | `controls` | The control bar. |
 | `control` | Every control button. Also `play-button`, `mute-button` and `fullscreen-button`. |
 | `progress`, `time`, `volume` | Seek slider, time display and volume slider. |
 | `hotspots` | Layer holding the hotspots. |
 | `hotspot`, `hotspot-<variant>` | Each hotspot button. |
 | `hotspot-shape`, `hotspot-label` | The SVG shape and the label inside each hotspot. |
-| `plugins`, `plugin` | Layer holding the [plugins'](/reference/player#plugins) layers, and each of them. Elements inside take the parts their plugin gives them. |
+| `plugins`, `plugin` <Unreleased /> | Layer holding the [plugins'](/reference/player#plugins) layers, and each of them. Elements inside take the parts their plugin gives them. |
 
 ## Hotspots
 
@@ -97,7 +97,7 @@ Variant names are lowercased, and characters other than letters, digits and `-` 
 
 ## Slots
 
-Replace the content of the start and end screens with slots:
+Replace the content of the start, end and error screens with slots:
 
 ```html
 <ivkit-player controls>
@@ -109,9 +109,9 @@ Replace the content of the start and end screens with slots:
 </ivkit-player>
 ```
 
-The `end` slot replaces the default Replay button. Call `player.restart()` from your own button to play again.
+The `start` slot goes inside the Play button, so it replaces only its label: keep links and other buttons out of it. The `end` slot replaces the default Replay button. Call `player.restart()` from your own button to play again.
 
-The `error` slot replaces the default content of the error screen, shown when a scene's video fails. Call `player.retry()` from your own button to load it again.
+<Unreleased /> The `error` slot replaces the default content of the error screen, shown when a scene's video fails. Call `player.retry()` from your own button to load it again.
 
 ## Fullscreen
 

@@ -161,8 +161,8 @@ const lastInQueue = path([
 const car = (id: string, label: string, keyframes: HotspotKeyframe[], to?: number): Hotspot => ({
   type: "hotspot",
   id,
-  from: keyframes[0].at,
-  to,
+  from: keyframes[0]!.at,
+  ...(to !== undefined && { to }),
   label,
   keyframes,
 });

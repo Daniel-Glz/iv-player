@@ -6,7 +6,7 @@ description: "Showcase: a vertical, stories-style player built on @ivkit/core, w
 import { yellowstone, yellowstoneCaptions } from "./stories/yellowstone";
 </script>
 
-# Stories player
+# Stories player <Unreleased />
 
 A vertical player in the style of social media stories, built on `@ivkit/core` without `<ivkit-player>`. Tap the right side to skip, the left side to go back, and hold anywhere to pause.
 
