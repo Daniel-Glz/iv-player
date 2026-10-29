@@ -1,6 +1,6 @@
 # @ivkit/player
 
-The `<ivkit-player>` Web Component for interactive videos: branching stories, questions and animated hotspots, with a control bar, fullscreen and theming. It works in plain HTML and in any framework.
+A ready-made player for building interactive video experiences: videos that pause to ask questions, show clickable and animated hotspots, run quizzes and branch. Add the `<ivkit-player>` Web Component to a page, give it a story, and it handles playback, a control bar, fullscreen and theming. It works in plain HTML and in any framework.
 
 **[Documentation](https://daniel-glz.github.io/ivkit/)** · **[Live examples](https://daniel-glz.github.io/ivkit/examples/)**
 
@@ -22,15 +22,15 @@ Until 1.0.0, minor versions may include breaking changes, so `@0.2` takes only 0
 
 ## Usage
 
-Importing the package, or loading the CDN build, registers the `<ivkit-player>` element. Give it a story: a set of scenes, each a video with the questions and hotspots that appear while it plays.
+Loading the CDN build, or importing the package, registers the `<ivkit-player>` element. Give it a story: a set of scenes, each a video with the questions and hotspots that appear while it plays. This page works as is, with the example videos of the documentation:
 
 ```html
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.2/dist/ivkit-player.min.js"></script>
+
 <ivkit-player id="player" controls></ivkit-player>
 
 <script type="module">
-  // With a bundler. Without one, load the CDN build above instead of this import.
-  import "@ivkit/player";
-
+  const videos = "https://daniel-glz.github.io/ivkit/examples/videos";
   const player = document.getElementById("player");
 
   player.story = {
@@ -38,28 +38,36 @@ Importing the package, or loading the CDN build, registers the `<ivkit-player>` 
     start: "intro",
     scenes: {
       intro: {
-        src: "/videos/intro.mp4",
+        src: `${videos}/adventure-intro.mp4`,
         events: [
           {
             type: "question",
             id: "path",
             at: 4,
-            text: "Where should we go?",
+            text: "Where do you want to go?",
             options: [
               { id: "forest", label: "Into the forest", goto: "forest" },
-              { id: "city", label: "Back to the city", goto: "city" },
+              { id: "city", label: "To the city", goto: "city" },
             ],
           },
         ],
       },
-      forest: { src: "/videos/forest.mp4" },
-      city: { src: "/videos/city.mp4" },
+      forest: { src: `${videos}/adventure-forest.mp4` },
+      city: { src: `${videos}/adventure-city.mp4` },
     },
   };
 
-  player.addEventListener("iv-answer", (event) => console.log(event.detail));
+  player.addEventListener("iv-answer", (event) => console.log(event.detail.choice.id));
 </script>
 ```
+
+With a bundler, import the package once instead of loading the CDN build:
+
+```ts
+import "@ivkit/player";
+```
+
+Set `story` as a property, not an attribute, since it's an object. The [getting started guide](https://daniel-glz.github.io/ivkit/guide/getting-started) covers React, Vue, Svelte and server-side rendering.
 
 To register the element yourself, or under another name, import `IvkitPlayer` and `defineIvkitPlayer` from `@ivkit/player/element`. The package is safe to import during server-side rendering.
 

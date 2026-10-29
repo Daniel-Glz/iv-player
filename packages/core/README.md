@@ -1,6 +1,8 @@
 # @ivkit/core
 
-The framework-agnostic engine behind [`@ivkit/player`](https://www.npmjs.com/package/@ivkit/player): the interactive video story format, a DOM-free engine, a media controller that changes scenes without a black frame, and validation for untrusted stories. Use it to build your own player in any framework, on a canvas or in a game engine. It has no runtime dependencies.
+A headless engine for building interactive video experiences: videos that pause to ask questions, respond to clicks on hotspots, keep scores and branch. You build the interface, in any framework, on a canvas or in a game engine, and the engine decides what happens next. It's the engine behind [`@ivkit/player`](https://www.npmjs.com/package/@ivkit/player), with no runtime dependencies.
+
+It includes the story format, a DOM-free engine, a media controller that changes scenes without a black frame, and validation for untrusted stories.
 
 **[Documentation](https://daniel-glz.github.io/ivkit/guide/core)** · **[Live examples](https://daniel-glz.github.io/ivkit/examples/)**
 
