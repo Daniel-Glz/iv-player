@@ -1,10 +1,14 @@
 # Changelog
 
-All notable changes to `@ivkit/core` and `@ivkit/player` are documented here. Both packages are versioned together.
+All notable changes to `@ivkit/core`, `@ivkit/player` and `@ivkit/react` are documented here. The packages are versioned together.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Until 1.0.0, minor versions may include breaking changes, which are always listed under **Changed** or **Removed**.
 
 ## [Unreleased]
+
+### Added
+
+- `@ivkit/react`: a new package with an `IvkitPlayer` React component for React 18 and 19. It sets `story`, `renderHotspot` and `plugins` as properties, takes `controls`, `autoplay` and `muted` as boolean props, turns each event into a typed callback such as `onAnswer`, renders children into the player's slots and forwards its ref to the element. It's a client component, so server components can render it.
 
 ## [0.2.0] - 2026-10-29
 

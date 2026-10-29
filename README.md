@@ -22,6 +22,7 @@ IVKit works with its ready-made player or without it. Both read the same [story 
 | Package | What you get | Use it when |
 | --- | --- | --- |
 | [`@ivkit/player`](packages/player) | The `<ivkit-player>` Web Component: videos, questions, hotspots, controls, fullscreen and theming. | You want a player that works out of the box, in plain HTML or any framework. |
+| [`@ivkit/react`](packages/react) | A React component around the player, with typed props and event callbacks, for React 18 and 19. | You use the player in React. |
 | [`@ivkit/core`](packages/core) | The DOM-free engine, media controller and validator the player is built on. | You want your own interface: React or Vue components, a canvas, a game engine. |
 
 `@ivkit/player` includes the engine from `@ivkit/core`, so you don't need both. To import story types or `validateStory` next to the player, add `@ivkit/core` at the same version.

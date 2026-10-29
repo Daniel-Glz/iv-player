@@ -1,10 +1,11 @@
 // Checks what each runtime gets from the player's published entries: browsers and
 // Node get the real element, edge runtimes and React Server Components the server
-// build. Resolves through package.json exports like consumers do, so run it after
+// build. Also checks that the React adapter stays a client component. Resolves through package.json exports like consumers do, so run it after
 // `pnpm build`.
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -45,3 +46,12 @@ for (const [specifier, conditions, file] of cases) {
   );
   console.log(`PASS ${label} → ${file}`);
 }
+
+// Bundling drops module directives, so the build adds it back; without it a server
+// component can't render the adapter.
+const adapter = await readFile(join(player, "../react/dist/index.js"), "utf8");
+assert(
+  adapter.startsWith('"use client";'),
+  '@ivkit/react: dist/index.js doesn\'t start with "use client"',
+);
+console.log("PASS @ivkit/react is a client component");

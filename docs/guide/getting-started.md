@@ -165,6 +165,8 @@ import { story } from "./story";
 
 :::
 
+For React, [`@ivkit/react`](/guide/react) <Unreleased /> wraps the element in a component with typed props and event callbacks, and works in React 18 too.
+
 In Vue, tell the compiler that `ivkit-player` is a custom element, in `vite.config.ts`:
 
 ```ts

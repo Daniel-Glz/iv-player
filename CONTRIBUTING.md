@@ -26,6 +26,7 @@ pnpm install --frozen-lockfile
 | --- | --- |
 | `packages/core` | `@ivkit/core`: the story format, engine, media controller and validation. No DOM dependencies and no runtime dependencies. |
 | `packages/player` | `@ivkit/player`: the `<ivkit-player>` Web Component, built on core. |
+| `packages/react` | `@ivkit/react`: a React component around the player. |
 | `docs` | The documentation site, built with VitePress and published to GitHub Pages. |
 | `docs/examples` | The live examples. Their stories are in `docs/examples/stories`. |
 | `scripts` | Checks for bundle size and package exports, and the publish script. |
@@ -34,15 +35,15 @@ pnpm install --frozen-lockfile
 
 | Command | What it does |
 | --- | --- |
-| `pnpm typecheck` | Type-checks both packages. |
+| `pnpm typecheck` | Type-checks every package. |
 | `pnpm lint` | Checks formatting and lint rules with Biome. |
 | `pnpm format` | Formats the code and applies safe lint fixes. |
-| `pnpm test` | Runs every test. Core runs in Node, and the player in happy-dom. |
+| `pnpm test` | Runs every test. Core runs in Node, and the player and React component in happy-dom. |
 | `pnpm test:watch` | Runs the tests in watch mode. |
 | `pnpm test:coverage` | Runs the tests with a coverage report in `coverage/`. |
-| `pnpm build` | Builds both packages into their `dist` folders. |
-| `pnpm check:size` | Builds both packages and checks them against their size budgets. |
-| `pnpm check:exports` | Checks what each runtime resolves from the player's entries. Run it after a build. |
+| `pnpm build` | Builds every package into its `dist` folder. |
+| `pnpm check:size` | Builds every package and checks them against their size budgets. |
+| `pnpm check:exports` | Checks what each runtime resolves from the player's entries, and that the React component stays a client component. Run it after a build. |
 | `pnpm docs:dev` | Serves the documentation at `http://localhost:5173/ivkit/`. |
 | `pnpm docs:build` | Builds the documentation site. |
 
@@ -86,9 +87,9 @@ The live examples use placeholder clips, so that hotspots line up exactly with w
 
 ## Releasing
 
-Maintainers release both packages together, with the same version. Publishing is automated: creating a GitHub release runs the [release workflow](https://github.com/Daniel-Glz/ivkit/blob/main/.github/workflows/release.yml), which runs every check and publishes to npm through trusted publishing, with provenance and no npm token.
+Maintainers release every package together, with the same version. Publishing is automated: creating a GitHub release runs the [release workflow](https://github.com/Daniel-Glz/ivkit/blob/main/.github/workflows/release.yml), which runs every check and publishes to npm through trusted publishing, with provenance and no npm token.
 
-1. In a pull request, set `version` in `packages/core/package.json` and `packages/player/package.json`, and move the **Unreleased** entries in `CHANGELOG.md` into a section for the new version, with its compare link.
+1. In a pull request, set `version` in the `package.json` of `packages/core`, `packages/player` and `packages/react`, and move the **Unreleased** entries in `CHANGELOG.md` into a section for the new version, with its compare link.
 2. After it's merged, create the GitHub release from `main`, with that version's changelog section as its notes. The tag must be `v` plus the version:
 
    ```sh

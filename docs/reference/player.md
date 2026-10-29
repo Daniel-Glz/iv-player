@@ -180,7 +180,7 @@ See [Styling the player](/guide/styling) for the custom properties and parts.
 
 ## TypeScript and JSX
 
-The package adds `ivkit-player` to `HTMLElementTagNameMap`, so `document.querySelector("ivkit-player")` returns an `IvkitPlayer`. For JSX in React, declare the element once in your project:
+The package adds `ivkit-player` to `HTMLElementTagNameMap`, so `document.querySelector("ivkit-player")` returns an `IvkitPlayer`. [`@ivkit/react`](/guide/react) <Unreleased /> comes typed. To use the element directly in React's JSX, declare it once in your project:
 
 ```ts
 // ivkit-player.d.ts

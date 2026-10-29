@@ -10,22 +10,23 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const readJson = async (path) => JSON.parse(await readFile(path, "utf8"));
 
 // Runtime dependency growth must be a deliberate decision, not a transitive surprise.
-for (const name of ["core", "player"]) {
+const allowedDependencies = {
+  core: [],
+  player: ["@ivkit/core"],
+  react: ["@ivkit/player", "react"],
+};
+for (const [name, allowed] of Object.entries(allowedDependencies)) {
   const pkg = await readJson(join(root, `packages/${name}/package.json`));
   const dependencies = Object.keys({
     ...pkg.dependencies,
     ...pkg.optionalDependencies,
     ...pkg.peerDependencies,
   }).sort();
-  assert.deepEqual(
-    dependencies,
-    name === "core" ? [] : ["@ivkit/core"],
-    `${name}: unexpected runtime dependencies`,
-  );
+  assert.deepEqual(dependencies, allowed, `${name}: unexpected runtime dependencies`);
 }
 
 // Always measure fresh production output, including the standalone browser build.
-for (const name of ["core", "player"]) {
+for (const name of ["core", "player", "react"]) {
   await build({ cwd: join(root, `packages/${name}`), logLevel: "error" });
 }
 
@@ -63,6 +64,12 @@ try {
       join(root, "packages/player/dist/ivkit-player.min.js"),
       29 * 1024,
       9.5 * 1024,
+    ],
+    [
+      "React adapter (without the player)",
+      join(root, "packages/react/dist/index.js"),
+      2 * 1024,
+      1024,
     ],
     ["Full core (all exports)", join(root, "packages/core/dist/index.js"), 17 * 1024, 6 * 1024],
     ["StoryEngine only", join(temporary, "dist/engine.js"), 5 * 1024, 2 * 1024],
