@@ -113,6 +113,7 @@ export default defineConfig({
           text: "With the player",
           items: [
             { text: "Styling the player", link: "/guide/styling" },
+            { text: "React", link: "/guide/react" },
             { text: "Server-side rendering", link: "/guide/ssr" },
           ],
         },

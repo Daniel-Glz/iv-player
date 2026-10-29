@@ -1,4 +1,4 @@
-// Publishes both packages to npm, core first since the player depends on it.
+// Publishes the packages to npm, each after the ones it depends on.
 // The release workflow runs it for each GitHub release. Run it after `pnpm build`.
 //
 // Usage: node scripts/publish.mjs [--tag v1.2.3] [--dry-run]
@@ -23,12 +23,12 @@ const { values } = parseArgs({
 const dryRun = values["dry-run"];
 
 const packages = [];
-for (const name of ["core", "player"]) {
+for (const name of ["core", "player", "react"]) {
   const dir = join(root, "packages", name);
   packages.push({ dir, ...JSON.parse(await readFile(join(dir, "package.json"), "utf8")) });
 }
 
-// Both packages are versioned together, and a release's tag must name that version.
+// The packages are versioned together, and a release's tag must name that version.
 const version = packages[0].version;
 for (const pkg of packages)
   assert.equal(pkg.version, version, `${pkg.name} is at ${pkg.version}, not ${version}`);

@@ -71,6 +71,8 @@ export default function Page() {
 }
 ```
 
+With [`@ivkit/react`](/guide/react#next-js-and-server-components) <Unreleased />, a server component can render the player directly, and event callbacks are props instead of listeners.
+
 The story is a plain object, so a server component can load it, for example from a CMS, and pass it down as a prop. React 19 sets `story` as a property once the element is defined. See [`<ivkit-player>` → TypeScript and JSX](/reference/player#typescript-and-jsx) to type the element in JSX.
 
 ## Nuxt

@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    // Typecheck against the other packages' sources so they don't need to be built first.
+    "paths": {
+      "@ivkit/core": ["../core/src/index.ts"],
+      "@ivkit/player": ["../player/src/index.ts"]
+    }
+  },
+  "include": ["src", "test", "tsdown.config.ts"]
+}
