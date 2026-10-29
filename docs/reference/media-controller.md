@@ -29,7 +29,8 @@ Create it **before** calling `engine.start()`, so it sees the first `scene` even
 | Member | Description |
 | --- | --- |
 | `active: M` | Read-only. The element currently on top. |
-| `play(): void` | Plays the active element, e.g. after a `blocked` event or a user pause. |
+| `play(): void` | Plays the active element, e.g. after a `blocked` event or a user pause. Does nothing while the next scene loads, since the active element only holds the previous scene's last frame. |
+| `retry(): void` | Loads the scene of the last `error` again, from the second it failed at. |
 | `pause(): void` | Pauses the active element. |
 | `preload(sceneId): void` | Starts buffering a scene in the hidden element, replacing any previous preload. The controller already preloads on its own; call this for stronger hints, such as when the viewer hovers an option. |
 | `destroy(): void` | Detaches from the engine and the media elements. |
@@ -40,7 +41,8 @@ Create it **before** calling `engine.start()`, so it sees the first `scene` even
 | Event | Payload | What to do |
 | --- | --- | --- |
 | `swap` | `{ active, inactive }` | Put `active` on top and hide `inactive`. The first swap reveals the first scene. |
-| `blocked` | `{ media, error }` | `play()` was rejected, typically by the autoplay policy. Ask for a user gesture, then call `play()`. |
+| `blocked` | `{ media, error }` | `play()` was rejected by the autoplay policy (a `NotAllowedError`). Ask for a user gesture, then call `play()`. |
+| `error` | `{ media, sceneId, error }` | The scene's video couldn't be loaded or played, e.g. it's missing or in a format the browser can't play. `error` is the element's, a `MediaError` for a `<video>`. The previous frame stays on screen. Tell the viewer, then call `retry()`, or go elsewhere with `engine.goTo()`. A failed preload isn't reported: it's loaded again when its scene comes. |
 | `time` | `{ media, time }` | The active element reached `time`, just reported to the engine: once per presented frame, or on `timeupdate` while frames don't arrive. Use it to sync anything drawn over the video, like animated hotspots. |
 
 Showing and hiding the elements is left to you, so core stays free of the DOM. Hide the inactive element with `opacity: 0` rather than `display: none`, so it keeps decoding its first frame.
@@ -56,6 +58,7 @@ interface MediaElement {
   currentTime: number;
   readonly readyState: number;
   readonly seeking: boolean;
+  readonly error?: unknown;
   play(): Promise<void>;
   pause(): void;
   addEventListener(type: string, listener: () => void): void;
@@ -65,4 +68,4 @@ interface MediaElement {
 }
 ```
 
-The controller listens to `timeupdate`, `ended` and the events that tell it a frame can be drawn. `requestVideoFrameCallback` is optional: without it, the controller relies on `timeupdate`, which fires about 4 times per second.
+The controller listens to `timeupdate`, `ended`, `error` and the events that tell it a frame can be drawn. `requestVideoFrameCallback` is optional: without it, the controller relies on `timeupdate`, which fires about 4 times per second.

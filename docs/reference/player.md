@@ -56,7 +56,7 @@ The control bar hides during the start, question and end screens, and fades out 
 
 | Property | Type | Description |
 | --- | --- | --- |
-| `story` | `Story \| null` | The story being played. Setting it resets the player. |
+| `story` | `Story \| null` | The story being played. Setting it resets the player. Throws, keeping the current story, if the new one's `start` isn't one of its scenes. |
 | `renderHotspot` | `HotspotRenderer \| null` | Called for each hotspot right after its button is created. See [Custom content](/guide/hotspots#custom-content). |
 | `engine` | `StoryEngine \| null` | Read-only. The [engine](/reference/engine) driving the current story, for advanced control. |
 | `isFullscreen` | `boolean` | Read-only. Whether the player fills the screen, natively or through the iPhone fallback. |
@@ -73,6 +73,7 @@ type HotspotRenderer = (hotspot: Hotspot, element: HTMLButtonElement) => void;
 | `pause()` | Pauses the current video. |
 | `restart()` | Plays the story again from its start scene. |
 | `goTo(sceneId, time?)` | Jumps to a scene and plays it from `time` seconds (default 0), dismissing the question on screen, if any. Throws if the scene doesn't exist. |
+| `retry()` | Loads the scene whose video failed (see `iv-error`) again, from the second it failed at. |
 | `use(plugin)` | Adds a [plugin](#plugins). Returns a function that removes it. |
 | `toggleFullscreen()` | Enters or leaves fullscreen with the whole player, questions and hotspots included. |
 
@@ -91,6 +92,7 @@ All events are `CustomEvent`s that bubble and cross the shadow boundary (`compos
 | `iv-hotspot` | `{ sceneId, hotspot, goto }` | The viewer activated a hotspot, which branches to `goto`, if defined. |
 | `iv-cues` | `{ sceneId, cues }` | The active [cues](/reference/story-format#cue) changed. `cues` are exactly the active ones, possibly none. |
 | `iv-end` | `{ sceneId }` | The story finished. |
+| `iv-error` | `{ sceneId, media, error }` | The video of `sceneId` couldn't be loaded or played, e.g. it's missing or in a format the browser can't play. `error` is the video's `MediaError`. The player shows its error screen; `retry()` loads the scene again. |
 
 ```ts
 player.addEventListener("iv-hotspot", (event) => {
@@ -169,6 +171,7 @@ Seeking is ignored while a question is showing. Focused sliders and buttons keep
 | --- | --- | --- |
 | `start` | `Play` | Content of the start button. |
 | `end` | A Replay button | Shown when the story ends. |
+| `error` | A message and a "Try again" button | Shown when a scene's video fails. Call `player.retry()` from your own content to load it again. |
 
 ## Styling
 

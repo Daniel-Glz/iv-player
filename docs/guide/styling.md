@@ -68,6 +68,7 @@ ivkit-player::part(option) {
 | `submit` | The Confirm button of a `multiple` question. Disabled until the picked options are within its `min` and `max`. |
 | `start`, `start-button` | Start screen and its Play button. |
 | `end`, `replay-button` | End screen and its default Replay button. |
+| `error`, `error-text`, `retry-button` | Error screen, shown when a scene's video fails, with its default message and "Try again" button. |
 | `controls` | The control bar. |
 | `control` | Every control button. Also `play-button`, `mute-button` and `fullscreen-button`. |
 | `progress`, `time`, `volume` | Seek slider, time display and volume slider. |
@@ -109,6 +110,8 @@ Replace the content of the start and end screens with slots:
 ```
 
 The `end` slot replaces the default Replay button. Call `player.restart()` from your own button to play again.
+
+The `error` slot replaces the default content of the error screen, shown when a scene's video fails. Call `player.retry()` from your own button to load it again.
 
 ## Fullscreen
 

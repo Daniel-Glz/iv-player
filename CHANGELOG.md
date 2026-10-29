@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `@ivkit/core`: `StoryEngine.seek(time)`, which resumes the current scene from `time` like a `seek` in the story.
 - `@ivkit/core`: `StoryEngine.destroy()`, which cancels a question's timeout and removes every listener, and `pauseTimeout()` and `resumeTimeout()`, which stop and go on with a question's countdown.
 - `@ivkit/player`: `goTo(sceneId, time?)` on `<ivkit-player>`, which jumps to a scene and plays it. Use it to branch on a score, resume where the viewer left off or build chapter menus.
+- `@ivkit/core`: an `error` event on `MediaController` when a scene's video can't be loaded or played, and `retry()`, which loads it again from where it failed. A failed preload is no longer stuck: it's loaded again when its scene comes.
+- `@ivkit/player`: an error screen with an `error` slot, an `iv-error` event and `retry()`, so a missing or unplayable video no longer leaves the player frozen without notice.
 - `@ivkit/player`: removing the player from the page pauses a question's timeout until it's back, and keeps a scene that finishes loading meanwhile from playing. Setting another story destroys the previous engine.
 - `@ivkit/core`: `pause` on hotspots, which pauses the video when the hotspot appears until it's activated. The engine emits a new `pause` event, and `MediaController` pauses on the hotspot's first frame and resumes when it's activated without a `goto`.
 - `@ivkit/core`: variables and conditions in the story format. `Story.vars` declares variables, `set` changes them on choices, hotspots and scenes, `branches` pick a scene by condition before falling back to `goto` or `next`, and `if` offers a choice or shows a hotspot only while it holds. `validateStory` reports undeclared variables with the new `missing_variable` code.
@@ -36,6 +38,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - The license is now the Apache License 2.0 instead of MIT, for both packages.
 - Size budgets: the standalone player now stays under 9.5 KiB gzip (was 8 KiB), and all of `@ivkit/core` under 6 KiB (was 4 KiB), to fit variables, conditions, multiple-answer questions and timeouts.
 - `@ivkit/player`: its CSS is now minified at build time, which takes about 500 B off the standalone player.
+- `@ivkit/core`: `MediaController` emits `blocked` only when the autoplay policy rejects `play()` (a `NotAllowedError`). A `play()` interrupted by a pause or a new source no longer shows the player's Play button over a scene that's playing.
+- `@ivkit/core`: `MediaController.play()` does nothing while the next scene loads, so the previous scene can't play, heard but hidden, behind it.
+- `@ivkit/player`: setting `story` to one whose `start` isn't a scene throws without resetting the player, instead of leaving it half reset.
 
 ## [0.1.1] - 2026-10-27
 

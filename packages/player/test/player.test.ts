@@ -513,6 +513,51 @@ describe("<ivkit-player>", () => {
     await vi.waitFor(() => expect($("[part=start]").hidden).toBe(false));
   });
 
+  it("shows the error screen and dispatches iv-error when a scene's video fails", () => {
+    const { player, $, videos } = playing({ controls: "" });
+    const errors: unknown[] = [];
+    player.addEventListener("iv-error", (e) => errors.push([e.detail.sceneId, e.detail.media]));
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+
+    expect(errors).toEqual([["hall", videos[0]]]);
+    expect($("[part=error]").hidden).toBe(false);
+    expect($("[part=controls]").hidden).toBe(true);
+    // Nothing comes of the failed video until a retry.
+    frameReady(videos[0]!);
+    expect(videos[0]!.classList.contains("front")).toBe(false);
+  });
+
+  it("loads the failed scene again with the retry button", () => {
+    const { $, player, videos } = playing();
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+    $("[part=retry-button]").click();
+
+    expect($("[part=error]").hidden).toBe(true);
+    expect(videos[0]!.src).toMatch(/hall\.mp4$/);
+    frameReady(videos[0]!);
+    expect(videos[0]!.classList.contains("front")).toBe(true);
+  });
+
+  it("hides the error screen when another scene starts", () => {
+    const { $, player, videos } = playing();
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+    player.goTo("intro");
+    expect($("[part=error]").hidden).toBe(true);
+  });
+
+  it("keeps the current story when a new one has no start scene", () => {
+    const { player } = playing();
+    const engine = player.engine;
+    expect(() => {
+      player.story = { ...story, start: "nowhere" };
+    }).toThrow('Start scene "nowhere" does not exist');
+    expect(player.story).toBe(story);
+    expect(player.engine).toBe(engine);
+  });
+
   it("resets everything when a new story is set", () => {
     const { player, $, $$, videos } = playing();
     const first = player.engine;
