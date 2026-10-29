@@ -70,12 +70,19 @@ player.renderHotspot = (hotspot, button) => {
   badge.className = "marker-badge";
   badge.textContent = icons[hotspot.id] ?? "•";
   // The badge sits outside the shape, so it needs its own pointer events.
-  badge.style.pointerEvents = "auto";
+  badge.style.cssText = `
+    position: absolute; top: -14px; right: -14px;
+    display: grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #fff; box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+    font-size: 18px; pointer-events: auto;`;
   button.append(badge);
 };
 ```
 
-The player keeps positioning and sizing each button, including animated ones. Elements inside the button are rendered in the player's shadow root, so style them inline or through classes you set on them from `renderHotspot`.
+The player keeps positioning and sizing each button, including animated ones. Elements inside the button live in the player's shadow root, where the page's CSS doesn't reach, so style them inline as above, or give them a `part` and style it with `::part()`.
+
+Learn more: [Custom content](/guide/hotspots#custom-content) · [Styling hotspots](/guide/styling#hotspots) · [`renderHotspot`](/reference/player#properties)
 
 <style>
 .markers ivkit-player::part(hotspot-marker) {

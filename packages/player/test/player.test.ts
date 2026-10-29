@@ -287,6 +287,81 @@ describe("<ivkit-player>", () => {
     vi.useRealTimers();
   });
 
+  it("stops a question's timeout while off the page, and goes on once back", () => {
+    vi.useFakeTimers();
+    const { player } = mount();
+    const onTimeout = vi.fn();
+    player.addEventListener("iv-timeout", onTimeout);
+    player.story = {
+      version: "0.1",
+      start: "s",
+      scenes: {
+        s: {
+          src: "s.mp4",
+          events: [
+            {
+              type: "question",
+              id: "q",
+              at: 1,
+              text: "?",
+              timeout: 3,
+              options: [{ id: "a", label: "A" }],
+            },
+          ],
+        },
+      },
+    };
+    player.engine!.start();
+    player.engine!.update(1);
+    vi.advanceTimersByTime(1000);
+
+    player.remove();
+    vi.advanceTimersByTime(60_000);
+    expect(onTimeout).not.toHaveBeenCalled();
+
+    document.body.append(player);
+    vi.advanceTimersByTime(1999);
+    expect(onTimeout).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("pauses a video that starts playing while the player is off the page", () => {
+    const { player, videos } = playing();
+    player.remove();
+    const pause = vi.spyOn(videos[0]!, "pause");
+    videos[0]!.dispatchEvent(new Event("play"));
+    expect(pause).toHaveBeenCalled();
+  });
+
+  it("resets the variables on restart, unlike goTo()", () => {
+    const { player } = mount();
+    player.story = {
+      version: "0.1",
+      start: "s",
+      vars: { visits: 0 },
+      scenes: { s: { src: "s.mp4", set: { visits: { add: 1 } } } },
+    };
+    player.play();
+    player.goTo("s");
+    expect(player.engine!.vars["visits"]).toBe(2);
+
+    player.restart();
+    expect(player.engine!.vars["visits"]).toBe(1);
+  });
+
+  it("plays a scene from the time goTo() gives", () => {
+    const { player, videos } = playing();
+    const times: number[] = [];
+    player.addEventListener("iv-scene", (event) => times.push(event.detail.time));
+    player.goTo("hall", 3);
+
+    expect(times).toEqual([3]);
+    expect(videos[0]!.src).toMatch(/hall\.mp4$/);
+    expect(videos[0]!.currentTime).toBe(3);
+  });
+
   it("opens a hotspot's http(s) href in a new tab, and nothing else", () => {
     const opened: string[] = [];
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
@@ -454,6 +529,51 @@ describe("<ivkit-player>", () => {
     await vi.waitFor(() => expect($("[part=start]").hidden).toBe(false));
   });
 
+  it("shows the error screen and dispatches iv-error when a scene's video fails", () => {
+    const { player, $, videos } = playing({ controls: "" });
+    const errors: unknown[] = [];
+    player.addEventListener("iv-error", (e) => errors.push([e.detail.sceneId, e.detail.media]));
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+
+    expect(errors).toEqual([["hall", videos[0]]]);
+    expect($("[part=error]").hidden).toBe(false);
+    expect($("[part=controls]").hidden).toBe(true);
+    // Nothing comes of the failed video until a retry.
+    frameReady(videos[0]!);
+    expect(videos[0]!.classList.contains("front")).toBe(false);
+  });
+
+  it("loads the failed scene again with the retry button", () => {
+    const { $, player, videos } = playing();
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+    $("[part=retry-button]").click();
+
+    expect($("[part=error]").hidden).toBe(true);
+    expect(videos[0]!.src).toMatch(/hall\.mp4$/);
+    frameReady(videos[0]!);
+    expect(videos[0]!.classList.contains("front")).toBe(true);
+  });
+
+  it("hides the error screen when another scene starts", () => {
+    const { $, player, videos } = playing();
+    player.goTo("hall");
+    videos[0]!.dispatchEvent(new Event("error"));
+    player.goTo("intro");
+    expect($("[part=error]").hidden).toBe(true);
+  });
+
+  it("keeps the current story when a new one has no start scene", () => {
+    const { player } = playing();
+    const engine = player.engine;
+    expect(() => {
+      player.story = { ...story, start: "nowhere" };
+    }).toThrow('Start scene "nowhere" does not exist');
+    expect(player.story).toBe(story);
+    expect(player.engine).toBe(engine);
+  });
+
   it("resets everything when a new story is set", () => {
     const { player, $, $$, videos } = playing();
     const first = player.engine;
@@ -529,6 +649,42 @@ describe("<ivkit-player> plugins", () => {
     expect(root.querySelector("[part=plugin]")).toBeNull();
     player.story = story;
     expect(plugin).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a plugin that throws, and still runs the story and the plugins after it", () => {
+    const reported: unknown[] = [];
+    vi.stubGlobal("queueMicrotask", (callback: () => void) => {
+      try {
+        callback();
+      } catch (error) {
+        reported.push(error);
+      }
+    });
+    const { player, root, $ } = mount();
+    const broken = new Error("broken");
+    const after = vi.fn();
+    player.use(({ on }) => {
+      on("scene", after);
+      throw broken;
+    });
+    player.use(() => () => {
+      throw broken;
+    });
+    player.use(after);
+    player.story = story;
+
+    expect(reported).toEqual([broken]);
+    expect(after).toHaveBeenCalledTimes(1);
+    expect($("[part=start]").hidden).toBe(false);
+
+    player.story = null;
+    expect(reported).toEqual([broken, broken]);
+    expect(root.querySelectorAll("[part=plugin]")).toHaveLength(0);
+    // What the broken plugin set up before throwing keeps working.
+    player.story = story;
+    player.play();
+    expect(after).toHaveBeenCalledTimes(3);
+    vi.unstubAllGlobals();
   });
 
   it("runs plugins in order, after the player handles each event", () => {

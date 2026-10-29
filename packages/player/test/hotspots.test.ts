@@ -195,3 +195,71 @@ describe("<ivkit-player> hotspot rendering", () => {
     expect(onHotspot.mock.calls[0]![0].detail.hotspot.id).toBe("tri");
   });
 });
+
+describe("<ivkit-player> hotspots coming and going", () => {
+  /** "second" and "third" show from 0s, "first" (first in the story) from 2s to 6s. */
+  const staggered: Story = {
+    version: "0.1",
+    start: "s",
+    scenes: {
+      s: {
+        src: "s.mp4",
+        events: [
+          { type: "hotspot", id: "first", from: 2, to: 6, label: "First", area },
+          { type: "hotspot", id: "second", from: 0, to: 4, label: "Second", area },
+          { type: "hotspot", id: "third", from: 0, label: "Third", area },
+        ],
+      },
+    },
+  };
+
+  function shown() {
+    const player = document.createElement("ivkit-player");
+    document.body.append(player);
+    const renderer = vi.fn();
+    player.renderHotspot = renderer;
+    player.story = staggered;
+    player.play();
+    const root = player.shadowRoot!;
+    const ids = () =>
+      [...root.querySelectorAll<HTMLElement>("[data-id]")].map((b) => b.dataset["id"]);
+    const button = (id: string) => root.querySelector<HTMLButtonElement>(`[data-id="${id}"]`)!;
+    return { engine: player.engine!, root, renderer, ids, button };
+  }
+
+  it("keeps the focused hotspot's button, and its focus, when another one appears", () => {
+    const { engine, root, button } = shown();
+    engine.update(0);
+    const second = button("second");
+    second.focus();
+    expect(root.activeElement).toBe(second);
+
+    engine.update(2);
+    expect(button("second")).toBe(second);
+    expect(root.activeElement).toBe(second);
+  });
+
+  it("adds new hotspots in story order and removes the ones that leave", () => {
+    const { engine, ids } = shown();
+    engine.update(0);
+    expect(ids()).toEqual(["second", "third"]);
+    engine.update(2);
+    expect(ids()).toEqual(["first", "second", "third"]);
+    engine.update(4);
+    expect(ids()).toEqual(["first", "third"]);
+    engine.update(6);
+    expect(ids()).toEqual(["third"]);
+  });
+
+  it("calls renderHotspot once for each hotspot while it stays on screen", () => {
+    const { engine, renderer } = shown();
+    engine.update(0);
+    engine.update(2);
+    engine.update(4);
+    expect(renderer.mock.calls.map(([hotspot]) => hotspot.id)).toEqual([
+      "second",
+      "third",
+      "first",
+    ]);
+  });
+});

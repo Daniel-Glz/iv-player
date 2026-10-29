@@ -27,7 +27,7 @@ All times are in **seconds from the start of the scene's video**.
 Each scene has:
 
 - `src`: the URL of its video.
-- `events` (optional): questions and hotspots that happen while it plays.
+- `events` (optional): the questions, hotspots and [cues](#cues-and-data-for-plugins) that happen while it plays.
 - `next` (optional): the scene to play when the video ends. Without it, the story ends.
 
 Scenes are keyed by id in `scenes`, and `start` names the first one.
@@ -145,7 +145,7 @@ scenes: {
 
 ## Variables and conditions
 
-Declare variables with their initial values in `vars`. Choices, hotspots and scenes change them with `set`, and pick where to go with `branches`: the first branch whose `if` holds wins, and without one the story falls back to `goto` or `next`.
+Declare variables with their initial values in `vars`. Options, hotspots and scenes change them with `set`, and pick where to go with `branches`: the first branch whose `if` holds wins, and without one the story falls back to `goto` or `next`.
 
 This quiz keeps a score and sends the viewer to a different ending depending on it:
 
@@ -194,7 +194,7 @@ const story: Story = {
 { id: "unlock", label: "Use the key", if: { var: "key", eq: true }, goto: "vault" }
 ```
 
-Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen.
+Variables reset when the story starts again. Read them with `engine.vars` and follow changes with the engine's `vars` event, e.g. to show the score on screen. A restart resets them without a `vars` event, so read `engine.vars` again on each `scene` event too. `engine.vars` is the engine's live object: copy it (`{ ...engine.vars }`) to keep a snapshot.
 
 ## Cues and data for plugins
 
@@ -211,7 +211,7 @@ Like hotspots, cues are active while `from <= currentTime < to` and take an `if`
 
 ## Jumping from code
 
-`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button.
+`goTo(sceneId)` enters any scene, wherever the story is. Use it for whatever the story format can't express: resuming where the viewer left off, chapter menus or a "back" button. It also takes the second to start from, `goTo(sceneId, time)`, and only asks the scene's questions from there on.
 
 ```ts
 const player = document.querySelector("ivkit-player")!;
@@ -223,16 +223,15 @@ player.addEventListener("iv-scene", (event) => {
   localStorage.setItem("scene", event.detail.sceneId);
 });
 if (saved && saved in story.scenes) player.goTo(saved);
-
 ```
 
-To resume with the variables too, save `player.engine.vars` and restore each one with `engine.setVar(name, value)` before calling `goTo()`.
+To resume with the variables too, save a copy of `player.engine.vars` and restore each one with `engine.setVar(name, value)` before calling `goTo()`.
 
-Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-void) instead.
+Like `play()`, `goTo()` starts playback, so browsers may block it without a user gesture. If they do, the player shows its Play button. With `@ivkit/core`, call [`engine.goTo()`](/reference/engine#goto-sceneid-sceneid-time-number-void) instead.
 
 ## Scene changes without a black frame
 
-The player stacks two videos. While one plays, the other preloads the most likely next scene: the scene's `next`, or else the first scene any of its options or hotspots point to. On a scene change, the current video holds its last frame until the next one can draw its first frame, so there's no black flash between scenes.
+The player stacks two videos. While one plays, the other preloads the most likely next scene: the scene's first branch or `next`, or else the first scene any of its questions, options or hotspots point to. On a scene change, the current video holds its last frame until the next one can draw its first frame, so there's no black flash between scenes.
 
 For the smoothest scene changes:
 
@@ -242,4 +241,4 @@ For the smoothest scene changes:
 
 ## Ids must be unique
 
-Question and hotspot ids are unique across the **whole story**, because they're how answers and activations are reported. Option ids are unique within their question. [`validateStory`](/guide/validation) checks this for you.
+Question, hotspot and cue ids are unique across the **whole story**, because they're how answers, activations and cues are reported. Option ids are unique within their question. [`validateStory`](/guide/validation) checks this for you.

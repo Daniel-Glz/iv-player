@@ -25,8 +25,9 @@ import { StoryEngine } from "@ivkit/core";
 
 const engine = new StoryEngine(story);
 
-engine.on("scene", ({ scene }) => {
+engine.on("scene", ({ scene, time }) => {
   video.src = scene.src;
+  video.currentTime = time;
   video.play();
 });
 engine.on("interaction", ({ question }) => {
@@ -74,7 +75,10 @@ controller.on("blocked", () => {
 });
 
 engine.on("interaction", ({ question }) => showQuestion(question));
-engine.on("answer", () => hideQuestion());
+// A question also goes when its time runs out, or when goTo() changes the scene.
+engine.on("answer", hideQuestion);
+engine.on("timeout", hideQuestion);
+engine.on("scene", hideQuestion);
 
 engine.start();
 ```
@@ -86,7 +90,7 @@ Keep both videos rendered, stacked on top of each other, and switch them with `o
 The engine tells you which hotspots are visible. To know where to draw one at the current time, including animated ones, use `hotspotGeometryAt`:
 
 ```ts
-import { boundsOf, hotspotGeometryAt, isAnimated } from "@ivkit/core";
+import { boundsOf, hotspotGeometryAt, isAnimated, type Hotspot } from "@ivkit/core";
 
 function place(element: HTMLElement, hotspot: Hotspot, time: number) {
   const geometry = hotspotGeometryAt(hotspot, time);
@@ -110,6 +114,6 @@ Core is marked side-effect free, so bundlers only include what you import. Appro
 
 | Import | Size |
 | --- | --- |
-| `StoryEngine` only | ~1.8 KiB |
+| `StoryEngine` only | ~1.9 KiB |
 | `validateStory` only | ~2.8 KiB |
-| Everything in core | ~5.8 KiB |
+| Everything in core | ~5.9 KiB |

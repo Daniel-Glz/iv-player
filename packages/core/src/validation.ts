@@ -1,3 +1,4 @@
+import { answerRange } from "./question.js";
 import { EASINGS, HOTSPOT_SHAPES, type Story, type VarValue } from "./types.js";
 
 export interface StoryValidationError {
@@ -222,10 +223,14 @@ function checkDefault(
     }
   }
   const { min, max } = question;
-  const [fewest, most] =
-    question["multiple"] === true
-      ? [isFiniteNumber(min) ? min : 1, isFiniteNumber(max) ? max : choiceIds.size]
-      : [1, 1];
+  const [fewest, most] = answerRange(
+    {
+      multiple: question["multiple"] === true,
+      min: isFiniteNumber(min) ? min : undefined,
+      max: isFiniteNumber(max) ? max : undefined,
+    },
+    choiceIds.size,
+  );
   if (new Set(ids).size !== ids.length || ids.length < fewest || ids.length > most) {
     addError(
       ctx,

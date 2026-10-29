@@ -1,4 +1,22 @@
-import { defineConfig } from "tsdown";
+import { defineConfig, type UserConfig } from "tsdown";
+import { minifyCss } from "./build/minify-css.ts";
+
+/** Minifies the CSS template of `src/styles.ts`, which the JS minifier leaves as is. */
+const minifyStyles = {
+  name: "ivkit:minify-styles",
+  transform(code: string, id: string) {
+    if (!/[\\/]src[\\/]styles\.ts$/.test(id)) return null;
+    let found = false;
+    const result = code.replace(/\/\* css \*\/ `([^`]*)`/, (_, css: string) => {
+      if (css.includes("${")) throw new Error("styles.ts: the CSS can't hold interpolations");
+      found = true;
+      return `\`${minifyCss(css)}\``;
+    });
+    if (!found) throw new Error("styles.ts: no /* css */ template to minify");
+    // Only the inside of one string changes, so the code around it keeps its positions.
+    return { code: result, map: null };
+  },
+};
 
 const shared = {
   format: "esm",
@@ -7,7 +25,8 @@ const shared = {
   minify: true,
   sourcemap: true,
   tsconfig: "tsconfig.build.json",
-} as const;
+  plugins: [minifyStyles],
+} satisfies UserConfig;
 
 export default defineConfig([
   // For bundlers and npm: imports @ivkit/core like any other dependency.

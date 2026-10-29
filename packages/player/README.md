@@ -15,19 +15,20 @@ npm install @ivkit/player
 Or, without a bundler, load the standalone build from a CDN. It's a single ES module that includes the core engine:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.1/dist/ivkit-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.2/dist/ivkit-player.min.js"></script>
 ```
 
-Until 1.0.0, minor versions may include breaking changes, so `@0.1` takes only 0.1.x fixes. See the [changelog](https://daniel-glz.github.io/ivkit/changelog).
+Until 1.0.0, minor versions may include breaking changes, so `@0.2` takes only 0.2.x fixes. See the [changelog](https://daniel-glz.github.io/ivkit/changelog).
 
 ## Usage
 
-Importing the package registers the `<ivkit-player>` element. Give it a story: a set of scenes, each a video with the questions and hotspots that appear while it plays.
+Importing the package, or loading the CDN build, registers the `<ivkit-player>` element. Give it a story: a set of scenes, each a video with the questions and hotspots that appear while it plays.
 
 ```html
 <ivkit-player id="player" controls></ivkit-player>
 
 <script type="module">
+  // With a bundler. Without one, load the CDN build above instead of this import.
   import "@ivkit/player";
 
   const player = document.getElementById("player");

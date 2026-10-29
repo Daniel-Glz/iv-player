@@ -16,7 +16,7 @@ The story marks four chapters of the Artemis I launch with `cue` events of kind 
 
 - It reads every chapter cue of the story and draws a button for each one in its layer, over the video.
 - It highlights the active chapter on each `cues` event.
-- A click jumps to the chapter: within the current scene it seeks the video, and in another scene it calls `goTo()` and seeks once that scene is on screen.
+- A click jumps to the chapter: within the scene playing it calls `engine.seek()`, and otherwise `goTo()` with the chapter's scene and time.
 - It also exports a check for chapter cues, so `validateStory` rejects a chapter without a title. This story passes it: {{ result.valid ? "no errors" : result.errors.map((e) => e.path).join(", ") }}.
 
 <PlayerDemo :story="chaptered" :plugins="[chapters]" log />
@@ -30,3 +30,5 @@ The story marks four chapters of the Artemis I launch with `cue` events of kind 
 ## Story
 
 <<< @/examples/stories/chapters.ts
+
+Learn more: [Cues and data for plugins](/guide/stories#cues-and-data-for-plugins) · [Plugins](/reference/player#plugins) · [Checking plugins' cues](/guide/validation#plugins-cues)

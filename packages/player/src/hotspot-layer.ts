@@ -48,10 +48,24 @@ export class HotspotLayer {
     this.#video = video;
   }
 
-  /** Replaces the hotspots on screen. */
+  /**
+   * Replaces the hotspots on screen. Buttons of hotspots that stay aren't touched, so
+   * they keep focus and their animations; the new ones go in story order around them.
+   */
   render(hotspots: readonly Hotspot[]): void {
-    this.#buttons = new Map(hotspots.map((hotspot) => [hotspot, this.#create(hotspot)]));
-    this.#element.replaceChildren(...this.#buttons.values());
+    const old = this.#buttons;
+    this.#buttons = new Map(
+      hotspots.map((hotspot) => [hotspot, old.get(hotspot) ?? this.#create(hotspot)]),
+    );
+    for (const [hotspot, button] of old) if (!this.#buttons.has(hotspot)) button.remove();
+    let previous: HTMLButtonElement | null = null;
+    for (const button of this.#buttons.values()) {
+      if (button.parentNode !== this.#element) {
+        if (previous) previous.after(button);
+        else this.#element.prepend(button);
+      }
+      previous = button;
+    }
     this.#animated = hotspots.some(isAnimated);
     this.position();
     this.animate();

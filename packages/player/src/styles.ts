@@ -163,7 +163,8 @@ video.front {
   text-align: center;
 }
 
-.question-text {
+.question-text,
+.error-text {
   margin: 0;
   font-size: var(--iv-question-font-size, 1.25em);
 }

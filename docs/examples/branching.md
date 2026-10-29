@@ -21,18 +21,23 @@ The log under the player shows the events `<ivkit-player>` dispatches. Use them 
 ## Page
 
 ```html
-<ivkit-player id="player" controls></ivkit-player>
-
-<script type="module">
-  import "@ivkit/player";
-  import { adventure } from "./adventure.js";
-
-  const player = document.getElementById("player");
-  player.story = adventure;
-  player.addEventListener("iv-answer", (event) => {
-    console.log("Picked", event.detail.choice.id);
-  });
-</script>
+<ivkit-player controls></ivkit-player>
 ```
 
+```ts
+// main.ts, bundled with Vite or similar
+import "@ivkit/player";
+import { adventure } from "./adventure";
+
+const player = document.querySelector("ivkit-player")!;
+player.story = adventure;
+player.addEventListener("iv-answer", (event) => {
+  console.log("Picked", event.detail.choice.id);
+});
+```
+
+Without a bundler, see [Try it in one HTML file](/guide/getting-started#try-it-in-one-html-file).
+
 While the question is showing, the player preloads the scene of the first option, and switches to the chosen scene without a black frame.
+
+Learn more: [Questions](/guide/stories#questions) · [Player events](/reference/player#events)

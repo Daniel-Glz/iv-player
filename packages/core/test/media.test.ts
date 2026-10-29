@@ -384,6 +384,118 @@ describe.each([
     expect(controller.active).toBe(b);
   });
 
+  it("starts a scene at the time goTo() gives, revealing it once it's there", () => {
+    const { engine, a, swaps } = started(options);
+    engine.goTo("right", 3);
+    expect(a.src).toBe("right.mp4");
+    expect(a.currentTime).toBe(3);
+
+    a.finishLoading();
+    expect(swaps).toEqual(["b"]);
+    a.finishSeek();
+    expect(swaps).toEqual(["b", "a"]);
+    expect(a.playing).toBe(true);
+  });
+
+  it("starts a preloaded scene at the time goTo() gives", () => {
+    const { engine, a, swaps } = started(options);
+    a.finishLoading();
+    engine.goTo("left", 2);
+    expect(a.currentTime).toBe(2);
+    expect(swaps).toEqual(["b"]);
+
+    a.finishSeek();
+    expect(swaps).toEqual(["b", "a"]);
+  });
+
+  it("seeks in place when goTo() re-enters the scene on screen at a time", () => {
+    const { engine, controller, b } = started(options);
+    b.advanceTo(2);
+    engine.goTo("intro", 4);
+    expect(b.currentTime).toBe(4);
+
+    b.finishSeek();
+    expect(b.playing).toBe(true);
+    expect(controller.active).toBe(b);
+  });
+
+  it("doesn't play the previous scene while the next one loads", () => {
+    const { engine, controller, a, b } = started(options);
+    b.advanceTo(5);
+    engine.answer("b");
+    controller.play();
+    expect(b.playing).toBe(false);
+
+    b.playing = true;
+    a.finishLoading();
+    expect(b.playing).toBe(false);
+    expect(a.playing).toBe(true);
+  });
+
+  it("seeks the scene loading, not the previous one", () => {
+    const { engine, a, b } = started(options);
+    b.advanceTo(3);
+    engine.goTo("right");
+    engine.seek(2);
+    expect(a.currentTime).toBe(2);
+    expect(b.currentTime).toBe(3);
+  });
+
+  it("reports a scene that fails to load, keeps the last frame, and retries", () => {
+    const { engine, controller, a, b, swaps } = started(options);
+    const errors: unknown[] = [];
+    controller.on("error", ({ media, sceneId, error }) =>
+      errors.push([media.name, sceneId, error]),
+    );
+    b.advanceTo(5);
+    engine.answer("b");
+    a.fail();
+
+    expect(errors).toEqual([["a", "right", { code: 4 }]]);
+    a.finishLoading();
+    controller.play();
+    expect(swaps).toEqual(["b"]);
+    expect(b.playing).toBe(false);
+
+    controller.retry();
+    expect(a.src).toBe("right.mp4");
+    expect(a.error).toBeNull();
+    a.finishLoading();
+    expect(swaps).toEqual(["b", "a"]);
+    expect(a.playing).toBe(true);
+  });
+
+  it("reports the scene playing when it fails, and retries from where it failed", () => {
+    const { controller, a, b, swaps } = started(options);
+    const errors: string[] = [];
+    controller.on("error", ({ sceneId }) => errors.push(sceneId));
+    b.advanceTo(3);
+    b.fail();
+    expect(errors).toEqual(["intro"]);
+
+    controller.retry();
+    expect(a.src).toBe("intro.mp4");
+    expect(a.currentTime).toBe(3);
+    a.finishLoading();
+    a.finishSeek();
+    expect(swaps).toEqual(["b", "a"]);
+  });
+
+  it("loads a failed preload again when its scene comes, without reporting it", () => {
+    const { engine, controller, a, b, swaps } = started(options);
+    const errors: unknown[] = [];
+    controller.on("error", (e) => errors.push(e));
+    a.fail();
+    b.advanceTo(5);
+    engine.answer("a");
+
+    expect(errors).toEqual([]);
+    expect(a.src).toBe("left.mp4");
+    expect(a.error).toBeNull();
+    a.finishLoading();
+    expect(swaps).toEqual(["b", "a"]);
+  });
+
   it("does not preload over a pending swap or the scene on screen", () => {
     const { engine, controller, a, b } = started(options);
     controller.preload("intro");
@@ -399,7 +511,8 @@ describe.each([
     const { engine, controller, b } = setup(options);
     const blocked: unknown[] = [];
     controller.on("blocked", ({ error }) => blocked.push(error));
-    b.playResult = () => Promise.reject(new Error("NotAllowedError"));
+    b.playResult = () =>
+      Promise.reject(Object.assign(new Error("blocked"), { name: "NotAllowedError" }));
     engine.start();
     b.finishLoading();
     await flush();
@@ -410,6 +523,17 @@ describe.each([
     b.playResult = () => Promise.resolve();
     controller.play();
     expect(b.playing).toBe(true);
+  });
+
+  it("reports only the autoplay policy as blocked, not an interrupted play()", async () => {
+    const { engine, controller, b } = setup(options);
+    const blocked: unknown[] = [];
+    controller.on("blocked", ({ error }) => blocked.push(error));
+    b.playResult = () => Promise.reject(Object.assign(new Error("paused"), { name: "AbortError" }));
+    engine.start();
+    b.finishLoading();
+    await flush();
+    expect(blocked).toEqual([]);
   });
 
   it("detaches from the engine and the media on destroy", () => {

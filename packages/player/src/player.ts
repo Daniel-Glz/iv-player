@@ -1,8 +1,10 @@
 import {
+  answerRange,
   MediaController,
   StoryEngine,
   type Choice,
   type EngineEvents,
+  type MediaControllerEvents,
   type Listener,
   type Question,
   type SceneId,
@@ -46,6 +48,7 @@ export interface IvkitPlayerEventMap {
   "iv-hotspot": CustomEvent<EngineEvents["hotspot"]>;
   "iv-cues": CustomEvent<EngineEvents["cues"]>;
   "iv-end": CustomEvent<EngineEvents["end"]>;
+  "iv-error": CustomEvent<MediaControllerEvents<HTMLVideoElement>["error"]>;
 }
 
 // Picture-in-picture would show a single video without overlays, so it's disabled.
@@ -69,6 +72,12 @@ const template = /* html */ `
   <div class="overlay end" part="end" hidden>
     <slot name="end">
       <button class="replay-button" part="replay-button" type="button">Replay</button>
+    </slot>
+  </div>
+  <div class="overlay error" part="error" role="alert" hidden>
+    <slot name="error">
+      <p class="error-text" part="error-text">This video can't be played.</p>
+      <button class="retry-button" part="retry-button" type="button">Try again</button>
     </slot>
   </div>
   <div class="controls" part="controls" hidden>
@@ -101,8 +110,9 @@ const Base: typeof HTMLElement =
  * - `pseudo-fullscreen`: set by the player while it covers the viewport on
  *   devices without element fullscreen (iPhone); style it with `:host([pseudo-fullscreen])`.
  *
- * Slots: `start` (start button content) and `end` (shown when the story ends;
- * defaults to a replay button).
+ * Slots: `start` (start button content), `end` (shown when the story ends;
+ * defaults to a replay button) and `error` (shown when a scene's video fails;
+ * defaults to a message and a button that calls `retry()`).
  *
  * The element wires the story to the shadow DOM; the control bar, fullscreen and
  * hotspot drawing live in their own modules.
@@ -119,6 +129,7 @@ export class IvkitPlayer extends Base {
   readonly #timer: HTMLElement;
   readonly #start: HTMLElement;
   readonly #end: HTMLElement;
+  readonly #error: HTMLElement;
   readonly #controls: Controls;
   readonly #fullscreen: Fullscreen;
   readonly #hotspots: HotspotLayer;
@@ -153,6 +164,7 @@ export class IvkitPlayer extends Base {
     this.#timer = find(".timer");
     this.#start = find(".start");
     this.#end = find(".end");
+    this.#error = find(".error");
     const activeVideo = () => this.#activeVideo();
     this.#controls = new Controls(find, this.#stage, {
       video: activeVideo,
@@ -174,6 +186,7 @@ export class IvkitPlayer extends Base {
 
     find(".start-button").addEventListener("click", () => this.play());
     find(".replay-button").addEventListener("click", () => this.restart());
+    find(".retry-button").addEventListener("click", () => this.retry());
     this.#options.addEventListener("click", (event) => {
       const button = buttonOf(event);
       if (!button) return;
@@ -210,7 +223,11 @@ export class IvkitPlayer extends Base {
           if (video === this.#activeVideo()) this.#controls.render();
         });
       }
-      video.addEventListener("play", () => this.#controls.wake());
+      video.addEventListener("play", () => {
+        // A scene that finishes loading after the player left the page mustn't play there.
+        if (!this.isConnected) video.pause();
+        this.#controls.wake();
+      });
     }
 
     this.addEventListener("keydown", (event) => {
@@ -240,14 +257,21 @@ export class IvkitPlayer extends Base {
     this.#fullscreen.connect();
     this.#makeFocusable();
     this.#hotspots.animate();
+    this.#engine?.resumeTimeout();
   }
 
+  /** Pauses the story while off the page, question timeouts included, until it's back. */
   disconnectedCallback(): void {
     this.#resizeObserver?.disconnect();
     this.#fullscreen.disconnect();
     this.#hotspots.stop();
     this.#controls.sleep();
     this.pause();
+    this.#engine?.pauseTimeout();
+    // The countdown restarts when the player is back; make it go on from where it was.
+    const bar = this.#timer.firstElementChild as HTMLElement | null;
+    const elapsed = bar?.getAnimations?.()[0]?.currentTime;
+    if (bar && typeof elapsed === "number") bar.style.animationDelay = `${-elapsed}ms`;
   }
 
   attributeChangedCallback(name: string): void {
@@ -265,11 +289,12 @@ export class IvkitPlayer extends Base {
   }
 
   set story(story: Story | null) {
+    // Throws for a story without its start scene, before the current one is touched.
+    const engine = story && new StoryEngine(story);
     this.#reset();
     this.#story = story;
-    if (!story) return;
+    if (!engine) return;
 
-    const engine = new StoryEngine(story);
     const controller = new MediaController(engine, this.#videos);
     this.#engine = engine;
     this.#controller = controller;
@@ -285,13 +310,20 @@ export class IvkitPlayer extends Base {
       this.#start.hidden = false;
       this.#updateControlsVisibility();
     });
+    controller.on("error", (detail) => {
+      this.#start.hidden = true;
+      this.#error.hidden = false;
+      this.#updateControlsVisibility();
+      this.#emit("iv-error", detail);
+    });
 
     const on = <K extends keyof EngineEvents>(type: K, listener: Listener<EngineEvents[K]>) =>
-      this.#on(engine, type, listener);
+      engine.on(type, listener);
     on("scene", (detail) => {
       // A scene change can interrupt a question, e.g. restart() or goTo() while it's showing.
       this.#question.hidden = true;
       this.#end.hidden = true;
+      this.#error.hidden = true;
       this.#updateControlsVisibility();
       this.#emit("iv-scene", detail);
     });
@@ -341,7 +373,7 @@ export class IvkitPlayer extends Base {
    * content (an SVG shape and a hidden label) already inside. Use it to restyle,
    * add or replace content; the player keeps positioning and sizing the button.
    * Clicks are taken by the default shape, so if you remove it, give your content
-   * `pointer-events: auto`. Applies from the next time hotspots are drawn.
+   * `pointer-events: auto`. Applies to the hotspots that appear from then on.
    */
   get renderHotspot(): HotspotRenderer | null {
     return this.#hotspots.renderer;
@@ -387,19 +419,29 @@ export class IvkitPlayer extends Base {
     this.#controller?.pause();
   }
 
-  /** Plays the story again from its start scene. */
+  /** Plays the story again from its start scene, with its variables back to their initial values. */
   restart(): void {
-    if (this.#story) this.goTo(this.#story.start);
+    if (!this.#engine) return;
+    this.#start.hidden = true;
+    this.#engine.start();
   }
 
   /**
-   * Jumps to the scene `sceneId` and plays it, dismissing the question on screen, if any.
-   * Use it to resume a saved story or to build chapter menus. Throws if the scene doesn't exist.
+   * Jumps to the scene `sceneId` and plays it from `time` (seconds), dismissing the
+   * question on screen, if any. Use it to resume a saved story or to build chapter
+   * menus. Throws if the scene doesn't exist.
    */
-  goTo(sceneId: SceneId): void {
+  goTo(sceneId: SceneId, time = 0): void {
     if (!this.#engine) return;
     this.#start.hidden = true;
-    this.#engine.goTo(sceneId);
+    this.#engine.goTo(sceneId, time);
+  }
+
+  /** Loads the scene whose video failed (see `iv-error`) again, from where it failed. */
+  retry(): void {
+    this.#error.hidden = true;
+    this.#updateControlsVisibility();
+    this.#controller?.retry();
   }
 
   /** Whether the player fills the screen, natively or through the iPhone fallback. */
@@ -422,6 +464,8 @@ export class IvkitPlayer extends Base {
     }
     this.#controller?.destroy();
     this.#controller = null;
+    // Also cancels a question's timeout, which would make the old engine go on.
+    this.#engine?.destroy();
     this.#engine = null;
     for (const video of this.#videos) {
       video.pause();
@@ -430,22 +474,15 @@ export class IvkitPlayer extends Base {
     this.#question.hidden = true;
     this.#start.hidden = true;
     this.#end.hidden = true;
+    this.#error.hidden = true;
     this.#hotspots.render([]);
     this.#updateControlsVisibility();
   }
 
-  /** Subscribes to `engine`, ignoring it once replaced: it may still emit, e.g. when a question's timeout runs out. */
-  #on<K extends keyof EngineEvents>(
-    engine: StoryEngine,
-    type: K,
-    listener: Listener<EngineEvents[K]>,
-  ): () => void {
-    return engine.on(type, (detail) => {
-      if (engine === this.#engine) listener(detail);
-    });
-  }
-
-  /** Runs `plugin` for the current story, if any, in a new layer. */
+  /**
+   * Runs `plugin` for the current story, if any, in a new layer. A plugin that throws,
+   * running or cleaning up, has its error reported without stopping the player.
+   */
   #run(plugin: PlayerPlugin): void {
     const engine = this.#engine;
     const media = this.#controller;
@@ -454,18 +491,27 @@ export class IvkitPlayer extends Base {
     layer.setAttribute("part", "plugin");
     this.#layers.append(layer);
     const offs: (() => void)[] = [];
-    const cleanup = plugin({
-      player: this,
-      engine,
-      media,
-      layer,
-      on: (type, listener) => {
-        offs.push(this.#on(engine, type, listener));
-      },
-    });
+    let cleanup: ReturnType<PlayerPlugin>;
+    try {
+      cleanup = plugin({
+        player: this,
+        engine,
+        media,
+        layer,
+        on: (type, listener) => {
+          offs.push(engine.on(type, listener));
+        },
+      });
+    } catch (error) {
+      report(error);
+    }
     this.#plugins.set(plugin, () => {
       for (const off of offs) off();
-      cleanup?.();
+      try {
+        cleanup?.();
+      } catch (error) {
+        report(error);
+      }
       layer.remove();
     });
   }
@@ -494,7 +540,7 @@ export class IvkitPlayer extends Base {
     }
   }
 
-  /** Controls are hidden over the start, question and end screens. */
+  /** Controls are hidden over the start, question, end and error screens. */
   #updateControlsVisibility(): void {
     const state = this.#engine?.state;
     this.#controls.element.hidden =
@@ -503,6 +549,7 @@ export class IvkitPlayer extends Base {
       state === "idle" ||
       state === "interacting" ||
       state === "ended" ||
+      !this.#error.hidden ||
       !this.#start.hidden;
   }
 
@@ -524,7 +571,7 @@ export class IvkitPlayer extends Base {
         return button;
       }),
     );
-    this.#range = [Math.min(question.min ?? 1, options.length), question.max ?? options.length];
+    this.#range = answerRange(question, options.length);
     this.#submit.hidden = !multiple;
     // A new bar restarts the countdown animation.
     const bar = document.createElement("div");
@@ -561,4 +608,11 @@ export class IvkitPlayer extends Base {
 function buttonOf(event: Event): HTMLElement | null {
   const target = event.target;
   return target instanceof Element ? target.closest<HTMLElement>("button[data-id]") : null;
+}
+
+/** Reports `error` without stopping the caller, like an error in an event listener. */
+function report(error: unknown): void {
+  queueMicrotask(() => {
+    throw error;
+  });
 }

@@ -4,7 +4,9 @@ description: "Live examples of IVKit: branching stories, quizzes, hotspots, obje
 
 # Examples
 
-Every example on these pages is a live player running the current version of the library. Click Play, answer questions and click hotspots, then look at the story and code under each one.
+Every example on these pages is a live player running the latest code of the library, which may include features that aren't on npm yet. The [changelog](/changelog) lists those under Unreleased. Click Play, answer questions and click hotspots, then look at the story and code under each one.
+
+The stories get their video URLs from a small `video("name")` helper that points to this site's clips. In your own stories, use your videos' URLs instead.
 
 | Example | What it shows |
 | --- | --- |

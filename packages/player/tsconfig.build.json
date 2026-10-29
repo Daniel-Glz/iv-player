@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
+    "allowImportingTsExtensions": false,
     "rootDir": "src",
     "outDir": "dist",
     // Resolve core through its published entry (dist), like consumers do.

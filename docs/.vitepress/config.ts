@@ -28,6 +28,19 @@ export default defineConfig({
   vue: {
     template: { compilerOptions: { isCustomElement: (tag) => tag === "ivkit-player" } },
   },
+  markdown: {
+    config(md) {
+      // Keep components such as <Unreleased /> out of the headings' permalink labels.
+      md.core.ruler.push("permalink_label", (state) => {
+        for (const token of state.tokens) {
+          for (const child of token.type === "inline" ? (token.children ?? []) : []) {
+            const label = child.type === "link_open" ? child.attrGet("aria-label") : null;
+            if (label) child.attrSet("aria-label", label.replace(/\s*<[A-Z][^>]*\/>/g, ""));
+          }
+        }
+      });
+    },
+  },
   lastUpdated: true,
   sitemap: { hostname: site },
   head: [
@@ -106,6 +119,10 @@ export default defineConfig({
         {
           text: "Without the player",
           items: [{ text: "Custom players with core", link: "/guide/core" }],
+        },
+        {
+          text: "Help",
+          items: [{ text: "Troubleshooting", link: "/guide/troubleshooting" }],
         },
       ],
       "/examples/": [

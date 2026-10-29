@@ -128,8 +128,8 @@ import { story } from "../stories/intro";
 <script>
   import "@ivkit/player";
 
-  const player = document.getElementById("player")!;
-  player.story = JSON.parse(player.dataset.story!);
+  const player = document.querySelector("ivkit-player")!;
+  player.story = JSON.parse(player.dataset["story"]!);
 </script>
 ```
 

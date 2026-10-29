@@ -32,3 +32,5 @@ player.addEventListener("iv-answer", (event) => {
   }
 });
 ```
+
+Learn more: [Branching and loops](/guide/stories#branching-and-loops) · [Correct answers and replays](/guide/stories#correct-answers-and-replays) · [Player events](/reference/player#events)

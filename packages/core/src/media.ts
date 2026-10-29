@@ -15,6 +15,8 @@ export interface MediaElement {
   currentTime: number;
   readonly readyState: number;
   readonly seeking: boolean;
+  /** Why the element failed, reported with the controller's `error` event. Optional. */
+  readonly error?: unknown;
   play(): Promise<void>;
   pause(): void;
   addEventListener(type: string, listener: () => void): void;
@@ -33,8 +35,14 @@ export type VideoFrameCallback = (now: number, metadata: { mediaTime: number }) 
 export interface MediaControllerEvents<M extends MediaElement> {
   /** Put `active` on top and hide `inactive`. The very first swap reveals the first scene. */
   swap: { active: M; inactive: M };
-  /** `play()` was rejected, typically by the autoplay policy: ask for a user gesture, then call `play()`. */
+  /** `play()` was rejected by the autoplay policy: ask for a user gesture, then call `play()`. */
   blocked: { media: M; error: unknown };
+  /**
+   * The scene `sceneId` couldn't be loaded or played, e.g. its video is missing or in a
+   * format the browser can't play. `error` is the element's, e.g. a `MediaError`. The
+   * previous frame stays on screen; call `retry()` to load the scene again.
+   */
+  error: { media: M; sceneId: SceneId; error: unknown };
   /**
    * The active element reached `time`, just reported to the engine: once per presented
    * frame, or on `timeupdate` while frames don't arrive. Use it to sync anything drawn
@@ -62,25 +70,26 @@ export interface MediaControllerEvents<M extends MediaElement> {
 export class MediaController<M extends MediaElement = MediaElement> extends Emitter<
   MediaControllerEvents<M>
 > {
-  private front: M;
-  private back: M;
+  #front: M;
+  #back: M;
   /** Source assigned to each element; `element.src` can't be compared because it resolves URLs. */
-  private readonly srcs = new Map<M, string>();
+  readonly #srcs = new Map<M, string>();
   /** The back element is reserved for a pending swap, so preloads must not touch it. */
-  private swapping = false;
-  private cancelWait: (() => void) | null = null;
-  private readonly cleanups: (() => void)[] = [];
+  #swapping = false;
+  #cancelWait: (() => void) | null = null;
+  /** Scene that failed with `error` and the time it failed at, for `retry()`. */
+  #failed: { scene: Scene; time: number } | null = null;
+  readonly #cleanups: (() => void)[] = [];
+  readonly #engine: StoryEngine;
 
-  constructor(
-    private readonly engine: StoryEngine,
-    media: readonly [M, M],
-  ) {
+  constructor(engine: StoryEngine, media: readonly [M, M]) {
     super();
-    [this.front, this.back] = media;
+    this.#engine = engine;
+    [this.#front, this.#back] = media;
 
     for (const element of media) {
       // Only the front element drives the story; the back one is just buffering.
-      const isDriving = () => element === this.front && !this.swapping;
+      const isDriving = () => element === this.#front && !this.#swapping;
       const drive = (time: number) => {
         if (!isDriving()) return;
         engine.update(time);
@@ -92,36 +101,49 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       // since the previous one; mixing both would let the time jitter back and forth,
       // flickering hotspots at their boundaries.
       let sawFrame = false;
-      this.trackFrames(element, (mediaTime) => {
+      this.#trackFrames(element, (mediaTime) => {
         sawFrame = true;
         drive(mediaTime);
       });
-      this.listen(element, "timeupdate", () => {
+      this.#listen(element, "timeupdate", () => {
         if (sawFrame) {
           sawFrame = false;
           return;
         }
         drive(element.currentTime);
       });
-      this.listen(element, "ended", () => {
+      this.#listen(element, "ended", () => {
         if (isDriving()) engine.mediaEnded();
+      });
+      this.#listen(element, "error", () => {
+        // Forgetting the source makes loading the scene again fetch it again.
+        this.#srcs.delete(element);
+        // A failed preload is only loaded again when its scene comes.
+        if (element === this.#back && !this.#swapping) return;
+        const sceneId = engine.currentSceneId;
+        const scene = sceneId === null ? undefined : engine.story.scenes[sceneId];
+        if (sceneId === null || !scene) return;
+        this.#cancelWait?.();
+        this.#failed = { scene, time: element.currentTime };
+        this.emit("error", { media: element, sceneId, error: element.error });
       });
     }
 
-    this.cleanups.push(
-      engine.on("scene", ({ scene }) => this.enter(scene)),
+    this.#cleanups.push(
+      engine.on("scene", ({ scene, time }) => this.#enter(scene, time)),
       engine.on("interaction", ({ question, options }) => {
-        this.pauseAt(question.at);
+        this.#pauseAt(question.at);
         const goto = firstTarget([...options, question]);
         if (goto !== undefined) this.preload(goto);
       }),
       engine.on("resume", ({ time }) => {
-        // Answers resume where they paused; `seek` jumps elsewhere.
-        if (this.front.currentTime !== time) this.front.currentTime = time;
+        // Answers resume where they paused; `seek` jumps elsewhere, in the scene loading if any.
+        const media = this.#swapping ? this.#back : this.#front;
+        if (media.currentTime !== time) media.currentTime = time;
         this.play();
       }),
       engine.on("pause", ({ hotspot }) => {
-        this.pauseAt(hotspot.from);
+        this.#pauseAt(hotspot.from);
         const goto = targetOf(hotspot);
         if (goto !== undefined) this.preload(goto);
       }),
@@ -134,17 +156,32 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
 
   /** Element currently on top. */
   get active(): M {
-    return this.front;
+    return this.#front;
   }
 
-  /** Plays the active element, e.g. after a `blocked` event or a user pause. */
+  /**
+   * Plays the active element, e.g. after a `blocked` event or a user pause. Does nothing
+   * while the next scene loads: the active element only holds the previous one's last frame.
+   */
   play(): void {
-    if (this.engine.state !== "playing") return;
-    this.front.play().catch((error: unknown) => this.emit("blocked", { media: this.front, error }));
+    if (this.#engine.state !== "playing" || this.#swapping) return;
+    const media = this.#front;
+    media.play().catch((error: unknown) => {
+      // A pause or a new source interrupting `play()` needs nothing, and failures are `error`s.
+      if ((error as { name?: unknown } | null)?.name === "NotAllowedError") {
+        this.emit("blocked", { media, error });
+      }
+    });
+  }
+
+  /** Loads the scene of the last `error` again, from where it failed. */
+  retry(): void {
+    const failed = this.#failed;
+    if (failed) this.#enter(failed.scene, failed.time);
   }
 
   pause(): void {
-    this.front.pause();
+    this.#front.pause();
   }
 
   /**
@@ -153,32 +190,35 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
    * e.g. when the viewer hovers an option.
    */
   preload(sceneId: SceneId): void {
-    if (this.swapping) return;
-    const src = this.engine.story.scenes[sceneId]?.src;
-    if (src === undefined || src === this.srcs.get(this.front)) return;
-    this.load(this.back, src);
+    if (this.#swapping) return;
+    const src = this.#engine.story.scenes[sceneId]?.src;
+    if (src === undefined || src === this.#srcs.get(this.#front)) return;
+    this.#load(this.#back, src);
   }
 
   /** Detaches from the engine and the media elements. */
   destroy(): void {
-    this.cancelWait?.();
-    for (const cleanup of this.cleanups.splice(0)) cleanup();
+    this.#cancelWait?.();
+    for (const cleanup of this.#cleanups.splice(0)) cleanup();
   }
 
-  private enter(scene: Scene): void {
-    this.cancelWait?.();
+  #enter(scene: Scene, time: number): void {
+    this.#cancelWait?.();
+    this.#failed = null;
     // Re-entering the scene on screen (e.g. a loop) just rewinds it; anything else goes to the back.
-    const target = this.srcs.get(this.front) === scene.src ? this.front : this.back;
-    this.swapping = target === this.back;
-    this.front.pause();
-    this.load(target, scene.src);
+    const target = this.#srcs.get(this.#front) === scene.src ? this.#front : this.#back;
+    this.#swapping = target === this.#back;
+    this.#front.pause();
+    this.#load(target, scene.src, time);
 
-    this.whenReady(target, () => {
-      if (target !== this.front) {
-        [this.front, this.back] = [this.back, this.front];
-        this.emit("swap", { active: this.front, inactive: this.back });
+    this.#whenReady(target, () => {
+      if (target !== this.#front) {
+        [this.#front, this.#back] = [this.#back, this.#front];
+        // In case something played the previous scene meanwhile.
+        this.#back.pause();
+        this.emit("swap", { active: this.#front, inactive: this.#back });
       }
-      this.swapping = false;
+      this.#swapping = false;
       this.play();
       const next = scene.branches?.[0]?.goto ?? scene.next ?? firstGoto(scene);
       if (next !== undefined) this.preload(next);
@@ -189,24 +229,26 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
    * Pauses on the exact frame of a question or a pausing hotspot: the time that triggered
    * it is usually a bit past `time` (up to a frame with frame callbacks, ~250ms with `timeupdate`).
    */
-  private pauseAt(time: number): void {
-    this.front.pause();
-    if (this.front.currentTime > time) this.front.currentTime = time;
+  #pauseAt(time: number): void {
+    this.#front.pause();
+    if (this.#front.currentTime > time) this.#front.currentTime = time;
   }
 
-  /** Points `element` at `src` from the start, reusing what it buffered if it's the same source. */
-  private load(element: M, src: string): void {
-    if (this.srcs.get(element) !== src) {
+  /** Points `element` at `src` from `time`, reusing what it buffered if it's the same source. */
+  #load(element: M, src: string, time = 0): void {
+    if (this.#srcs.get(element) !== src) {
       element.preload = "auto";
       element.src = src;
-      this.srcs.set(element, src);
-    } else if (element.currentTime !== 0) {
-      element.currentTime = 0;
+      this.#srcs.set(element, src);
+      // Before the media loads, this sets where it starts playing.
+      if (time !== 0) element.currentTime = time;
+    } else if (element.currentTime !== time) {
+      element.currentTime = time;
     }
   }
 
   /** Calls `callback` once `element` can draw its current frame. */
-  private whenReady(element: M, callback: () => void): void {
+  #whenReady(element: M, callback: () => void): void {
     const isReady = () => element.readyState >= HAVE_CURRENT_DATA && !element.seeking;
     if (isReady()) {
       callback();
@@ -220,18 +262,18 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
     const stop = () => {
       element.removeEventListener("loadeddata", check);
       element.removeEventListener("seeked", check);
-      this.cancelWait = null;
+      this.#cancelWait = null;
     };
     element.addEventListener("loadeddata", check);
     element.addEventListener("seeked", check);
-    this.cancelWait = stop;
+    this.#cancelWait = stop;
   }
 
   /**
    * Calls `onFrame` with the exact media time of every frame `element` presents.
    * Does nothing if the element doesn't support `requestVideoFrameCallback`.
    */
-  private trackFrames(element: M, onFrame: (mediaTime: number) => void): void {
+  #trackFrames(element: M, onFrame: (mediaTime: number) => void): void {
     if (!element.requestVideoFrameCallback) return;
     let handle: number | undefined;
     let stopped = false;
@@ -242,15 +284,15 @@ export class MediaController<M extends MediaElement = MediaElement> extends Emit
       handle = element.requestVideoFrameCallback?.(callback);
     };
     handle = element.requestVideoFrameCallback(callback);
-    this.cleanups.push(() => {
+    this.#cleanups.push(() => {
       stopped = true;
       if (handle !== undefined) element.cancelVideoFrameCallback?.(handle);
     });
   }
 
-  private listen(element: M, type: string, listener: () => void): void {
+  #listen(element: M, type: string, listener: () => void): void {
     element.addEventListener(type, listener);
-    this.cleanups.push(() => element.removeEventListener(type, listener));
+    this.#cleanups.push(() => element.removeEventListener(type, listener));
   }
 }
 

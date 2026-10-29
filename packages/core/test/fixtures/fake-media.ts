@@ -16,6 +16,7 @@ export class FakeMedia implements MediaElement {
   readyState = 0;
   seeking = false;
   playing = false;
+  error: unknown = null;
   /** Result of the next `play()` calls; swap it to simulate autoplay being blocked. */
   playResult: () => Promise<void> = () => Promise.resolve();
 
@@ -48,6 +49,7 @@ export class FakeMedia implements MediaElement {
   /** Like a real element, a new source discards the buffered data. */
   set src(value: string) {
     this._src = value;
+    this.error = null;
     this._currentTime = 0;
     this.readyState = 0;
     this.seeking = false;
@@ -119,6 +121,12 @@ export class FakeMedia implements MediaElement {
   finishLoading(): void {
     this.readyState = 4;
     this.dispatch("loadeddata");
+  }
+
+  /** Loading or playing fails, e.g. the file is missing. */
+  fail(error: unknown = { code: 4 }): void {
+    this.error = error;
+    this.dispatch("error");
   }
 
   finishSeek(): void {

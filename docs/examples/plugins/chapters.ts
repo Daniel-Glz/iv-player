@@ -40,7 +40,7 @@ const css = /* css */ `
  * Shows every chapter cue of the story as a button, highlights the active one and
  * jumps to a chapter on click, in its own scene or in another one.
  */
-export const chapters: PlayerPlugin = ({ player, engine, media, layer, on }) => {
+export const chapters: PlayerPlugin = ({ player, engine, layer, on }) => {
   const list = Object.entries(engine.story.scenes).flatMap(([sceneId, scene]) =>
     (scene.events ?? [])
       .filter((event): event is Cue => event.type === "cue" && event.kind === "chapter")
@@ -65,26 +65,14 @@ export const chapters: PlayerPlugin = ({ player, engine, media, layer, on }) => 
   nav.append(...buttons);
   layer.append(style, nav);
 
-  // A chapter in another scene starts once that scene's video is on screen.
-  let pending: number | null = null;
+  // Seeks within the scene playing; otherwise enters the chapter's scene at its time.
   const jump = (sceneId: SceneId, time: number) => {
-    if (sceneId === engine.currentSceneId && engine.state !== "ended") {
-      media.active.currentTime = time;
-      player.play();
-    } else {
-      pending = time;
-      player.goTo(sceneId);
-    }
+    if (sceneId !== engine.currentSceneId || !engine.seek(time)) player.goTo(sceneId, time);
   };
-  const off = media.on("swap", ({ active }) => {
-    if (pending !== null && pending > 0) active.currentTime = pending;
-    pending = null;
-  });
 
   on("cues", ({ cues }) => {
     list.forEach(({ cue }, i) => {
       buttons[i]?.setAttribute("aria-current", String(cues.includes(cue)));
     });
   });
-  return off;
 };

@@ -25,3 +25,5 @@ The log shows the player's events, with the variables after each one.
 ## Story
 
 <<< @/examples/stories/timed-quiz.ts
+
+Learn more: [Time limits](/guide/stories#time-limits) · [Variables and conditions](/guide/stories#variables-and-conditions) · [Story format](/reference/story-format)

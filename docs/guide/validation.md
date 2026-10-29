@@ -35,8 +35,8 @@ All errors are reported at once, not just the first one.
 
 | `code` | Meaning | Example |
 | --- | --- | --- |
-| `invalid_type` | The field has the wrong type. | `scenes` is an array instead of an object. |
-| `invalid_value` | The type is right but the value isn't allowed. | A negative time, an empty string, a question without options, a hotspot whose `to` isn't after `from`, an area outside the frame. |
+| `invalid_type` | An object, array, boolean or number field has the wrong type. | `scenes` is an array instead of an object. |
+| `invalid_value` | The value isn't allowed, including a missing or non-string text field and a time that isn't a non-negative number. | A negative time, an empty string, `src: 3`, a question without options, a hotspot whose `to` isn't after `from`, an area outside the frame. |
 | `duplicate_id` | An id is used twice. | Two hotspots with the id `"map"`. |
 | `missing_scene` | `start`, `next` or `goto` names a scene that doesn't exist. | `goto: "forst"` |
 | `missing_geometry` | A hotspot has no geometry for its shape. | A `polygon` without `points`. |
