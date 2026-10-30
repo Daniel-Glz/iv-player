@@ -93,7 +93,7 @@ The installed version of `@ivkit/core`, the same as in its `package.json`. Usefu
 ```ts
 import { VERSION } from "@ivkit/core";
 
-console.log(VERSION); // "0.2.0"
+console.log(VERSION); // "0.3.0"
 ```
 
 `@ivkit/core` 0.1.0 reports `"0.0.0"` here by mistake. That's fixed in 0.1.1.

@@ -7,7 +7,7 @@ description: "Fixes for common IVKit problems: a player that stays empty, blocke
 ## The player stays empty
 
 - **The element isn't defined.** Something must import `@ivkit/player`, or load the [CDN build](/guide/getting-started#try-it-in-one-html-file), in the browser. In a plain HTML page without a bundler, `import "@ivkit/player"` fails, because browsers can't resolve package names: use the CDN build there.
-- **`story` was set as an attribute.** A story is an object, so set it as a property: `player.story = story`. In React 19, `story={story}` does that. React 18 and earlier set it as an attribute instead, so set it from a ref in an effect, or use [`@ivkit/react`](/guide/react) <Unreleased />, which sets it as a property in both.
+- **`story` was set as an attribute.** A story is an object, so set it as a property: `player.story = story`. In React 19, `story={story}` does that. React 18 and earlier set it as an attribute instead, so set it from a ref in an effect, or use [`@ivkit/react`](/guide/react), which sets it as a property in both.
 - **The story is invalid.** Setting a story whose `start` isn't one of its scenes throws. Other mistakes, like a `goto` to a missing scene, only throw when playback reaches them. Run stories from JSON, an API or a CMS through [`validateStory`](/guide/validation) first.
 - **Vue warns "Failed to resolve component".** Tell the compiler that `ivkit-player` is a custom element with [`isCustomElement`](/guide/getting-started#using-it-from-a-framework).
 

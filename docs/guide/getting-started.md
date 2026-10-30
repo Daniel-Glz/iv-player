@@ -25,7 +25,7 @@ Save this as `index.html`. It loads the player from a CDN and uses the example v
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.2/dist/ivkit-player.min.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.3/dist/ivkit-player.min.js"></script>
   </head>
   <body>
     <ivkit-player id="player" controls></ivkit-player>
@@ -105,7 +105,7 @@ player.story = story;
 
 `@ivkit/player` includes the engine from `@ivkit/core`. To import from `@ivkit/core` in your own code, such as the `Story` type or [`validateStory`](/guide/validation), add it too, at the same version.
 
-Until 1.0.0, minor versions may include breaking changes. The `^0.2.0` range that npm saves only accepts 0.2.x updates, and the CDN address above uses `@0.2` for the same reason. The [changelog](/changelog) lists what changes in each version.
+Until 1.0.0, minor versions may include breaking changes. The `^0.3.0` range that npm saves only accepts 0.3.x updates, and the CDN address above uses `@0.3` for the same reason. The [changelog](/changelog) lists what changes in each version.
 
 ::: tip Autoplay
 Add the `autoplay` attribute to start as soon as a story is set. Browsers usually block autoplay with sound, so combine it with `muted`. If playback is blocked, the player shows the Play button again.
@@ -165,7 +165,7 @@ import { story } from "./story";
 
 :::
 
-For React, [`@ivkit/react`](/guide/react) <Unreleased /> wraps the element in a component with typed props and event callbacks, and works in React 18 too.
+For React, [`@ivkit/react`](/guide/react) wraps the element in a component with typed props and event callbacks, and works in React 18 too.
 
 In Vue, tell the compiler that `ivkit-player` is a custom element, in `vite.config.ts`:
 
