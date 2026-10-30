@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-30
+
+A React component for the player, in the new `@ivkit/react` package.
+
 ### Added
 
 - `@ivkit/react`: a new package with an `IvkitPlayer` React component for React 18 and 19. It sets `story`, `renderHotspot` and `plugins` as properties, takes `controls`, `autoplay` and `muted` as boolean props, turns each event into a typed callback such as `onAnswer`, renders children into the player's slots and forwards its ref to the element. It's a client component, so server components can render it.
@@ -91,7 +95,8 @@ The first release of `@ivkit/core`.
 - Safe to import during server-side rendering. React Server Components, Cloudflare Workers and Vercel Edge get a server build without DOM code.
 - A standalone build, `ivkit-player.min.js`, that includes core and loads straight from a CDN, under an 8 KiB gzip budget.
 
-[Unreleased]: https://github.com/Daniel-Glz/ivkit/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Daniel-Glz/ivkit/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Daniel-Glz/ivkit/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Daniel-Glz/ivkit/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Daniel-Glz/ivkit/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Daniel-Glz/ivkit/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Headless engine for building interactive video experiences: questions, clickable hotspots, quizzes and branching, behind any interface you build. No dependencies.",
   "license": "Apache-2.0",
   "author": "Alexis Gonzalez",

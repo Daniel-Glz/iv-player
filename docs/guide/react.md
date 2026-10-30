@@ -2,7 +2,7 @@
 description: "Use IVKit in React 18 and 19 with @ivkit/react: a typed component with event callbacks, plugins, slots and a ref to the player."
 ---
 
-# React <Unreleased />
+# React
 
 `<ivkit-player>` works in React as is, but React only gets so far with custom elements: you declare the tag for JSX yourself, listen to events through a ref, and in React 18 set `story` from an effect. `@ivkit/react` does that for you. It's a thin component around the element, for React 18 and 19.
 

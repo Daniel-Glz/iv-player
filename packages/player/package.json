@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/player",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Web Component for building interactive video experiences: questions, clickable hotspots, quizzes and branching, with controls and theming. Works in plain HTML, React, Vue and Svelte. Under 9.5 KiB gzip.",
   "license": "Apache-2.0",
   "author": "Alexis Gonzalez",

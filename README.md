@@ -6,6 +6,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@ivkit/player"><img src="https://img.shields.io/npm/v/@ivkit/player?label=%40ivkit%2Fplayer" alt="npm: @ivkit/player"></a>
+  <a href="https://www.npmjs.com/package/@ivkit/react"><img src="https://img.shields.io/npm/v/@ivkit/react?label=%40ivkit%2Freact" alt="npm: @ivkit/react"></a>
   <a href="https://www.npmjs.com/package/@ivkit/core"><img src="https://img.shields.io/npm/v/@ivkit/core?label=%40ivkit%2Fcore" alt="npm: @ivkit/core"></a>
   <a href="https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml"><img src="https://github.com/Daniel-Glz/ivkit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache 2.0"></a>
@@ -34,7 +35,7 @@ IVKit works with its ready-made player or without it. Both read the same [story 
 This page plays a video that stops at second 4 and asks where to go, using the example videos of the documentation. It loads the player from a CDN, so it needs no build step:
 
 ```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.2/dist/ivkit-player.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@ivkit/player@0.3/dist/ivkit-player.min.js"></script>
 
 <ivkit-player id="player" controls></ivkit-player>
 

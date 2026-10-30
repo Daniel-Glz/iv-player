@@ -1,6 +1,6 @@
 {
   "name": "@ivkit/react",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "React component for building interactive video experiences: questions, clickable hotspots, quizzes and branching, with typed props and event callbacks. Wraps <ivkit-player> for React 18 and 19.",
   "license": "Apache-2.0",
   "author": "Alexis Gonzalez",
