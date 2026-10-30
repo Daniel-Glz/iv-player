@@ -11,5 +11,5 @@ export default defineConfig({
   tsconfig: "tsconfig.build.json",
   // Bundling drops module directives; React Server Components need this one to
   // render the component from a server component.
-  banner: '"use client";',
+  banner: { js: '"use client";' },
 });
